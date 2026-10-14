@@ -1,0 +1,295 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Пиксель Пак</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Golos+Text:wght@400;500;700&display=swap">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="hub-sdk.js"></script>
+<style>
+/* Layout: phone-first library of games. Header with profile, genre chips, featured game, 2-col catalog.
+   A game opens full-screen in an iframe on top. Single deliberate dark "arcade cabinet" look. */
+:root{
+  --bg:#14111e; --panel:#1e1a2d; --panel-2:#272238; --line:#3a3352;
+  --text:#f1eefa; --muted:#a39cbc; --gold:#ffd84a; --gold-edge:#7a5a10; --hot:#ff5f8f;
+  --pixel:'Press Start 2P', 'Courier New', monospace;
+  --body:'Golos Text', 'Segoe UI', system-ui, sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg); color:var(--text); font-family:var(--body); font-size:15px; line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); padding-block:0 32px}
+.wrap{max-width:520px; margin:0 auto; display:flex; flex-direction:column; gap:22px}
+button{font-family:inherit; cursor:pointer; color:inherit}
+button:focus-visible,a:focus-visible{outline:2px dashed var(--gold); outline-offset:3px}
+
+header{display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:18px}
+.logo{font-family:var(--pixel); font-size:15px; line-height:1.3; letter-spacing:.04em; text-shadow:2px 2px 0 var(--hot); margin:0}
+.logo small{display:block; font-family:var(--body); font-size:12px; color:var(--muted); text-shadow:none; letter-spacing:0; margin-top:6px}
+.me{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--muted); min-width:0}
+.me b{color:var(--text); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px}
+.av{width:40px; height:40px; border-radius:50%; border:2px solid var(--line); display:flex; align-items:center; justify-content:center;
+  font-weight:700; color:#fff; overflow:hidden; flex:none; box-sizing:border-box}
+.av img{width:100%; height:100%; object-fit:cover}
+.av.sm{width:24px; height:24px; font-size:11px; border-width:2px; border-color:var(--panel)}
+
+.feat{background:var(--panel); border:2px solid var(--line); display:grid; grid-template-columns:minmax(0,1fr); overflow:hidden}
+.feat canvas{width:100%; aspect-ratio:12/5; display:block; image-rendering:pixelated; background:#000}
+.feat-body{padding:14px 16px 16px; display:flex; flex-direction:column; gap:10px}
+.eyebrow{font-family:var(--pixel); font-size:9px; letter-spacing:.12em; color:var(--hot)}
+.feat h2{font-family:var(--pixel); font-size:18px; margin:0; font-weight:400; letter-spacing:.03em}
+.feat p{margin:0; color:var(--muted); max-width:46ch}
+.row{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+.play{font-family:var(--pixel); font-size:12px; background:var(--gold); color:#1a1408; border:0; padding:12px 18px; box-shadow:3px 3px 0 var(--gold-edge)}
+.play:active{transform:translate(2px,2px); box-shadow:1px 1px 0 var(--gold-edge)}
+
+.chips{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none}
+.chip{flex:none; font-size:13px; padding:8px 14px; background:var(--panel); border:2px solid var(--line)}
+.chip[aria-pressed="true"]{background:var(--text); color:var(--bg); border-color:var(--text)}
+
+.sec{display:flex; flex-direction:column; gap:12px}
+.sec h3{font-family:var(--pixel); font-size:10px; letter-spacing:.12em; color:var(--muted); margin:0; font-weight:400}
+.grid{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px}
+.card{background:var(--panel); border:2px solid var(--line); display:flex; flex-direction:column; text-align:left; padding:0; min-width:0}
+.card canvas{width:100%; aspect-ratio:3/2; display:block; image-rendering:pixelated}
+.card-b{padding:10px 12px 12px; display:flex; flex-direction:column; gap:6px; min-width:0}
+.card .t{font-weight:700; font-size:15px; line-height:1.25; overflow-wrap:anywhere}
+.card .g{font-size:12px; color:var(--muted)}
+.card .f{display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:4px; min-height:24px}
+.card.soon canvas{filter:grayscale(.55) brightness(.75)}
+.soon-tag{font-family:var(--pixel); font-size:8px; letter-spacing:.08em; color:var(--hot)}
+.coins{display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700; font-variant-numeric:tabular-nums}
+.c{display:inline-block; width:10px; height:10px; background:var(--gold); border:2px solid var(--gold-edge); box-shadow:inset 2px 2px 0 #fff3a8; flex:none}
+.stack{display:flex}
+.stack .av + .av{margin-left:-8px}
+.remind{font-size:12px; background:none; border:2px solid var(--line); padding:4px 8px}
+.remind[aria-pressed="true"]{border-color:var(--hot); color:var(--hot)}
+.note{font-size:12px; color:var(--muted); line-height:1.6}
+
+/* игра поверх каталога */
+#player{position:fixed; inset:0; z-index:10; background:#0b0912; display:flex; flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+.bar{display:flex; align-items:center; gap:12px; padding:8px max(12px, env(safe-area-inset-left,0px)) 8px max(12px, env(safe-area-inset-right,0px)); background:var(--panel); border-bottom:2px solid var(--line)}
+.bar button{font-family:var(--pixel); font-size:10px; background:none; border:2px solid var(--line); padding:8px 10px}
+.bar .tt{flex:1; font-family:var(--pixel); font-size:10px; letter-spacing:.06em; overflow:hidden; white-space:nowrap; text-overflow:ellipsis}
+#frame{flex:1; width:100%; border:0; display:block; background:#0b0912}
+
+#sheet{position:fixed; inset:auto 0 0 0; z-index:20; background:var(--panel); border-top:2px solid var(--line);
+  padding:18px max(16px, env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px, env(safe-area-inset-right,0px)); display:flex; flex-direction:column; gap:12px}
+#sheet .link{font-size:13px; background:var(--bg); border:2px solid var(--line); padding:10px; overflow-wrap:anywhere; user-select:all}
+#sheet .row{justify-content:flex-start}
+#sheet a, #sheet button.b{font-size:13px; padding:9px 14px; border:2px solid var(--line); background:var(--panel-2); color:var(--text); text-decoration:none}
+#toast{position:fixed; left:50%; bottom:calc(24px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:30; background:var(--text); color:var(--bg);
+  font-size:13px; padding:10px 14px; max-width:80%; width:max-content; text-align:center}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1 class="logo">ПИКСЕЛЬ ПАК<small>Игры прямо в Telegram</small></h1>
+    <div class="me"><b id="meName">Гость</b><span id="meAv"></span></div>
+  </header>
+
+  <section class="feat" id="feat"></section>
+
+  <div class="chips" id="chips" role="toolbar" aria-label="Жанры"></div>
+
+  <section class="sec">
+    <h3 id="secTitle">ВСЕ ИГРЫ</h3>
+    <div class="grid" id="grid"></div>
+    <p class="note">В каждой игре свои монеты, покупки и друзья. Прогресс сохраняется в вашем Telegram-аккаунте.</p>
+  </section>
+</div>
+
+<div id="player" hidden>
+  <div class="bar" id="bar">
+    <button id="back" type="button">← ИГРЫ</button>
+    <span class="tt" id="pTitle"></span>
+    <span class="coins"><span class="c"></span><span id="pCoins">0</span></span>
+  </div>
+  <iframe id="frame" title="Игра" allow="fullscreen"></iframe>
+</div>
+
+<div id="sheet" hidden role="dialog" aria-label="Пригласить друга">
+  <b id="shTitle">Позвать друга</b>
+  <div class="note">Отправьте ссылку. Когда друг откроет игру, вы появитесь друг у друга в друзьях этой игры.</div>
+  <div class="link" id="shLink"></div>
+  <div class="row"><button class="b" id="shCopy" type="button">Скопировать</button><a id="shOpen" href="#" target="_blank" rel="noopener">Открыть в Telegram</a><button class="b" id="shClose" type="button">Закрыть</button></div>
+</div>
+<div id="toast" hidden></div>
+
+<script>
+/* =====================================================================
+   ХАБ ПАКЕТА ИГР. Один бот, одна Mini App: t.me/BOT/APP
+   Прямая ссылка в игру: t.me/BOT/APP?startapp=skyhoop
+   Приглашение:          t.me/BOT/APP?startapp=skyhoop__ref_<tg_id>
+   ===================================================================== */
+const BOT = 'your_bot', APP = 'app';   // ← замените на username бота и короткое имя Mini App
+const TG = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData ? window.Telegram.WebApp : null;
+if (TG){ try { TG.ready(); TG.expand(); TG.disableVerticalSwipes && TG.disableVerticalSwipes(); TG.setHeaderColor && TG.setHeaderColor('#14111e'); TG.setBackgroundColor && TG.setBackgroundColor('#14111e'); } catch(e){} }
+const tgUser = TG && TG.initDataUnsafe && TG.initDataUnsafe.user;
+const USER = tgUser ? { id:tgUser.id, name:tgUser.first_name, photo:tgUser.photo_url } : { id:'me', name:'Вы' };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[<>&"]/g, '');
+
+const GENRES = { all:'Все', platform:'Платформеры', novel:'Новеллы', puzzle:'Головоломки', arcade:'Аркады' };
+const GAMES = [
+  { id:'skyhoop', title:'SKYHOOP', genre:'platform', status:'live', src:'games/skyhoop/index.html',
+    blurb:'Прыгай всё выше, собирай монеты и открывай 23 фона и 42 героя.' },
+  { id:'novel', title:'Последний звонок', genre:'novel', status:'soon', blurb:'История про выпускной. Твои выборы решают финал.' },
+  { id:'gems', title:'Пиксельные самоцветы', genre:'puzzle', status:'soon', blurb:'Три в ряд с ежедневными испытаниями.' },
+  { id:'snake', title:'Змейка 3310', genre:'arcade', status:'soon', blurb:'Та самая змейка, но с друзьями и рейтингом.' },
+];
+const backends = {};
+const backend = id => backends[id] || (backends[id] = new HubBackend(id, { tg:TG, user:USER }));
+
+// ---------- обложки (пиксель-арт на canvas) ----------
+const FROG = ["..kk....kk..",".kwwk..kwwk.",".kwbkkkkwbk.","kggggggggggk","kglggggggggk","kgggkkkkgggk","kggggggggggk",".kgllllllgk.",".kgllllllgk.","..kggkkggk..",".kggk..kggk.",".kkk....kkk."];
+function sprite(g, rows, pal, x, y){ rows.forEach((r,j) => [...r].forEach((ch,i) => { if (pal[ch]){ g.fillStyle = pal[ch]; g.fillRect(x+i, y+j, 1, 1); } })); }
+const COVERS = {
+  skyhoop(g, w, h){ g.fillStyle = '#bfe3ff'; g.fillRect(0,0,w,h);
+    const cl = (x,y) => { g.fillStyle='#9fd0f5'; g.fillRect(x,y+1,20,5); g.fillStyle='#fff'; g.fillRect(x+1,y+2,18,3); g.fillRect(x+4,y,10,2); };
+    cl(6,6); cl(w-30,14); cl(w/2-10|0, h-22);
+    const pl = (x,y) => { g.fillStyle='#a03a6e'; g.fillRect(x,y,24,5); g.fillStyle='#ff7eb0'; g.fillRect(x+1,y+1,22,3); g.fillStyle='#fff'; g.fillRect(x+1,y+1,22,1); };
+    pl(10, h-12); pl(w/2-12|0, h-26); pl(w-36, h-40); pl(w/2+14|0, 14);
+    sprite(g, FROG, {k:'#16121c', w:'#fff', b:'#16121c', g:'#4fb83a', l:'#b5ec72'}, w/2-6|0, h-40);
+    g.fillStyle='#6b4a10'; g.fillRect(w-28, h-50, 5, 6); g.fillStyle='#ffd84a'; g.fillRect(w-27, h-49, 3, 4); },
+  novel(g, w, h){ for (let y=0;y<h;y++){ g.fillStyle = y < h*0.3 ? '#3a2a7a' : y < h*0.55 ? '#a85aa8' : '#ff9a8a'; g.fillRect(0,y,w,1); }
+    g.fillStyle = '#2a1a3a'; g.fillRect(10, h*0.4|0, w-20, h); for (let x=16; x<w-16; x+=10){ g.fillStyle = '#ffd88a'; g.fillRect(x, (h*0.5|0), 4, 4); g.fillRect(x, (h*0.5|0)+9, 4, 4); }
+    g.fillStyle = '#2a1a3a'; g.fillRect(w/2-6|0, (h*0.25|0), 12, 14); g.fillStyle='#ffd88a'; g.fillRect(w/2-2|0, (h*0.25|0)+4, 4, 4);
+    g.fillStyle = '#fff4ec'; g.fillRect(6, h-18, w-12, 13); g.fillStyle = '#3a2a5a'; g.fillRect(6, h-18, w-12, 1); g.fillRect(10, h-13, 30, 1); g.fillRect(10, h-10, 44, 1); },
+  gems(g, w, h){ g.fillStyle = '#1a1430'; g.fillRect(0,0,w,h); const cols = ['#ff5f8f','#4ad6ff','#ffd84a','#6ae07a','#b47aff'];
+    for (let r=0; r<4; r++) for (let c=0; c<8; c++){ const x = 6 + c*((w-12)/8|0), y = 6 + r*((h-12)/4|0), col = cols[(r*3 + c*7 + (r*c)%3) % 5];
+      g.fillStyle = col; g.fillRect(x+2, y+1, 6, 7); g.fillRect(x+1, y+2, 8, 5); g.fillStyle = '#ffffff'; g.fillRect(x+3, y+2, 2, 1); } },
+  snake(g, w, h){ g.fillStyle = '#9eac70'; g.fillRect(0,0,w,h); g.fillStyle = '#aab97c'; for (let y=0;y<h;y+=3) for (let x=0;x<w;x+=3) g.fillRect(x,y,2,2);
+    g.fillStyle = '#2b3a1f'; const pts = [[10,30],[40,30],[40,14],[70,14],[70,40]]; let px = pts[0][0], py = pts[0][1];
+    for (const [x,y] of pts.slice(1)){ while (px !== x || py !== y){ g.fillRect(px, py, 3, 3); px += Math.sign(x-px)*3; py += Math.sign(y-py)*3; } }
+    g.fillRect(w-20, 44, 3, 3); },
+};
+function cover(game, w, h){ const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); (COVERS[game.id] || COVERS.gems)(g, w, h); return c; }
+
+// ---------- профиль ----------
+function avatarHTML(f, cls){ return f.photo ? `<span class="av ${cls||''}"><img src="${esc(f.photo)}" alt=""></span>`
+  : `<span class="av ${cls||''}" style="background:${esc(f.c || '#3a3352')}">${esc((f.n || f.name || '?')[0])}</span>`; }
+$('meName').textContent = USER.name;
+$('meAv').innerHTML = avatarHTML({ n:USER.name, photo:USER.photo, c:'#ff5f8f' });
+
+// ---------- каталог ----------
+let genre = 'all';
+let reminders = {}; try { reminders = JSON.parse(localStorage.getItem('pack_reminders')) || {}; } catch(e){}
+function renderChips(){
+  $('chips').innerHTML = Object.entries(GENRES).map(([k,v]) => `<button class="chip" type="button" data-g="${k}" aria-pressed="${k===genre}">${v}</button>`).join('');
+  $('chips').querySelectorAll('.chip').forEach(b => b.onclick = () => { genre = b.dataset.g; renderChips(); renderGrid(); });
+}
+function renderFeat(){
+  const live = GAMES.filter(g => g.status === 'live');
+  const last = live.slice().sort((a,b) => backend(b.id).stats().lastPlayed - backend(a.id).stats().lastPlayed)[0];
+  const st = backend(last.id).stats();
+  const f = $('feat'); f.innerHTML = '';
+  f.appendChild(cover(last, 120, 50));
+  f.insertAdjacentHTML('beforeend', `<div class="feat-body"><span class="eyebrow">${st.plays ? 'ПРОДОЛЖИТЬ' : 'НОВАЯ ИГРА'}</span><h2>${esc(last.title)}</h2><p>${esc(last.blurb)}</p>
+    <div class="row"><span class="coins"><span class="c"></span>${st.coins} · рекорд ${st.best}</span><button class="play" type="button" id="featPlay">ИГРАТЬ</button></div></div>`);
+  $('featPlay').onclick = () => openGame(last.id);
+}
+function renderGrid(){
+  $('secTitle').textContent = genre === 'all' ? 'ВСЕ ИГРЫ' : GENRES[genre].toUpperCase();
+  const grid = $('grid'); grid.innerHTML = '';
+  for (const game of GAMES.filter(g => genre === 'all' || g.genre === genre)){
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'card' + (game.status === 'soon' ? ' soon' : '');
+    b.appendChild(cover(game, 96, 64));
+    let foot;
+    if (game.status === 'live'){
+      const st = backend(game.id).stats(), fr = backend(game.id).friends().slice(0, 3);
+      foot = `<span class="coins"><span class="c"></span>${st.coins}</span><span class="stack" title="Друзья в игре">${fr.map(f => avatarHTML(f, 'sm')).join('')}</span>`;
+    } else {
+      foot = `<span class="soon-tag">СКОРО</span><span class="remind" role="button" aria-pressed="${!!reminders[game.id]}" data-id="${game.id}">${reminders[game.id] ? 'Напомним' : 'Напомнить'}</span>`;
+    }
+    b.insertAdjacentHTML('beforeend', `<div class="card-b"><span class="t">${esc(game.title)}</span><span class="g">${GENRES[game.genre]}</span><span class="f">${foot}</span></div>`);
+    b.onclick = e => {
+      const r = e.target.closest('.remind');
+      if (r){ reminders[game.id] = !reminders[game.id]; try { localStorage.setItem('pack_reminders', JSON.stringify(reminders)); } catch(err){}
+        toast(reminders[game.id] ? 'Пришлём сообщение в Telegram, когда игра выйдет' : 'Напоминание отключено'); renderGrid(); return; }
+      if (game.status === 'live') openGame(game.id); else toast(`${game.title} уже в разработке`);
+    };
+    grid.appendChild(b);
+  }
+}
+function refreshHome(){ renderFeat(); renderGrid(); }
+
+// ---------- запуск игры ----------
+let current = null, bumpTimer = null;
+async function openGame(id, ref){
+  const game = GAMES.find(g => g.id === id); if (!game || game.status !== 'live') return;
+  current = game; const be = backend(id);
+  // ref: в продакшене сервер вызывает add_friends(ref, user) — дружба только в этой игре
+  $('pTitle').textContent = game.title; $('pCoins').textContent = be.stats().coins;
+  $('player').hidden = false; document.body.style.overflow = 'hidden';
+  if (TG){ $('bar').hidden = true; TG.BackButton.show(); }
+  const base = game.src.replace(/[^/]*$/, '');
+  try {
+    const html = await (await fetch(game.src)).text();
+    $('frame').srcdoc = html.replace('<head>', `<head><base href="${new URL(base, location.href).href}">`);
+  } catch(e){ $('frame').src = game.src; }
+  clearInterval(bumpTimer);
+  bumpTimer = setInterval(() => {      // демо «живого» рейтинга; в продакшене — Supabase Realtime
+    const bumped = be.demoBump(); if (bumped) emit('leaderboard', { friends:be.friends(), board:be.leaderboard(), bumped });
+  }, 4000);
+}
+function closeGame(){
+  if (!current) return; current = null; clearInterval(bumpTimer);
+  $('frame').removeAttribute('srcdoc'); $('frame').src = 'about:blank';
+  $('player').hidden = true; document.body.style.overflow = '';
+  if (TG) TG.BackButton.hide();
+  refreshHome();
+}
+$('back').onclick = closeGame;
+if (TG) TG.BackButton.onClick(closeGame);
+function emit(name, data){ $('frame').contentWindow && $('frame').contentWindow.postMessage({ type:'hub:event', name, data }, '*'); }
+
+// ---------- мост Hub SDK ----------
+const API = {
+  init(){ const r = backend(current.id).init(); return Object.assign(r, { env: TG ? 'telegram' : 'web' }); },
+  save(d){ return backend(current.id).save(d); },
+  earn(n){ const c = backend(current.id).earn(n); $('pCoins').textContent = c; return c; },
+  submitRun(run){ return backend(current.id).submitRun(run); },
+  buy(item){
+    if (item.cur === 'star'){
+      // Продакшен: сервер создаёт createInvoiceLink (XTR) → TG.openInvoice(link, status => …)
+      return { ok:false, message: TG ? 'Оплата Stars подключается на бэкенде' : `★ ${item.price} Stars: оплата в Telegram` };
+    }
+    const r = backend(current.id).buy(item); if (r.ok) $('pCoins').textContent = r.coins; return r;
+  },
+  friends(){ return backend(current.id).friends(); },
+  leaderboard(){ return backend(current.id).leaderboard(); },
+  invite(){ showInvite(current); return true; },
+  exit(){ setTimeout(closeGame, 0); return true; },
+};
+addEventListener('message', e => {
+  const m = e.data || {}; if (m.type !== 'hub:req' || !current || e.source !== $('frame').contentWindow) return;
+  let reply;
+  try { if (!API[m.method]) throw new Error('Неизвестный метод ' + m.method); reply = { result: API[m.method].apply(null, m.args || []) }; }
+  catch(err){ reply = { error: err.message }; }
+  e.source.postMessage(Object.assign({ type:'hub:res', id:m.id }, reply), '*');
+});
+
+// ---------- приглашение: ссылка ведёт в конкретную игру ----------
+function inviteLink(game){
+  const app = `https://t.me/${BOT}/${APP}?startapp=${game.id}__ref_${USER.id}`;
+  return `https://t.me/share/url?url=${encodeURIComponent(app)}&text=${encodeURIComponent('Побей мой рекорд в ' + game.title + '!')}`;
+}
+function showInvite(game){
+  const link = inviteLink(game);
+  if (TG && TG.openTelegramLink){ TG.openTelegramLink(link); return; }
+  $('shTitle').textContent = `Позвать друга в ${game.title}`; $('shLink').textContent = link; $('shOpen').href = link; $('sheet').hidden = false;
+}
+$('shClose').onclick = () => $('sheet').hidden = true;
+$('shCopy').onclick = () => { navigator.clipboard.writeText($('shLink').textContent).then(() => toast('Ссылка скопирована'), () => {
+  const r = document.createRange(); r.selectNodeContents($('shLink')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Выделено, скопируйте вручную'); }); };
+
+let toastT; function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2200); }
+
+// ---------- старт ----------
+renderChips(); refreshHome();
+GAMES.filter(g => g.status === 'live').forEach(g => backend(g.id).syncCloud(refreshHome));
+const sp = TG && TG.initDataUnsafe && TG.initDataUnsafe.start_param;   // «skyhoop» или «skyhoop__ref_123»
+if (sp){ const [gid, ref] = sp.split('__'); openGame(gid, ref && ref.replace('ref_', '')); }
+</script>
+
+</body></html>
