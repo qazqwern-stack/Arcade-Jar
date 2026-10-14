@@ -23,11 +23,11 @@ html,body{height:100%}
 body{
   background:var(--frame); color:var(--ink); font-family:var(--pixel);
   display:flex; align-items:center; justify-content:center; overflow:hidden;
-  box-sizing:border-box; padding-block:12px;
-  padding-left:max(16px, env(safe-area-inset-left,0px));
-  padding-right:max(16px, env(safe-area-inset-right,0px));
+  box-sizing:border-box; margin:0; padding:0;
 }
-#wrap{position:relative; max-width:100%; box-shadow:0 0 0 calc(var(--u)*2) var(--ink)}
+/* на телефоне поле на весь экран; полосы сверху/снизу красятся в цвета фона мира */
+#wrap{position:relative; max-width:100%}
+body.framed #wrap{box-shadow:0 0 0 calc(var(--u)*2) var(--ink)}
 canvas{image-rendering:pixelated}
 #c{display:block; width:100%; height:100%; touch-action:none; user-select:none; -webkit-user-select:none}
 #ui{position:absolute; inset:0; pointer-events:none}
@@ -698,10 +698,18 @@ const ownedList = kind => (kind === 'w' ? WORLDS : HEROES).filter(isOwned);
 function refreshUI(){
   const w = byId(WORLDS, P.world), rs = document.documentElement.style;
   for (const k in w.ui) rs.setProperty('--' + k, w.ui[k]);
+  paintBars(w);
   $('wName').textContent = w.name; $('hName').textContent = byId(HEROES, P.hero).name;
   $('mCoins').textContent = P.coins; $('sCoins').textContent = P.coins;
   if (!$('shop').hidden) renderShop();
   renderFriends();
+}
+// поля вокруг игрового экрана продолжают верхний и нижний край текущего фона
+function paintBars(w){
+  try { const g = w.tile.getContext('2d'), px = (y) => { const d = g.getImageData(W >> 1, y, 1, 1).data; return `rgb(${d[0]},${d[1]},${d[2]})`; };
+    if (document.body.classList.contains('framed')) { document.body.style.background = ''; return; }
+    document.body.style.background = `linear-gradient(${px(0)} 50%, ${px(H - 1)} 50%)`;
+  } catch(e){}
 }
 function cycle(kind, d){
   const list = ownedList(kind), key = kind === 'w' ? 'world' : 'hero';
@@ -794,12 +802,16 @@ function setHome(show, friends){ $('shopBtn').hidden = !show; $('boardBtn').hidd
 
 // ================= МАСШТАБ =================
 function fit(){
-  const aw = document.body.clientWidth - 32, ah = innerHeight - 24;
-  let s = Math.min(aw / W, ah / H); if (s >= 2) s = Math.floor(s);
+  // телефон: растягиваем поле во всю ширину/высоту без рамки;
+  // большой экран: целый масштаб с рамкой, чтобы пиксели оставались ровными
+  const big = innerWidth >= 700 && innerHeight >= 700;
+  document.body.classList.toggle('framed', big);
+  const aw = innerWidth - (big ? 32 : 0), ah = innerHeight - (big ? 24 : 0);
+  let s = Math.min(aw / W, ah / H); if (big && s >= 2) s = Math.floor(s);
   wrap.style.width = W*s + 'px'; wrap.style.height = H*s + 'px';
   document.documentElement.style.setProperty('--u', s + 'px');
 }
-addEventListener('resize', fit); fit();
+addEventListener('resize', () => { fit(); try { paintBars(byId(WORLDS, P.world)); } catch(e){} }); fit();
 
 // ================= ИГРА =================
 const G = 0.19, JUMP = -5.6, SPRING = -8.8, PW = 30, PH = 6;
