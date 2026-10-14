@@ -878,6 +878,9 @@ function update(k, dtSec){
     if (p.type === 'move'){ p.x += p.vx*k; if (p.x < 0 || p.x + PW > W) p.vx *= -1; }
     if (p.broken){ p.vy += G*k; p.y += p.vy*k; p.sep += 0.4*k; continue; }
     const bottom = player.y + 12;
+    // платформы, ушедшие за нижний край экрана, больше не ловят героя:
+    // раньше он отскакивал от невидимой платформы и «выживал» после падения
+    if (playing && p.y > H - PH) continue;
     if (player.vy > 0 && prevBottom <= p.y + 1 && bottom >= p.y && player.x + 9 > p.x && player.x + 3 < p.x + PW){
       if (p.type === 'brk'){ p.broken = true; continue; }
       player.y = p.y - 12;
