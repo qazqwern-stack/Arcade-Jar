@@ -18,10 +18,10 @@ window.__tgReady = new Promise(function(res){
 </script>
 <script>
 /* Сервер пакета: адрес Edge Function hub и публичный anon-ключ проекта Supabase.
-   Пока url пустой, прогресс хранится только на устройстве игрока. */
+   Вне Telegram (в обычном браузере) прогресс хранится только на устройстве. */
 window.ARCADE_JAR_SERVER = {
-  url: '',      // https://<project-ref>.supabase.co/functions/v1/hub
-  anonKey: '',  // Project Settings → API → anon public
+  url: 'https://vdqbnkfmpayruivmuzub.supabase.co/functions/v1/hub',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkcWJua2ZtcGF5cnVpdm11enViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMTIxMzksImV4cCI6MjEwNzU4ODEzOX0.ep27GBLVfxcfflDw7ZPrnnmZLvZTrY1pg4v8DIc9wqM',  // публичный ключ: доступа к таблицам он не даёт (RLS)
 };
 </script>
 <script src="hub-sdk.js"></script>

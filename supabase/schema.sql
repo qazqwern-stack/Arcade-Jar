@@ -117,6 +117,10 @@ end $$;
 revoke all on function hub_earn(bigint, text, int) from public, anon, authenticated;
 revoke all on function hub_buy(bigint, text, text) from public, anon, authenticated;
 revoke all on function hub_submit_run(bigint, text, int, int) from public, anon, authenticated;
+-- вызывать функции может только серверная функция hub (service role)
+grant execute on function hub_earn(bigint, text, int) to service_role;
+grant execute on function hub_buy(bigint, text, text) to service_role;
+grant execute on function hub_submit_run(bigint, text, int, int) to service_role;
 
 -- ---------- цены магазина SKYHOOP (из кода игры) ----------
 insert into shop_items (game_id, item_id, cur, price) values
