@@ -263,7 +263,7 @@ window.__tgReady.then(function(){
    Прямая ссылка в игру: t.me/BOT/APP?startapp=skyhoop
    Приглашение:          t.me/BOT/APP?startapp=skyhoop__ref_<tg_id>
    ===================================================================== */
-const BOT = 'your_bot', APP = 'app';   // ← замените на username бота и короткое имя Mini App
+const BOT = 'arcadejar_bot', APP = '';   // APP пусто = главный Mini App бота (t.me/BOT?startapp=…); иначе короткое имя из /newapp
 const TG = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData ? window.Telegram.WebApp : null;
 if (TG){ try { TG.ready(); TG.expand(); TG.disableVerticalSwipes && TG.disableVerticalSwipes(); TG.setHeaderColor && TG.setHeaderColor('#090d1c'); TG.setBackgroundColor && TG.setBackgroundColor('#090d1c'); } catch(e){} }
 const tgUser = TG && TG.initDataUnsafe && TG.initDataUnsafe.user;
@@ -468,7 +468,7 @@ addEventListener('message', e => {
 
 // ---------- приглашение: ссылка ведёт в конкретную игру ----------
 function inviteLink(game){
-  const app = `https://t.me/${BOT}/${APP}?startapp=${game.id}__ref_${USER.id}`;
+  const app = `https://t.me/${BOT}${APP ? '/' + APP : ''}?startapp=${game.id}__ref_${USER.id}`;
   return `https://t.me/share/url?url=${encodeURIComponent(app)}&text=${encodeURIComponent('Побей мой рекорд в ' + game.title + '!')}`;
 }
 function showInvite(game){
