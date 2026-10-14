@@ -16,7 +16,7 @@ const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SE
   auth: { persistSession: false },
 });
 
-const GAMES = new Set(["skyhoop"]);          // игры пакета, которые уже вышли
+const GAMES = new Set(["skyhoop", "words"]);          // игры пакета, которые уже вышли
 const MAX_AGE_S = 7 * 24 * 3600;              // initData старше недели не принимаем
 const CORS = {
   "Access-Control-Allow-Origin": "*",

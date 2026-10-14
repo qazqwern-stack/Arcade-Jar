@@ -5,7 +5,7 @@
    В игре:   <script src="../../hub-sdk.js"></script>
              const r = await Hub.init('skyhoop');
              Hub.earn(1); Hub.save({...}); await Hub.submitRun({score, duration});
-             await Hub.buy({id, cur, price, title}); Hub.friends(); Hub.leaderboard();
+             await Hub.buy({id, cur, price, title, consumable}); Hub.friends(); Hub.leaderboard();
              Hub.on('leaderboard', d => …); Hub.invite(); Hub.exit();
 
    Внутри хаба игра общается с ним через postMessage. Если игру открыть
@@ -86,10 +86,11 @@
       if (this.remote) return this._call('buy', { id:item.id }).then(r => {
           if (r.ok){ this.s.coins = r.coins; this.s.owned = r.owned || this.s.owned; this._persist(); }
           return r; }).catch(() => ({ ok:false, message:'Нет связи с сервером, попробуйте ещё раз' }));
-      if (this.s.owned.includes(item.id)) return { ok:true, coins:this.s.coins };
+      if (!item.consumable && this.s.owned.includes(item.id)) return { ok:true, coins:this.s.coins };
       if (item.cur !== 'coin') return { ok:false, message:`★ ${item.price} Stars: оплата в Telegram` };
       if (this.s.coins < item.price) return { ok:false, message:`Не хватает ${item.price - this.s.coins} монет` };
-      this.s.coins -= item.price; this.s.owned.push(item.id); this._persist();
+      // consumable — расходник (подсказка): списываем монеты, в «купленное» не кладём
+      this.s.coins -= item.price; if (!item.consumable) this.s.owned.push(item.id); this._persist();
       return { ok:true, coins:this.s.coins };
     }
     friends(){ return this.friendsList.slice().sort((a,b) => b.s - a.s); }

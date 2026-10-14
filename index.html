@@ -286,13 +286,15 @@ const GAMES = [
   { id:'skyhoop', title:'SKYHOOP', genre:'platform', status:'live', src:'games/skyhoop/index.html',
     blurb:'Прыгай всё выше, собирай монеты и открывай 23 фона и 42 героя.' },
   { id:'novel', title:'Последний звонок', genre:'novel', status:'soon', blurb:'История про выпускной. Твои выборы решают финал.' },
+  { id:'words', title:'Слова из слова', genre:'puzzle', status:'live', src:'games/words/index.html',
+    blurb:'Собирай слова из букв длинного слова. 166 уровней и подсказки.' },
   { id:'gems', title:'Пиксельные самоцветы', genre:'puzzle', status:'soon', blurb:'Три в ряд с ежедневными испытаниями.' },
   { id:'snake', title:'Змейка 3310', genre:'arcade', status:'soon', blurb:'Та самая змейка, но с друзьями и рейтингом.' },
 ];
 // Витринные разделы: какие жанры показать крупными карточками и какие обложки положить в них
 const PROMOS = [
   { title:'Аркады и платформеры', text:'Быстрые забеги, рекорды и соревнования с друзьями', genres:['platform','arcade'], art:['skyhoop','snake'], glow:'rgba(77,107,255,.42)' },
-  { title:'Сюжеты и головоломки', text:'Истории с выбором и задачки на каждый день', genres:['novel','puzzle'], art:['novel','gems'], glow:'rgba(150,90,255,.38)' },
+  { title:'Сюжеты и головоломки', text:'Истории с выбором и задачки на каждый день', genres:['novel','puzzle'], art:['words','novel'], glow:'rgba(150,90,255,.38)' },
 ];
 const backends = {};
 const backend = id => backends[id] || (backends[id] = new HubBackend(id, { tg:TG, user:USER }));
@@ -315,6 +317,16 @@ const COVERS = {
   gems(g, w, h){ g.fillStyle = '#1a1430'; g.fillRect(0,0,w,h); const cols = ['#ff5f8f','#4ad6ff','#ffd84a','#6ae07a','#b47aff'];
     for (let r=0; r<4; r++) for (let c=0; c<8; c++){ const x = 6 + c*((w-12)/8|0), y = 6 + r*((h-12)/4|0), col = cols[(r*3 + c*7 + (r*c)%3) % 5];
       g.fillStyle = col; g.fillRect(x+2, y+1, 6, 7); g.fillRect(x+1, y+2, 8, 5); g.fillStyle = '#ffffff'; g.fillRect(x+3, y+2, 2, 1); } },
+  words(g, w, h){ g.fillStyle = '#f5ecdc'; g.fillRect(0,0,w,h);
+    g.fillStyle = 'rgba(120,90,50,.12)'; for (let y=2;y<h;y+=5) for (let x=2;x<w;x+=5) g.fillRect(x,y,1,1);
+    const word = 'СЛОВО', tw = Math.floor((w - 8) / word.length) - 2, th = Math.round(tw * 1.15), y0 = Math.round(h * .22);
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `800 ${Math.round(tw * .62)}px Rubik, sans-serif`;
+    [...word].forEach((ch, i) => { const x = 5 + i * (tw + 2), y = y0 + (i % 2 ? 2 : 0);
+      g.fillStyle = '#b89a6c'; g.fillRect(x, y + 2, tw, th); g.fillStyle = '#fff7e8'; g.fillRect(x, y, tw, th);
+      g.fillStyle = '#3b2a1e'; g.fillText(ch, x + tw / 2, y + th / 2 + 1); });
+    const yy = y0 + th + 8; [['ВОЛ', '#2f7d5b'], ['ЛОВ', '#d0603a']].forEach(([s, c], k) => {
+      const x = 8 + k * (w / 2 - 2); g.fillStyle = '#fffaf0'; g.fillRect(x, yy, w / 2 - 14, th * .75);
+      g.fillStyle = c; g.font = `700 ${Math.round(th * .45)}px Rubik, sans-serif`; g.fillText(s, x + (w / 2 - 14) / 2, yy + th * .38); }); },
   snake(g, w, h){ g.fillStyle = '#9eac70'; g.fillRect(0,0,w,h); g.fillStyle = '#aab97c'; for (let y=0;y<h;y+=3) for (let x=0;x<w;x+=3) g.fillRect(x,y,2,2);
     g.fillStyle = '#2b3a1f'; const pts = [[10,30],[40,30],[40,14],[70,14],[70,40]]; let px = pts[0][0], py = pts[0][1];
     for (const [x,y] of pts.slice(1)){ let guard = 200; while ((Math.abs(x-px) >= 3 || Math.abs(y-py) >= 3) && guard--){ g.fillRect(px, py, 3, 3); if (Math.abs(x-px) >= 3) px += Math.sign(x-px)*3; else if (Math.abs(y-py) >= 3) py += Math.sign(y-py)*3; } px = x; py = y; }

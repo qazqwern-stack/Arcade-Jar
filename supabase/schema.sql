@@ -56,8 +56,10 @@ create table if not exists shop_items (
   item_id text not null,
   cur     text not null check (cur in ('free','coin','star')),
   price   int  not null check (price >= 0),
+  consumable boolean not null default false,   -- расходник (подсказка): покупается много раз
   primary key (game_id, item_id)
 );
+alter table shop_items add column if not exists consumable boolean not null default false;
 
 alter table players     enable row level security;
 alter table game_states enable row level security;
@@ -89,14 +91,14 @@ begin
   if not found then return jsonb_build_object('ok', false, 'message', 'Такого товара нет'); end if;
   select * into st from game_states where tg_id = p_tg and game_id = p_game for update;
   if not found then return jsonb_build_object('ok', false, 'message', 'Сначала откройте игру'); end if;
-  if p_item = any(st.owned) then return jsonb_build_object('ok', true, 'coins', st.coins, 'owned', st.owned); end if;
+  if not it.consumable and p_item = any(st.owned) then return jsonb_build_object('ok', true, 'coins', st.coins, 'owned', st.owned); end if;
   if it.cur = 'star' then return jsonb_build_object('ok', false, 'message', '★ ' || it.price || ' Stars: оплата в Telegram скоро'); end if;
   if it.cur = 'coin' and st.coins < it.price then
     return jsonb_build_object('ok', false, 'message', 'Не хватает ' || (it.price - st.coins) || ' монет');
   end if;
   update game_states
      set coins = coins - (case when it.cur = 'coin' then it.price else 0 end),
-         owned = array_append(owned, p_item), updated_at = now()
+         owned = case when it.consumable then owned else array_append(owned, p_item) end, updated_at = now()
    where tg_id = p_tg and game_id = p_game
   returning * into st;
   return jsonb_build_object('ok', true, 'coins', st.coins, 'owned', st.owned);
@@ -190,3 +192,9 @@ insert into shop_items (game_id, item_id, cur, price) values
   ('skyhoop', 'unicorn', 'star', 75),
   ('skyhoop', 'goldfrog', 'star', 100)
 on conflict (game_id, item_id) do update set cur = excluded.cur, price = excluded.price;
+
+-- ---------- «Слова из слова»: подсказки-расходники ----------
+insert into shop_items (game_id, item_id, cur, price, consumable) values
+  ('words', 'hint_letter', 'coin', 5, true),
+  ('words', 'hint_word', 'coin', 15, true)
+on conflict (game_id, item_id) do update set cur = excluded.cur, price = excluded.price, consumable = excluded.consumable;
