@@ -194,7 +194,7 @@ h2{font-size:calc(var(--u)*8)}
       <div class="board" id="rows"></div>
       <div class="board-f">
         <a class="go" id="invite" href="https://t.me/share/url?url=https%3A%2F%2Ft.me%2Farcadejar_bot%3Fstartapp%3Dskyhoop&text=%D0%9F%D0%BE%D0%B1%D0%B5%D0%B9%20%D0%BC%D0%BE%D0%B9%20%D1%80%D0%B5%D0%BA%D0%BE%D1%80%D0%B4%20%D0%B2%20SKYHOOP!" target="_blank" rel="noopener">ПОЗВАТЬ ДРУЗЕЙ</a>
-        <div class="note">Друзья именно в SKYHOOP.<br>Демо-данные, в Telegram — настоящие</div>
+        <div class="note">Друзья именно в SKYHOOP.<br>Позови друзей и соревнуйтесь</div>
       </div>
     </div>
 
@@ -724,7 +724,8 @@ function renderFriends(){
   $('friends').querySelectorAll('.fr').forEach(b => b.onclick = b.id === 'addFriend' ? invite : openBoard);
 }
 function renderBoard(){
-  $('rows').innerHTML = BOARD.map((r,i) => `<div class="lr${r.me?' me':''}${r.id===bumpedId?' bump':''}"><span>${i+1}</span>${avatar(r)}<span class="nm">${esc(r.n)}</span><span>${r.s}</span></div>`).join('');
+  $('rows').innerHTML = BOARD.map((r,i) => `<div class="lr${r.me?' me':''}${r.id===bumpedId?' bump':''}"><span>${i+1}</span>${avatar(r)}<span class="nm">${esc(r.n)}</span><span>${r.s}</span></div>`).join('')
+    + (BOARD.filter(r => !r.me).length ? '' : `<div class="note" style="text-align:center;padding:calc(var(--u)*3) 0">Друзей пока нет.<br>Нажми «Позвать» внизу</div>`);
 }
 async function loadSocial(){ FRIENDS = await Hub.friends(); BOARD = await Hub.leaderboard(); renderFriends(); renderBoard(); }
 Hub.on('leaderboard', d => { FRIENDS = d.friends; BOARD = d.board; bumpedId = d.bumped; renderFriends(); renderBoard(); });

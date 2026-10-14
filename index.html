@@ -119,6 +119,7 @@ header{display:flex; align-items:center; justify-content:space-between; gap:12px
 
 .wins{display:flex; gap:10px; overflow-x:auto; scrollbar-width:none; margin:0 -16px; padding:2px 16px 6px; scroll-snap-type:x mandatory}
 .wins::-webkit-scrollbar{display:none}
+.empty-wins{flex:1; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:16px 18px; color:var(--muted); font-size:14px}
 .win{flex:none; width:104px; display:flex; flex-direction:column; gap:6px; text-align:left; scroll-snap-align:start}
 .win .cover{width:104px; height:132px; object-fit:cover; border:1px solid var(--line-2)}
 .win .who{display:flex; align-items:center; gap:6px; font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
@@ -364,8 +365,9 @@ function renderWins(){
   for (const g of GAMES.filter(g => g.status === 'live')) for (const f of backend(g.id).friends()) rows.push({ g, f });
   rows.sort((a,b) => b.f.s - a.f.s);
   $('onlineTxt').textContent = `${rows.length} ${plural(rows.length, 'друг играет', 'друга играют', 'друзей играют')}`;
+  $('onlineTxt').parentElement.hidden = !rows.length;
   const box = $('wins'); box.innerHTML = '';
-  if (!rows.length){ box.innerHTML = '<p class="note" style="text-align:left">Позовите друзей из любой игры, и их рекорды появятся здесь.</p>'; return; }
+  if (!rows.length){ box.innerHTML = '<div class="card empty-wins"><span>Пока здесь пусто. Позовите друзей из любой игры, и их рекорды появятся в этой ленте.</span><button class="pill-btn" type="button" id="winsInvite">Позвать друга ' + ARROW + '</button></div>'; $('winsInvite').onclick = () => showInvite(featured()); return; }
   rows.forEach(({ g, f }, i) => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'win'; b.setAttribute('aria-label', `${f.n}: ${f.s} очков в ${g.title}`);
     b.appendChild(cover(g.id, 52, 66));
@@ -424,10 +426,7 @@ async function openGame(id, ref){
     const html = await (await fetch(game.src)).text();
     $('frame').srcdoc = html.replace('<head>', `<head><base href="${new URL(base, location.href).href}">`);
   } catch(e){ $('frame').src = game.src; }
-  clearInterval(bumpTimer);
-  bumpTimer = setInterval(() => {      // демо «живого» рейтинга; в продакшене — Supabase Realtime
-    const bumped = be.demoBump(); if (bumped) emit('leaderboard', { friends:be.friends(), board:be.leaderboard(), bumped });
-  }, 4000);
+  // Живой рейтинг друзей: в продакшене — Supabase Realtime → emit('leaderboard', {...})
 }
 function closeGame(){
   if (!current) return; current = null; clearInterval(bumpTimer);
