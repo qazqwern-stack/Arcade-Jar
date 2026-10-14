@@ -1,10 +1,15 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Arcade Jar</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Golos+Text:wght@400;500;700&display=swap" media="print" onload="this.media='all'">
+<meta name="theme-color" content="#090d1c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Golos+Text:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
 <script>
 /* Telegram SDK грузится без блокировки страницы: если telegram.org медленный или недоступен,
-   каталог всё равно откроется через 2.5 с (в браузере), а внутри Telegram SDK успеет загрузиться. */
+   каталог всё равно откроется через 2.5 с, а внутри Telegram SDK успеет загрузиться. */
 window.__tgReady = new Promise(function(res){
   if (window.Telegram && window.Telegram.WebApp) return res();
   var s = document.createElement('script'); s.src = 'https://telegram.org/js/telegram-web-app.js';
@@ -13,102 +18,230 @@ window.__tgReady = new Promise(function(res){
 </script>
 <script src="hub-sdk.js"></script>
 <style>
-/* Layout: phone-first library of games. Header with profile, genre chips, featured game, 2-col catalog.
-   A game opens full-screen in an iframe on top. Single deliberate dark "arcade cabinet" look. */
+/* Оболочка Arcade Jar: тёмно-синяя витрина с электрик-синим акцентом.
+   У каждой игры внутри — свой собственный стиль; хаб задаёт только рамку. */
 :root{
-  --bg:#14111e; --panel:#1e1a2d; --panel-2:#272238; --line:#3a3352;
-  --text:#f1eefa; --muted:#a39cbc; --gold:#ffd84a; --gold-edge:#7a5a10; --hot:#ff5f8f;
-  --pixel:'Press Start 2P', 'Courier New', monospace;
+  --bg:#090d1c; --bg-2:#0e1328; --panel:#131a35; --panel-2:#1a2246; --line:rgba(150,170,255,.10); --line-2:rgba(150,170,255,.18);
+  --text:#f3f5ff; --muted:#8e97bf; --dim:#5d6690;
+  --blue:#4d6bff; --blue-2:#7b93ff; --blue-glow:rgba(77,107,255,.45);
+  --green:#35e08f; --green-ink:#052b19; --gold:#ffc94d;
+  --head:'Manrope', 'Segoe UI', system-ui, sans-serif;
   --body:'Golos Text', 'Segoe UI', system-ui, sans-serif;
+  --r:22px; --r-sm:14px;
   color-scheme:dark;
 }
-html,body{height:100%}
-body{background:var(--bg); color:var(--text); font-family:var(--body); font-size:15px; line-height:1.45;
-  padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); padding-block:0 32px}
-.wrap{max-width:520px; margin:0 auto; display:flex; flex-direction:column; gap:22px}
-button{font-family:inherit; cursor:pointer; color:inherit}
-button:focus-visible,a:focus-visible{outline:2px dashed var(--gold); outline-offset:3px}
+*{box-sizing:border-box}
+html,body{margin:0; min-height:100%}
+body{background:var(--bg); color:var(--text); font:15px/1.45 var(--body); -webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top,0px) max(16px, env(safe-area-inset-right,0px)) calc(32px + env(safe-area-inset-bottom,0px)) max(16px, env(safe-area-inset-left,0px));
+  background-image:radial-gradient(900px 500px at 85% -10%, rgba(77,107,255,.16), transparent 60%), radial-gradient(700px 400px at -10% 40%, rgba(120,80,255,.08), transparent 60%);
+  background-attachment:fixed}
+.wrap{max-width:1080px; margin:0 auto; display:flex; flex-direction:column; gap:16px}
+button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
+button:focus-visible,a:focus-visible{outline:2px solid var(--blue-2); outline-offset:3px}
+h1,h2,h3{font-family:var(--head); margin:0; letter-spacing:-.01em}
+.accent{color:var(--blue-2); background:linear-gradient(90deg,#5f7cff,#9aaeff); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent}
 
-header{display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:18px}
-.logo{font-family:var(--pixel); font-size:15px; line-height:1.3; letter-spacing:.04em; text-shadow:2px 2px 0 var(--hot); margin:0}
-.logo small{display:block; font-family:var(--body); font-size:12px; color:var(--muted); text-shadow:none; letter-spacing:0; margin-top:6px}
-.me{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--muted); min-width:0}
-.me b{color:var(--text); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px}
-.av{width:40px; height:40px; border-radius:50%; border:2px solid var(--line); display:flex; align-items:center; justify-content:center;
-  font-weight:700; color:#fff; overflow:hidden; flex:none; box-sizing:border-box}
+/* ---------- шапка ---------- */
+header{display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:14px}
+.brand{display:flex; align-items:center; gap:10px; font-family:var(--head); font-weight:800; font-size:19px; letter-spacing:-.02em}
+.brand svg{width:34px; height:34px; flex:none; filter:drop-shadow(0 4px 14px var(--blue-glow))}
+.me{display:flex; align-items:center; gap:10px; min-width:0}
+.me b{font-weight:600; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:110px}
+.av{width:38px; height:38px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:700; color:#fff;
+  overflow:hidden; flex:none; border:2px solid var(--line-2); font-family:var(--head)}
 .av img{width:100%; height:100%; object-fit:cover}
-.av.sm{width:24px; height:24px; font-size:11px; border-width:2px; border-color:var(--panel)}
+.av.sm{width:22px; height:22px; font-size:10px; border-width:2px; border-color:var(--panel)}
 
-.feat{background:var(--panel); border:2px solid var(--line); display:grid; grid-template-columns:minmax(0,1fr); overflow:hidden}
-.feat canvas{width:100%; aspect-ratio:12/5; display:block; image-rendering:pixelated; background:#000}
-.feat-body{padding:14px 16px 16px; display:flex; flex-direction:column; gap:10px}
-.eyebrow{font-family:var(--pixel); font-size:9px; letter-spacing:.12em; color:var(--hot)}
-.feat h2{font-family:var(--pixel); font-size:18px; margin:0; font-weight:400; letter-spacing:.03em}
-.feat p{margin:0; color:var(--muted); max-width:46ch}
-.row{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
-.play{font-family:var(--pixel); font-size:12px; background:var(--gold); color:#1a1408; border:0; padding:12px 18px; box-shadow:3px 3px 0 var(--gold-edge)}
-.play:active{transform:translate(2px,2px); box-shadow:1px 1px 0 var(--gold-edge)}
+/* ---------- общие карточки ---------- */
+.card{background:linear-gradient(160deg, var(--panel-2), var(--panel) 55%); border:1px solid var(--line); border-radius:var(--r); position:relative; overflow:hidden}
+.pill-btn{display:inline-flex; align-items:center; gap:8px; font-family:var(--head); font-weight:700; font-size:15px; color:var(--blue-2);
+  background:rgba(77,107,255,.14); border:1px solid rgba(77,107,255,.22); padding:10px 16px; border-radius:999px; transition:background .15s}
+.pill-btn:hover{background:rgba(77,107,255,.24)}
+.pill-btn svg{width:16px; height:16px}
+.cover{display:block; image-rendering:pixelated; border-radius:var(--r-sm)}
+.tilt{position:absolute; border:2px solid rgba(255,255,255,.22); box-shadow:0 18px 40px -8px var(--blue-glow), 0 0 0 1px rgba(0,0,0,.3)}
 
-.chips{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none}
-.chip{flex:none; font-size:13px; padding:8px 14px; background:var(--panel); border:2px solid var(--line)}
-.chip[aria-pressed="true"]{background:var(--text); color:var(--bg); border-color:var(--text)}
+/* ---------- приветствие ---------- */
+.hero{padding:22px 20px 20px; min-height:280px; background:
+  radial-gradient(420px 260px at 92% 30%, rgba(77,107,255,.55), transparent 70%),
+  linear-gradient(135deg, #18214a 0%, #121938 55%, #0f1530 100%); border-color:var(--line-2)}
+.hero h1{font-size:30px; line-height:1.08; font-weight:800; max-width:11ch; position:relative; z-index:1}
+.hero-art{position:absolute; right:-22px; top:16px; width:40%; max-width:300px; aspect-ratio:1; pointer-events:none}
+.hero-art .a{width:78%; right:6%; top:6%; transform:rotate(9deg); aspect-ratio:12/9}
+.hero-art .b{width:52%; right:52%; top:46%; transform:rotate(-10deg); aspect-ratio:3/2; opacity:.9}
+.level{position:relative; z-index:1; margin-top:22px; background:rgba(9,13,28,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  border:1px solid var(--line); border-radius:18px; padding:14px 16px 14px; max-width:520px}
+.level-top{display:flex; justify-content:space-between; align-items:center; gap:10px}
+.rank{display:flex; align-items:center; gap:8px; font-family:var(--head); font-weight:700; font-size:16px}
+.rank i{width:14px; height:14px; transform:rotate(45deg); border-radius:3px; background:linear-gradient(135deg,#ffb48a,#e2723d); box-shadow:0 0 12px rgba(255,150,100,.5)}
+.level-top a, .level-top button{font-size:13px; color:var(--muted)}
+.bar{height:6px; border-radius:6px; background:rgba(255,255,255,.07); margin:14px 0 12px; overflow:hidden}
+.bar span{display:block; height:100%; min-width:6px; border-radius:6px; background:linear-gradient(90deg,var(--blue),var(--blue-2)); box-shadow:0 0 10px var(--blue)}
+.level-bot{display:flex; justify-content:space-between; gap:10px; font-size:13px; color:var(--muted)}
+.level-bot b{color:var(--text); font-weight:600}
 
-.sec{display:flex; flex-direction:column; gap:12px}
-.sec h3{font-family:var(--pixel); font-size:10px; letter-spacing:.12em; color:var(--muted); margin:0; font-weight:400}
+/* ---------- разделы-жанры ---------- */
+.promos{display:grid; grid-template-columns:minmax(0,1fr); gap:12px}
+.promo{padding:20px; min-height:180px; display:flex; flex-direction:column; justify-content:space-between; gap:16px;
+  background:radial-gradient(280px 200px at 85% 60%, var(--glow, rgba(77,107,255,.38)), transparent 70%), linear-gradient(160deg, var(--panel-2), var(--panel) 60%)}
+.promo h2{font-size:20px; font-weight:800; line-height:1.15}
+.promo p{margin:8px 0 0; color:var(--muted); font-size:14px; max-width:20ch}
+.promo .txt{position:relative; z-index:1; max-width:58%}
+.promo .pill-btn{align-self:flex-start; position:relative; z-index:1}
+.promo .art{position:absolute; right:-14px; top:50%; width:42%; max-width:220px; aspect-ratio:1; transform:translateY(-50%); pointer-events:none}
+.promo .art .a{width:62%; right:28%; top:12%; transform:rotate(-7deg); aspect-ratio:3/4}
+.promo .art .b{width:52%; right:0; top:22%; transform:rotate(8deg); aspect-ratio:3/4; opacity:.85}
+
+/* ---------- ежедневный челлендж ---------- */
+.daily{display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"ic txt txt" "tm tm btn"; gap:14px 14px; align-items:center; padding:16px;
+  background:linear-gradient(100deg, rgba(53,224,143,.16), rgba(53,224,143,0) 40%), linear-gradient(160deg, var(--panel-2), var(--panel)); border-color:rgba(53,224,143,.18)}
+.daily .ic{grid-area:ic; width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(140deg,#1d8f5f,#0f5a3b); box-shadow:0 8px 24px -6px rgba(53,224,143,.55)}
+.daily .ic svg{width:30px; height:30px}
+.daily .txt{grid-area:txt}
+.daily h3{font-size:17px; font-weight:800}
+.daily p{margin:2px 0 0; color:var(--muted); font-size:13px}
+.timer{grid-area:tm; display:flex; align-items:center; gap:4px; font-family:var(--head); font-weight:700; font-variant-numeric:tabular-nums}
+.timer span{background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:10px; padding:6px 8px; font-size:17px; min-width:40px; text-align:center}
+.timer em{color:var(--dim); font-style:normal}
+.go-green{grid-area:btn; justify-self:end; display:inline-flex; align-items:center; gap:8px; font-family:var(--head); font-weight:800; font-size:15px;
+  background:var(--green); color:var(--green-ink); padding:12px 18px; border-radius:14px; box-shadow:0 8px 24px -8px rgba(53,224,143,.8)}
+.go-green svg{width:18px; height:18px}
+
+/* ---------- секции ---------- */
+.sec{display:flex; flex-direction:column; gap:12px; margin-top:8px}
+.sec-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+.sec-head h3{font-size:19px; font-weight:800; display:flex; align-items:center; gap:8px}
+.sec-head h3 svg{width:20px; height:20px; color:var(--blue-2)}
+.online{display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--green); background:rgba(53,224,143,.1); padding:5px 12px; border-radius:999px}
+.online i{width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green)}
+
+.wins{display:flex; gap:10px; overflow-x:auto; scrollbar-width:none; margin:0 -16px; padding:2px 16px 6px; scroll-snap-type:x mandatory}
+.wins::-webkit-scrollbar{display:none}
+.win{flex:none; width:104px; display:flex; flex-direction:column; gap:6px; text-align:left; scroll-snap-align:start}
+.win .cover{width:104px; height:132px; object-fit:cover; border:1px solid var(--line-2)}
+.win .who{display:flex; align-items:center; gap:6px; font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.win .score{align-self:flex-start; font-size:12px; font-weight:600; color:var(--green); background:rgba(53,224,143,.12); padding:3px 9px; border-radius:999px; font-variant-numeric:tabular-nums}
+
+.chips{display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; margin:0 -16px; padding:0 16px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none; font-size:14px; font-weight:500; padding:9px 16px; border-radius:999px; background:var(--panel); border:1px solid var(--line); color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 6px 18px -6px var(--blue-glow)}
+
 .grid{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px}
-.card{background:var(--panel); border:2px solid var(--line); display:flex; flex-direction:column; text-align:left; padding:0; min-width:0}
-.card canvas{width:100%; aspect-ratio:3/2; display:block; image-rendering:pixelated}
-.card-b{padding:10px 12px 12px; display:flex; flex-direction:column; gap:6px; min-width:0}
-.card .t{font-weight:700; font-size:15px; line-height:1.25; overflow-wrap:anywhere}
-.card .g{font-size:12px; color:var(--muted)}
-.card .f{display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:4px; min-height:24px}
-.card.soon canvas{filter:grayscale(.55) brightness(.75)}
-.soon-tag{font-family:var(--pixel); font-size:8px; letter-spacing:.08em; color:var(--hot)}
-.coins{display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700; font-variant-numeric:tabular-nums}
-.c{display:inline-block; width:10px; height:10px; background:var(--gold); border:2px solid var(--gold-edge); box-shadow:inset 2px 2px 0 #fff3a8; flex:none}
+.game{display:flex; flex-direction:column; text-align:left; padding:8px; border-radius:var(--r); min-width:0; transition:transform .15s, border-color .15s}
+.game:hover{transform:translateY(-2px); border-color:var(--line-2)}
+.game .cover{width:100%; aspect-ratio:3/2}
+.game.soon .cover{filter:saturate(.6) brightness(.7)}
+.game-b{padding:10px 6px 4px; display:flex; flex-direction:column; gap:4px; min-width:0}
+.game .t{font-family:var(--head); font-weight:800; font-size:16px; line-height:1.2; overflow-wrap:anywhere}
+.game .g{font-size:12px; color:var(--muted)}
+.game .f{display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:6px; min-height:26px}
+.coins{display:inline-flex; align-items:center; gap:6px; font-size:14px; font-weight:600; font-variant-numeric:tabular-nums}
+.c{width:14px; height:14px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff1b8, var(--gold) 45%, #c88a12); box-shadow:0 0 8px rgba(255,201,77,.45); flex:none}
 .stack{display:flex}
-.stack .av + .av{margin-left:-8px}
-.remind{font-size:12px; background:none; border:2px solid var(--line); padding:4px 8px}
-.remind[aria-pressed="true"]{border-color:var(--hot); color:var(--hot)}
-.note{font-size:12px; color:var(--muted); line-height:1.6}
+.stack .av + .av{margin-left:-7px}
+.soon-tag{font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--blue-2)}
+.remind{font-size:12px; font-weight:500; padding:5px 10px; border-radius:999px; background:rgba(255,255,255,.05); border:1px solid var(--line)}
+.remind[aria-pressed="true"]{background:rgba(77,107,255,.18); border-color:rgba(77,107,255,.4); color:var(--blue-2)}
+.note{font-size:12px; color:var(--dim); line-height:1.6; text-align:center; margin:4px 0 0}
 
-/* игра поверх каталога */
-#player{position:fixed; inset:0; z-index:10; background:#0b0912; display:flex; flex-direction:column;
+/* ---------- игра поверх витрины ---------- */
+#player{position:fixed; inset:0; z-index:10; background:#05070f; display:flex; flex-direction:column;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
-.bar{display:flex; align-items:center; gap:12px; padding:8px max(12px, env(safe-area-inset-left,0px)) 8px max(12px, env(safe-area-inset-right,0px)); background:var(--panel); border-bottom:2px solid var(--line)}
-.bar button{font-family:var(--pixel); font-size:10px; background:none; border:2px solid var(--line); padding:8px 10px}
-.bar .tt{flex:1; font-family:var(--pixel); font-size:10px; letter-spacing:.06em; overflow:hidden; white-space:nowrap; text-overflow:ellipsis}
-#frame{flex:1; width:100%; border:0; display:block; background:#0b0912}
+.pbar{display:flex; align-items:center; gap:12px; padding:10px max(14px, env(safe-area-inset-left,0px)) 10px max(14px, env(safe-area-inset-right,0px));
+  background:var(--bg-2); border-bottom:1px solid var(--line)}
+.pbar button{display:inline-flex; align-items:center; gap:6px; font-family:var(--head); font-weight:700; font-size:14px; padding:8px 12px; border-radius:12px; background:var(--panel-2)}
+.pbar button svg{width:16px; height:16px}
+.pbar .tt{flex:1; font-family:var(--head); font-weight:800; font-size:15px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis}
+#frame{flex:1; width:100%; border:0; display:block; background:#05070f}
 
-#sheet{position:fixed; inset:auto 0 0 0; z-index:20; background:var(--panel); border-top:2px solid var(--line);
-  padding:18px max(16px, env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px, env(safe-area-inset-right,0px)); display:flex; flex-direction:column; gap:12px}
-#sheet .link{font-size:13px; background:var(--bg); border:2px solid var(--line); padding:10px; overflow-wrap:anywhere; user-select:all}
-#sheet .row{justify-content:flex-start}
-#sheet a, #sheet button.b{font-size:13px; padding:9px 14px; border:2px solid var(--line); background:var(--panel-2); color:var(--text); text-decoration:none}
+/* ---------- приглашение и тосты ---------- */
+#sheet{position:fixed; inset:auto 0 0 0; z-index:20; background:var(--panel); border-top:1px solid var(--line-2); border-radius:24px 24px 0 0;
+  padding:22px max(18px, env(safe-area-inset-left,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(18px, env(safe-area-inset-right,0px));
+  display:flex; flex-direction:column; gap:12px; box-shadow:0 -20px 60px rgba(0,0,0,.5)}
+#sheet b{font-family:var(--head); font-size:18px}
+#sheet .note{text-align:left; font-size:13px; color:var(--muted)}
+#sheet .link{font-size:13px; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px; overflow-wrap:anywhere; user-select:all}
+#sheet .row{display:flex; gap:8px; flex-wrap:wrap}
+#sheet a, #sheet button.b{font-size:14px; font-weight:600; padding:10px 16px; border-radius:12px; background:var(--panel-2); color:var(--text); text-decoration:none}
+#sheet a{background:var(--blue)}
 #toast{position:fixed; left:50%; bottom:calc(24px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:30; background:var(--text); color:var(--bg);
-  font-size:13px; padding:10px 14px; max-width:80%; width:max-content; text-align:center}
+  font-size:14px; font-weight:500; padding:11px 16px; border-radius:14px; max-width:86%; width:max-content; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,.4)}
+[hidden]{display:none!important}
+
+/* ---------- широкий экран ---------- */
+@media (min-width:700px){
+  .hero{padding:36px 36px 30px; min-height:330px}
+  .hero h1{font-size:46px; max-width:15ch}
+  .promo .txt{max-width:62%}
+  .promo h2{font-size:23px}
+  .hero-art{right:20px; top:24px; width:40%}
+  .promos{grid-template-columns:1fr 1fr}
+  .promo{min-height:210px; padding:26px}
+  .daily{grid-template-columns:auto minmax(0,1fr) auto auto; grid-template-areas:"ic txt tm btn"; padding:16px 20px}
+  .grid{grid-template-columns:repeat(4, minmax(0,1fr))}
+  .wins{margin:0; padding:2px 0 6px}
+  .chips{margin:0; padding:0}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
 </style>
+</head>
+<body>
 
 <div class="wrap">
   <header>
-    <h1 class="logo">ARCADE JAR<small>Игры прямо в Telegram</small></h1>
+    <div class="brand">
+      <svg viewBox="0 0 34 34" aria-hidden="true">
+        <defs><linearGradient id="jg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7b93ff"/><stop offset="1" stop-color="#3b55e8"/></linearGradient></defs>
+        <rect x="9" y="3" width="16" height="5" rx="2" fill="#c6d0ff"/>
+        <path d="M8 9h18c2 0 3 1.5 3 3.5V27a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V12.5C5 10.5 6 9 8 9z" fill="url(#jg)"/>
+        <rect x="10" y="16" width="5" height="5" rx="1" fill="#fff"/><rect x="18" y="20" width="6" height="6" rx="3" fill="#ffc94d"/><path d="M19 13l3 3-3 3z" fill="#35e08f"/>
+      </svg>
+      <span>Arcade <span class="accent">Jar</span></span>
+    </div>
     <div class="me"><b id="meName">Гость</b><span id="meAv"></span></div>
   </header>
 
-  <section class="feat" id="feat"></section>
+  <section class="card hero" aria-labelledby="heroTitle">
+    <div class="hero-art" id="heroArt" aria-hidden="true"></div>
+    <h1 id="heroTitle"></h1>
+    <div class="level">
+      <div class="level-top"><span class="rank"><i></i><span id="rankName">Бронза</span></span><button type="button" id="rankInfo">Уровни ›</button></div>
+      <div class="bar"><span id="rankBar" style="width:0%"></span></div>
+      <div class="level-bot"><span>ещё <b id="xpLeft">0</b></span><span>награда <b id="rankBonus">+50</b></span></div>
+    </div>
+  </section>
 
-  <div class="chips" id="chips" role="toolbar" aria-label="Жанры"></div>
+  <div class="promos" id="promos"></div>
 
-  <section class="sec">
-    <h3 id="secTitle">ВСЕ ИГРЫ</h3>
+  <section class="card daily" aria-label="Ежедневный челлендж">
+    <div class="ic" aria-hidden="true"><svg viewBox="0 0 30 30"><rect x="4" y="12" width="22" height="15" rx="3" fill="#b9ffd9"/><rect x="2" y="8" width="26" height="6" rx="2" fill="#fff"/><rect x="13" y="8" width="4" height="19" fill="#1d8f5f"/><path d="M15 8c-3-5-8-5-8-2 0 2 4 2 8 2zm0 0c3-5 8-5 8-2 0 2-4 2-8 2z" fill="#fff"/></svg></div>
+    <div class="txt"><h3>Ежедневный челлендж</h3><p>Побей свой рекорд до конца дня и забери бонусные монеты</p></div>
+    <div class="timer" id="timer" aria-label="До конца дня"><span>00</span><em>:</em><span>00</span><em>:</em><span>00</span></div>
+    <button class="go-green" type="button" id="dailyGo">Играть <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h12M10 4l5 5-5 5"/></svg></button>
+  </section>
+
+  <section class="sec" aria-labelledby="winsTitle">
+    <div class="sec-head">
+      <h3 id="winsTitle"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L10 14.8l-5.2 2.8 1-5.8L1.5 7.7l5.9-.8z"/></svg>Рекорды друзей</h3>
+      <span class="online"><i></i><span id="onlineTxt">друзья играют</span></span>
+    </div>
+    <div class="wins" id="wins"></div>
+  </section>
+
+  <section class="sec" id="catalog" aria-labelledby="secTitle">
+    <div class="sec-head"><h3 id="secTitle">Все игры</h3></div>
+    <div class="chips" id="chips" role="toolbar" aria-label="Жанры"></div>
     <div class="grid" id="grid"></div>
     <p class="note">В каждой игре свои монеты, покупки и друзья. Прогресс сохраняется в вашем Telegram-аккаунте.</p>
   </section>
 </div>
 
 <div id="player" hidden>
-  <div class="bar" id="bar">
-    <button id="back" type="button">← ИГРЫ</button>
+  <div class="pbar" id="pbar">
+    <button id="back" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>Игры</button>
     <span class="tt" id="pTitle"></span>
     <span class="coins"><span class="c"></span><span id="pCoins">0</span></span>
   </div>
@@ -132,11 +265,12 @@ window.__tgReady.then(function(){
    ===================================================================== */
 const BOT = 'your_bot', APP = 'app';   // ← замените на username бота и короткое имя Mini App
 const TG = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData ? window.Telegram.WebApp : null;
-if (TG){ try { TG.ready(); TG.expand(); TG.disableVerticalSwipes && TG.disableVerticalSwipes(); TG.setHeaderColor && TG.setHeaderColor('#14111e'); TG.setBackgroundColor && TG.setBackgroundColor('#14111e'); } catch(e){} }
+if (TG){ try { TG.ready(); TG.expand(); TG.disableVerticalSwipes && TG.disableVerticalSwipes(); TG.setHeaderColor && TG.setHeaderColor('#090d1c'); TG.setBackgroundColor && TG.setBackgroundColor('#090d1c'); } catch(e){} }
 const tgUser = TG && TG.initDataUnsafe && TG.initDataUnsafe.user;
-const USER = tgUser ? { id:tgUser.id, name:tgUser.first_name, photo:tgUser.photo_url } : { id:'me', name:'Вы' };
+const USER = tgUser ? { id:tgUser.id, name:tgUser.first_name, photo:tgUser.photo_url } : { id:'me', name:'Гость' };
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[<>&"]/g, '');
+const ARROW = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
 
 const GENRES = { all:'Все', platform:'Платформеры', novel:'Новеллы', puzzle:'Головоломки', arcade:'Аркады' };
 const GAMES = [
@@ -146,10 +280,15 @@ const GAMES = [
   { id:'gems', title:'Пиксельные самоцветы', genre:'puzzle', status:'soon', blurb:'Три в ряд с ежедневными испытаниями.' },
   { id:'snake', title:'Змейка 3310', genre:'arcade', status:'soon', blurb:'Та самая змейка, но с друзьями и рейтингом.' },
 ];
+// Витринные разделы: какие жанры показать крупными карточками и какие обложки положить в них
+const PROMOS = [
+  { title:'Аркады и платформеры', text:'Быстрые забеги, рекорды и соревнования с друзьями', genres:['platform','arcade'], art:['skyhoop','snake'], glow:'rgba(77,107,255,.42)' },
+  { title:'Сюжеты и головоломки', text:'Истории с выбором и задачки на каждый день', genres:['novel','puzzle'], art:['novel','gems'], glow:'rgba(150,90,255,.38)' },
+];
 const backends = {};
 const backend = id => backends[id] || (backends[id] = new HubBackend(id, { tg:TG, user:USER }));
 
-// ---------- обложки (пиксель-арт на canvas) ----------
+// ---------- обложки игр: у каждой свой стиль (пиксель-арт на canvas) ----------
 const FROG = ["..kk....kk..",".kwwk..kwwk.",".kwbkkkkwbk.","kggggggggggk","kglggggggggk","kgggkkkkgggk","kggggggggggk",".kgllllllgk.",".kgllllllgk.","..kggkkggk..",".kggk..kggk.",".kkk....kkk."];
 function sprite(g, rows, pal, x, y){ rows.forEach((r,j) => [...r].forEach((ch,i) => { if (pal[ch]){ g.fillStyle = pal[ch]; g.fillRect(x+i, y+j, 1, 1); } })); }
 const COVERS = {
@@ -172,13 +311,70 @@ const COVERS = {
     for (const [x,y] of pts.slice(1)){ let guard = 200; while ((Math.abs(x-px) >= 3 || Math.abs(y-py) >= 3) && guard--){ g.fillRect(px, py, 3, 3); if (Math.abs(x-px) >= 3) px += Math.sign(x-px)*3; else if (Math.abs(y-py) >= 3) py += Math.sign(y-py)*3; } px = x; py = y; }
     g.fillRect(w-20, 44, 3, 3); },
 };
-function cover(game, w, h){ const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); (COVERS[game.id] || COVERS.gems)(g, w, h); return c; }
+function cover(id, w, h, cls){ const c = document.createElement('canvas'); c.width = w; c.height = h; c.className = 'cover' + (cls ? ' ' + cls : '');
+  (COVERS[id] || COVERS.gems)(c.getContext('2d'), w, h); return c; }
 
 // ---------- профиль ----------
 function avatarHTML(f, cls){ return f.photo ? `<span class="av ${cls||''}"><img src="${esc(f.photo)}" alt=""></span>`
-  : `<span class="av ${cls||''}" style="background:${esc(f.c || '#3a3352')}">${esc((f.n || f.name || '?')[0])}</span>`; }
+  : `<span class="av ${cls||''}" style="background:${esc(f.c || '#4d6bff')}">${esc((f.n || f.name || '?')[0])}</span>`; }
 $('meName').textContent = USER.name;
-$('meAv').innerHTML = avatarHTML({ n:USER.name, photo:USER.photo, c:'#ff5f8f' });
+$('meAv').innerHTML = avatarHTML({ n:USER.name, photo:USER.photo, c:'#4d6bff' });
+
+// ---------- уровень игрока: общий для всего пакета (монеты и рекорды у игр свои) ----------
+const RANKS = [ { n:'Бронза', at:0, bonus:50 }, { n:'Серебро', at:300, bonus:100 }, { n:'Золото', at:1000, bonus:250 }, { n:'Платина', at:3000, bonus:500 }, { n:'Алмаз', at:8000, bonus:1000 } ];
+function xp(){ return GAMES.filter(g => g.status === 'live').reduce((s, g) => { const st = backend(g.id).stats(); return s + st.plays * 20 + st.best; }, 0); }
+function renderHero(){
+  const total = xp(), plays = GAMES.reduce((s, g) => s + (g.status === 'live' ? backend(g.id).stats().plays : 0), 0);
+  $('heroTitle').innerHTML = plays ? `С возвращением, <span class="accent">${esc(USER.name)}</span>!` : `Добро пожаловать в <span class="accent">Arcade Jar</span>!`;
+  let i = RANKS.length - 1; while (i > 0 && total < RANKS[i].at) i--;
+  const cur = RANKS[i], next = RANKS[i + 1];
+  $('rankName').textContent = cur.n;
+  if (next){ const p = (total - cur.at) / (next.at - cur.at);
+    $('rankBar').style.width = Math.max(2, Math.round(p * 100)) + '%'; $('xpLeft').textContent = `${next.at - total} очков`; $('rankInfo').textContent = `до уровня «${next.n}» ›`; $('rankBonus').innerHTML = `+${next.bonus} <span class="c" style="display:inline-block;width:11px;height:11px;vertical-align:-1px"></span>`;
+  } else { $('rankBar').style.width = '100%'; $('xpLeft').textContent = 'Максимальный'; $('rankBonus').textContent = '★'; }
+  const art = $('heroArt'); if (!art.childElementCount){ art.append(cover('skyhoop', 96, 72, 'tilt a'), cover('gems', 72, 48, 'tilt b')); }
+}
+$('rankInfo').onclick = () => toast('Очки уровня: 20 за каждую игру плюс ваши рекорды во всех играх');
+
+// ---------- витринные разделы ----------
+function renderPromos(){
+  $('promos').innerHTML = '';
+  for (const p of PROMOS){
+    const el = document.createElement('section'); el.className = 'card promo'; el.style.setProperty('--glow', p.glow);
+    el.innerHTML = `<div class="art" aria-hidden="true"></div><div class="txt"><h2>${esc(p.title)}</h2><p>${esc(p.text)}</p></div>
+      <button class="pill-btn" type="button">Смотреть ${ARROW}</button>`;
+    el.querySelector('.art').append(cover(p.art[0], 60, 80, 'tilt a'), cover(p.art[1], 60, 80, 'tilt b'));
+    el.querySelector('.pill-btn').onclick = () => { genre = p.genres[0]; renderChips(); renderGrid(); $('catalog').scrollIntoView({ behavior:'smooth', block:'start' }); };
+    $('promos').appendChild(el);
+  }
+}
+
+// ---------- ежедневный челлендж: таймер до полуночи ----------
+function tick(){ const n = new Date(), end = new Date(n); end.setHours(24, 0, 0, 0); let s = Math.max(0, (end - n) / 1000 | 0);
+  const parts = [s / 3600 | 0, (s % 3600) / 60 | 0, s % 60].map(v => String(v).padStart(2, '0'));
+  $('timer').querySelectorAll('span').forEach((el, k) => el.textContent = parts[k]); }
+tick(); setInterval(tick, 1000);
+$('dailyGo').onclick = () => openGame(featured().id);
+function featured(){ return GAMES.filter(g => g.status === 'live').sort((a,b) => backend(b.id).stats().lastPlayed - backend(a.id).stats().lastPlayed)[0]; }
+
+// ---------- рекорды друзей (по всем играм) ----------
+const PALETTE = ['#e0609a','#3a8adf','#22a06b','#e8962e','#8a5adf','#d83a3a'];
+function renderWins(){
+  const rows = [];
+  for (const g of GAMES.filter(g => g.status === 'live')) for (const f of backend(g.id).friends()) rows.push({ g, f });
+  rows.sort((a,b) => b.f.s - a.f.s);
+  $('onlineTxt').textContent = `${rows.length} ${plural(rows.length, 'друг играет', 'друга играют', 'друзей играют')}`;
+  const box = $('wins'); box.innerHTML = '';
+  if (!rows.length){ box.innerHTML = '<p class="note" style="text-align:left">Позовите друзей из любой игры, и их рекорды появятся здесь.</p>'; return; }
+  rows.forEach(({ g, f }, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'win'; b.setAttribute('aria-label', `${f.n}: ${f.s} очков в ${g.title}`);
+    b.appendChild(cover(g.id, 52, 66));
+    b.insertAdjacentHTML('beforeend', `<span class="who">${avatarHTML({ n:f.n, photo:f.photo, c:f.c || PALETTE[i % PALETTE.length] }, 'sm')}${esc(f.n)}</span><span class="score">${f.s.toLocaleString('ru-RU')}</span>`);
+    b.onclick = () => openGame(g.id);
+    box.appendChild(b);
+  });
+}
+function plural(n, one, few, many){ const m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? one : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? few : many; }
 
 // ---------- каталог ----------
 let genre = 'all';
@@ -187,30 +383,22 @@ function renderChips(){
   $('chips').innerHTML = Object.entries(GENRES).map(([k,v]) => `<button class="chip" type="button" data-g="${k}" aria-pressed="${k===genre}">${v}</button>`).join('');
   $('chips').querySelectorAll('.chip').forEach(b => b.onclick = () => { genre = b.dataset.g; renderChips(); renderGrid(); });
 }
-function renderFeat(){
-  const live = GAMES.filter(g => g.status === 'live');
-  const last = live.slice().sort((a,b) => backend(b.id).stats().lastPlayed - backend(a.id).stats().lastPlayed)[0];
-  const st = backend(last.id).stats();
-  const f = $('feat'); f.innerHTML = '';
-  f.appendChild(cover(last, 120, 50));
-  f.insertAdjacentHTML('beforeend', `<div class="feat-body"><span class="eyebrow">${st.plays ? 'ПРОДОЛЖИТЬ' : 'НОВАЯ ИГРА'}</span><h2>${esc(last.title)}</h2><p>${esc(last.blurb)}</p>
-    <div class="row"><span class="coins"><span class="c"></span>${st.coins} · рекорд ${st.best}</span><button class="play" type="button" id="featPlay">ИГРАТЬ</button></div></div>`);
-  $('featPlay').onclick = () => openGame(last.id);
-}
 function renderGrid(){
-  $('secTitle').textContent = genre === 'all' ? 'ВСЕ ИГРЫ' : GENRES[genre].toUpperCase();
+  $('secTitle').textContent = genre === 'all' ? 'Все игры' : GENRES[genre];
   const grid = $('grid'); grid.innerHTML = '';
-  for (const game of GAMES.filter(g => genre === 'all' || g.genre === genre)){
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'card' + (game.status === 'soon' ? ' soon' : '');
-    b.appendChild(cover(game, 96, 64));
+  const list = GAMES.filter(g => genre === 'all' || g.genre === genre);
+  if (!list.length){ grid.innerHTML = '<p class="note" style="grid-column:1/-1">В этом жанре игры скоро появятся.</p>'; return; }
+  for (const game of list){
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'card game' + (game.status === 'soon' ? ' soon' : '');
+    b.appendChild(cover(game.id, 96, 64));
     let foot;
     if (game.status === 'live'){
       const st = backend(game.id).stats(), fr = backend(game.id).friends().slice(0, 3);
-      foot = `<span class="coins"><span class="c"></span>${st.coins}</span><span class="stack" title="Друзья в игре">${fr.map(f => avatarHTML(f, 'sm')).join('')}</span>`;
+      foot = `<span class="coins"><span class="c"></span>${st.coins}</span><span class="stack" title="Друзья в игре">${fr.map((f, i) => avatarHTML({ n:f.n, photo:f.photo, c:f.c || PALETTE[i] }, 'sm')).join('')}</span>`;
     } else {
-      foot = `<span class="soon-tag">СКОРО</span><span class="remind" role="button" aria-pressed="${!!reminders[game.id]}" data-id="${game.id}">${reminders[game.id] ? 'Напомним' : 'Напомнить'}</span>`;
+      foot = `<span class="soon-tag">Скоро</span><span class="remind" role="button" aria-pressed="${!!reminders[game.id]}">${reminders[game.id] ? 'Напомним' : 'Напомнить'}</span>`;
     }
-    b.insertAdjacentHTML('beforeend', `<div class="card-b"><span class="t">${esc(game.title)}</span><span class="g">${GENRES[game.genre]}</span><span class="f">${foot}</span></div>`);
+    b.insertAdjacentHTML('beforeend', `<div class="game-b"><span class="t">${esc(game.title)}</span><span class="g">${GENRES[game.genre]}</span><span class="f">${foot}</span></div>`);
     b.onclick = e => {
       const r = e.target.closest('.remind');
       if (r){ reminders[game.id] = !reminders[game.id]; try { localStorage.setItem('pack_reminders', JSON.stringify(reminders)); } catch(err){}
@@ -220,7 +408,7 @@ function renderGrid(){
     grid.appendChild(b);
   }
 }
-function refreshHome(){ renderFeat(); renderGrid(); }
+function refreshHome(){ renderHero(); renderWins(); renderGrid(); }
 
 // ---------- запуск игры ----------
 let current = null, bumpTimer = null;
@@ -230,7 +418,7 @@ async function openGame(id, ref){
   // ref: в продакшене сервер вызывает add_friends(ref, user) — дружба только в этой игре
   $('pTitle').textContent = game.title; $('pCoins').textContent = be.stats().coins;
   $('player').hidden = false; document.body.style.overflow = 'hidden';
-  if (TG){ $('bar').hidden = true; TG.BackButton.show(); }
+  if (TG){ $('pbar').hidden = true; TG.BackButton.show(); }
   const base = game.src.replace(/[^/]*$/, '');
   try {
     const html = await (await fetch(game.src)).text();
@@ -292,14 +480,14 @@ $('shClose').onclick = () => $('sheet').hidden = true;
 $('shCopy').onclick = () => { navigator.clipboard.writeText($('shLink').textContent).then(() => toast('Ссылка скопирована'), () => {
   const r = document.createRange(); r.selectNodeContents($('shLink')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Выделено, скопируйте вручную'); }); };
 
-let toastT; function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2200); }
+let toastT; function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2400); }
 
 // ---------- старт ----------
-renderChips(); refreshHome();
+renderPromos(); renderChips(); refreshHome();
 GAMES.filter(g => g.status === 'live').forEach(g => backend(g.id).syncCloud(refreshHome));
 const sp = TG && TG.initDataUnsafe && TG.initDataUnsafe.start_param;   // «skyhoop» или «skyhoop__ref_123»
 if (sp){ const [gid, ref] = sp.split('__'); openGame(gid, ref && ref.replace('ref_', '')); }
 });
 </script>
-
-</body></html>
+</body>
+</html>
