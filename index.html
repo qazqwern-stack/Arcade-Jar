@@ -16,6 +16,14 @@ window.__tgReady = new Promise(function(res){
   s.onload = s.onerror = res; document.head.appendChild(s); setTimeout(res, 2500);
 });
 </script>
+<script>
+/* Сервер пакета: адрес Edge Function hub и публичный anon-ключ проекта Supabase.
+   Пока url пустой, прогресс хранится только на устройстве игрока. */
+window.ARCADE_JAR_SERVER = {
+  url: '',      // https://<project-ref>.supabase.co/functions/v1/hub
+  anonKey: '',  // Project Settings → API → anon public
+};
+</script>
 <script src="hub-sdk.js"></script>
 <style>
 /* Оболочка Arcade Jar: тёмно-синяя витрина с электрик-синим акцентом.
@@ -413,11 +421,10 @@ function renderGrid(){
 function refreshHome(){ renderHero(); renderWins(); renderGrid(); }
 
 // ---------- запуск игры ----------
-let current = null, bumpTimer = null;
+let current = null, bumpTimer = null, pendingRef = null;
 async function openGame(id, ref){
   const game = GAMES.find(g => g.id === id); if (!game || game.status !== 'live') return;
-  current = game; const be = backend(id);
-  // ref: в продакшене сервер вызывает add_friends(ref, user) — дружба только в этой игре
+  current = game; const be = backend(id); pendingRef = ref || null;   // ref: кто пригласил; сервер добавит дружбу в этой игре
   $('pTitle').textContent = game.title; $('pCoins').textContent = be.stats().coins;
   $('player').hidden = false; document.body.style.overflow = 'hidden';
   if (TG){ $('pbar').hidden = true; TG.BackButton.show(); }
@@ -441,16 +448,16 @@ function emit(name, data){ $('frame').contentWindow && $('frame').contentWindow.
 
 // ---------- мост Hub SDK ----------
 const API = {
-  init(){ const r = backend(current.id).init(); return Object.assign(r, { env: TG ? 'telegram' : 'web' }); },
+  init(){ const ref = pendingRef; pendingRef = null; return Promise.resolve(backend(current.id).init(ref)).then(r => Object.assign(r, { env: TG ? 'telegram' : 'web' })); },
   save(d){ return backend(current.id).save(d); },
-  earn(n){ const c = backend(current.id).earn(n); $('pCoins').textContent = c; return c; },
+  earn(n){ return Promise.resolve(backend(current.id).earn(n)).then(c => { if (current) $('pCoins').textContent = c; return c; }); },
   submitRun(run){ return backend(current.id).submitRun(run); },
   buy(item){
     if (item.cur === 'star'){
       // Продакшен: сервер создаёт createInvoiceLink (XTR) → TG.openInvoice(link, status => …)
       return { ok:false, message: TG ? 'Оплата Stars подключается на бэкенде' : `★ ${item.price} Stars: оплата в Telegram` };
     }
-    const r = backend(current.id).buy(item); if (r.ok) $('pCoins').textContent = r.coins; return r;
+    return Promise.resolve(backend(current.id).buy(item)).then(r => { if (r.ok && current) $('pCoins').textContent = r.coins; return r; });
   },
   friends(){ return backend(current.id).friends(); },
   leaderboard(){ return backend(current.id).leaderboard(); },
@@ -459,10 +466,10 @@ const API = {
 };
 addEventListener('message', e => {
   const m = e.data || {}; if (m.type !== 'hub:req' || !current || e.source !== $('frame').contentWindow) return;
-  let reply;
-  try { if (!API[m.method]) throw new Error('Неизвестный метод ' + m.method); reply = { result: API[m.method].apply(null, m.args || []) }; }
-  catch(err){ reply = { error: err.message }; }
-  e.source.postMessage(Object.assign({ type:'hub:res', id:m.id }, reply), '*');
+  const src = e.source;
+  new Promise(res => { if (!API[m.method]) throw new Error('Неизвестный метод ' + m.method); res(API[m.method].apply(null, m.args || [])); })
+    .then(result => ({ result }), err => ({ error: err.message }))
+    .then(reply => src.postMessage(Object.assign({ type:'hub:res', id:m.id }, reply), '*'));
 });
 
 // ---------- приглашение: ссылка ведёт в конкретную игру ----------
