@@ -211,9 +211,9 @@ h2{font-size:calc(var(--u)*8)}
 const GAME_ID = 'skyhoop';
 const W = 180, H = 320;
 
-// Экономика: цель ~50 монет за 20 минут чистой игры (2.5 / мин).
+// Экономика: цель ~50 монет за 10 минут чистой игры (5 / мин).
 // Монет появляется больше цели, потому что игрок собирает примерно 60–65%.
-const ECON = { targetPerMin: 2.5, spawnPerMin: 4, budgetCap: 2 };
+const ECON = { targetPerMin: 5, spawnPerMin: 8, budgetCap: 3 };
 // Разгон внутри одного забега: x1.0 → x1.7 за 4 минуты, на рестарте сброс.
 const RAMP = { seconds: 240, maxBoost: 0.7 };
 
