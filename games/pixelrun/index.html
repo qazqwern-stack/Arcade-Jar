@@ -205,7 +205,7 @@ h2{font-size:calc(var(--u)*8)}
 <script>
 /* =====================================================================
    PIXEL RUN — 8-битный платформер пакета Arcade Jar.
-   Беги вправо, прыгай через пропасти, топчи врагов, собирай монеты.
+   Герой бежит сам и разгоняется; игрок только прыгает: через пропасти, препятствия и на врагов.
    Карта и герой меняют ТОЛЬКО внешний вид: физика, уровни и враги
    одинаковые для всех. С Telegram и сервером общается только через
    Hub SDK (hub-sdk.js): монеты, покупки, рекорд и друзья у игры свои.
@@ -218,6 +218,9 @@ const W = 180, H = 320, T = 12, ROWS = 21, PFH = ROWS * T;   // игровое �
 const ECON = { perTile: 1/22, cap: 6 };
 // Физика (кадр 60 fps). Прыжок ≈ 3.7 клетки вверх и ≈ 4.5 клетки в длину на бегу.
 const PHY = { G:0.3, JUMP:-5.25, CUT:-2.2, MAXV:1.6, FALL:5.5, COYOTE:6, BUF:7, STOMP:-3.8, STOMP_HI:-5.2 };
+// автобег: герой сам бежит вправо и разгоняется со временем забега
+const RUN = { START:1.15, MAX:2.3, RAMP_S:180 };   // скорость в начале, предел, секунд до предела
+const runSpeed = () => RUN.START + (RUN.MAX - RUN.START) * Math.min(1, sessionT / RUN.RAMP_S);
 
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
 ctx.imageSmoothingEnabled = false;
@@ -683,10 +686,10 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => { if (isL(e.key)) keys.l = false; if (isR(e.key)) keys.r = false; if (isJ(e.key)) keys.j = false; });
 // пульт внизу: ◄ ► и большая кнопка прыжка; тап по самому полю — тоже прыжок
-const BTN = { l:{x:6,y:261,w:40,h:50}, r:{x:52,y:261,w:40,h:50}, j:{x:114,y:261,w:60,h:50} };
+const BTN = { j:{x:6,y:261,w:168,h:50} };   // одна большая кнопка прыжка; тап по полю тоже прыжок
 const ptrs = new Map();
 function zone(e){ const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
-  if (y < PFH) return 'j'; return x < 49 ? 'l' : x < 100 ? 'r' : 'j'; }
+  return 'j'; }
 function sync(){ const v = [...ptrs.values()], was = keys.tj; keys.tl = v.includes('l'); keys.tr = v.includes('r'); keys.tj = v.includes('j'); if (keys.tj && !was) pressJump(); }
 cv.addEventListener('pointerdown', e => { if (state !== 'play') return; e.preventDefault(); ptrs.set(e.pointerId, zone(e)); sync(); });
 cv.addEventListener('pointermove', e => { if (ptrs.has(e.pointerId)) { ptrs.set(e.pointerId, zone(e)); sync(); } });
@@ -733,8 +736,8 @@ function step(k){
     let wall = false; for (let r = r0; r <= r1; r++) if (solidAt(c, r)) wall = true;
     if (wall && p.onG){ p.buf = 1; demoHold = true; } if (p.vy >= 0) demoHold = false; }
 
-  const dir = play ? ((keys.l || keys.tl ? -1 : 0) + (keys.r || keys.tr ? 1 : 0)) : menu ? 1 : 0;
-  const max = menu ? 1.0 : PHY.MAXV;
+  const dir = play || menu ? 1 : 0;
+  const max = menu ? 1.0 : runSpeed();
   if (dir){ const a = (p.onG ? 0.16 : 0.1) * k; p.vx += Math.max(-a, Math.min(a, dir*max - p.vx)); p.face = dir; }
   else { p.vx *= Math.pow(p.onG ? 0.78 : 0.96, k); if (Math.abs(p.vx) < 0.05) p.vx = 0; }
 
