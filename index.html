@@ -285,6 +285,8 @@ const GENRES = { all:'Все', platform:'Платформеры', novel:'Нов�
 const GAMES = [
   { id:'skyhoop', title:'SKYHOOP', genre:'platform', status:'live', src:'games/skyhoop/index.html',
     blurb:'Прыгай всё выше, собирай монеты и открывай 23 фона и 42 героя.' },
+  { id:'pixelrun', title:'PIXEL RUN', genre:'platform', status:'live', src:'games/pixelrun/index.html',
+    blurb:'Герой бежит сам и всё быстрее — прыгай через пропасти и на врагов. 10 карт и 20 героев.' },
   { id:'novel', title:'Последний звонок', genre:'novel', status:'soon', blurb:'История про выпускной. Твои выборы решают финал.' },
   { id:'words', title:'Слова из слова', genre:'puzzle', status:'live', src:'games/words/index.html',
     blurb:'Собирай слова из букв длинного слова. 166 уровней и подсказки.' },
@@ -293,7 +295,7 @@ const GAMES = [
 ];
 // Витринные разделы: какие жанры показать крупными карточками и какие обложки положить в них
 const PROMOS = [
-  { title:'Аркады и платформеры', text:'Быстрые забеги, рекорды и соревнования с друзьями', genres:['platform','arcade'], art:['skyhoop','snake'], glow:'rgba(77,107,255,.42)' },
+  { title:'Аркады и платформеры', text:'Быстрые забеги, рекорды и соревнования с друзьями', genres:['platform','arcade'], art:['skyhoop','pixelrun'], glow:'rgba(77,107,255,.42)' },
   { title:'Сюжеты и головоломки', text:'Истории с выбором и задачки на каждый день', genres:['novel','puzzle'], art:['words','novel'], glow:'rgba(150,90,255,.38)' },
 ];
 const backends = {};
@@ -310,6 +312,20 @@ const COVERS = {
     pl(10, h-12); pl(w/2-12|0, h-26); pl(w-36, h-40); pl(w/2+14|0, 14);
     sprite(g, FROG, {k:'#16121c', w:'#fff', b:'#16121c', g:'#4fb83a', l:'#b5ec72'}, w/2-6|0, h-40);
     g.fillStyle='#6b4a10'; g.fillRect(w-28, h-50, 5, 6); g.fillStyle='#ffd84a'; g.fillRect(w-27, h-49, 3, 4); },
+  pixelrun(g, w, h){ g.fillStyle = '#6ec6ff'; g.fillRect(0,0,w,h);
+    const cl = (x,y) => { g.fillStyle='#b8e4ff'; g.fillRect(x,y+1,16,4); g.fillStyle='#fff'; g.fillRect(x+1,y+2,14,2); g.fillRect(x+3,y,8,2); };
+    cl(6,5); cl(w-24,10);
+    g.fillStyle = '#5ab44a'; for (let x=0;x<w;x++){ const y = Math.round(h-22 - 8*(0.5+0.5*Math.sin(x*0.09))); g.fillRect(x, y, 1, h-y); }
+    const gy = h-10; g.fillStyle='#c8783a'; g.fillRect(0,gy,w,10); g.fillStyle='#5ccf3a'; g.fillRect(0,gy,w,2); g.fillStyle='#7a3e1a'; g.fillRect(0,gy+2,w,1);
+    const by = gy-22, bx = w/2-14|0;
+    for (let i=0;i<4;i++){ const x = bx+i*7, q = i===1;
+      g.fillStyle = q ? '#8a5010' : '#5a2a10'; g.fillRect(x,by,7,7); g.fillStyle = q ? '#ffc23a' : '#c8602a'; g.fillRect(x+1,by+1,5,5);
+      if (q){ g.fillStyle='#fff4c0'; g.fillRect(x+3,by+1,1,5); g.fillRect(x+1,by+3,5,1); } }
+    g.fillStyle='#5a3018'; g.fillRect(w-26,gy-14,14,14); g.fillStyle='#a8693a'; g.fillRect(w-25,gy-13,12,12); g.fillStyle='#d89a5a'; g.fillRect(w-23,gy-13,2,12);
+    g.fillStyle='#5a3018'; g.fillRect(w-27,gy-16,16,4); g.fillStyle='#a8693a'; g.fillRect(w-26,gy-15,14,2);
+    sprite(g, ["...kkkkkk...","..khhhhhhk..",".khhhhhhhhk.",".khsbssbshk.",".khsssssshk.",".khsskksshk.","..khhhhhhk..",".khhhyyhhhk.","kshhhhhhhhsk",".khhhhhhhhk.",".kppk..kppk.","kkk......kkk"],
+      {k:'#16121c', h:'#2ab3a6', s:'#f2c29a', b:'#16121c', y:'#ffd84a', p:'#2a2a4a'}, 12, gy-24);
+    g.fillStyle='#6b4a10'; g.fillRect(bx+8,by-9,5,6); g.fillStyle='#ffd84a'; g.fillRect(bx+9,by-8,3,4); },
   novel(g, w, h){ for (let y=0;y<h;y++){ g.fillStyle = y < h*0.3 ? '#3a2a7a' : y < h*0.55 ? '#a85aa8' : '#ff9a8a'; g.fillRect(0,y,w,1); }
     g.fillStyle = '#2a1a3a'; g.fillRect(10, h*0.4|0, w-20, h); for (let x=16; x<w-16; x+=10){ g.fillStyle = '#ffd88a'; g.fillRect(x, (h*0.5|0), 4, 4); g.fillRect(x, (h*0.5|0)+9, 4, 4); }
     g.fillStyle = '#2a1a3a'; g.fillRect(w/2-6|0, (h*0.25|0), 12, 14); g.fillStyle='#ffd88a'; g.fillRect(w/2-2|0, (h*0.25|0)+4, 4, 4);
