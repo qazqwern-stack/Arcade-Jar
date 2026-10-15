@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>NOVA STRIKE</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" media="print" onload="this.media='all'">
+<script src="../../hub-sdk.js"></script>
+<style>
+/* Layout: one 9:16 pixel screen 216×384. Upper 292 px — view from the cockpit into space,
+   lower 92 px — dashboard: joystick left, radar + shield/hull centre, fire buttons right.
+   Menu and rating sheets reuse the Arcade Jar pixel shell; there is no shop in this game. */
+:root{
+  --ink:#d8e4ff; --paper:#0e1430; --accent:#ff6a3a; --frame:#03050e;
+  --s-ink:#1d1a2b; --s-paper:#e9e7f2; --s-card:#f7f6fb; --s-accent:#6b5fd6; --s-muted:#6e6a82;
+  --u:2px;
+  --pixel:'Press Start 2P', 'Courier New', monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--frame); color:var(--ink); font-family:var(--pixel); display:flex; align-items:center; justify-content:center; overflow:hidden; margin:0; padding:0}
+#wrap{position:relative; max-width:100%}
+body.framed #wrap{box-shadow:0 0 0 calc(var(--u)*2) #2a3a6a}
+canvas{image-rendering:pixelated}
+#c{display:block; width:100%; height:100%; touch-action:none; user-select:none; -webkit-user-select:none}
+#ui{position:absolute; inset:0; pointer-events:none}
+button,a.go{font-family:var(--pixel); cursor:pointer; border:calc(var(--u)*1.5) solid var(--ink); color:var(--ink); background:var(--paper); text-decoration:none}
+button:active,a.go:active{transform:translate(var(--u),var(--u))}
+button:focus-visible,a.go:focus-visible{outline:calc(var(--u)*1.5) dashed var(--ink); outline-offset:calc(var(--u)*1.5)}
+.panel{position:absolute; left:calc(var(--u)*10); right:calc(var(--u)*10); top:calc(var(--u)*16); pointer-events:auto; background:var(--paper); color:var(--ink);
+  border:calc(var(--u)*2) solid var(--ink); box-shadow:calc(var(--u)*3) calc(var(--u)*3) 0 var(--accent);
+  padding:calc(var(--u)*7) calc(var(--u)*6); display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*5); text-align:center}
+h1,h2{margin:0; font-weight:400; line-height:1.15; letter-spacing:.04em}
+h1{font-size:calc(var(--u)*12); text-shadow:var(--u) var(--u) 0 var(--accent)}
+h2{font-size:calc(var(--u)*8)}
+.sub{font-size:calc(var(--u)*3.6); line-height:1.8; color:#9aa8d8}
+.go{font-size:calc(var(--u)*5.5); padding:calc(var(--u)*4) calc(var(--u)*8); background:var(--ink); color:var(--paper); box-shadow:var(--u) var(--u) 0 var(--accent); display:inline-block}
+.go.alt{background:var(--paper); color:var(--ink)}
+.btns{display:flex; gap:calc(var(--u)*4); flex-wrap:wrap; justify-content:center}
+.score{font-size:calc(var(--u)*5); line-height:1.8; font-variant-numeric:tabular-nums}
+.corner{position:absolute; bottom:calc(var(--u)*8); pointer-events:auto; font-size:calc(var(--u)*4); padding:calc(var(--u)*3.5) calc(var(--u)*4); box-shadow:var(--u) var(--u) 0 var(--accent)}
+#boardBtn{left:calc(var(--u)*8)} #inviteBtn{right:calc(var(--u)*8)}
+#friends{position:absolute; left:calc(var(--u)*6); right:calc(var(--u)*6); bottom:calc(var(--u)*125); pointer-events:auto; display:flex; justify-content:center; gap:calc(var(--u)*4)}
+.fr{display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*1.5); background:none; border:0; padding:0; color:var(--ink)}
+.av{width:calc(var(--u)*15); height:calc(var(--u)*15); border-radius:50%; border:calc(var(--u)*1.2) solid var(--ink); display:flex; align-items:center; justify-content:center; font-size:calc(var(--u)*5); color:#fff; overflow:hidden; box-sizing:border-box; flex:none}
+.av img{width:100%; height:100%; object-fit:cover}
+.av.add{background:var(--paper); color:var(--ink); font-size:calc(var(--u)*6)}
+.fs{font-size:calc(var(--u)*2.9); background:var(--paper); color:var(--ink); padding:calc(var(--u)*.8) calc(var(--u)*1.5); font-variant-numeric:tabular-nums; line-height:1.4}
+.sheet{position:absolute; inset:calc(var(--u)*6); pointer-events:auto; background:var(--s-paper); color:var(--s-ink); border:calc(var(--u)*2) solid var(--s-ink); box-shadow:calc(var(--u)*3) calc(var(--u)*3) 0 var(--s-ink);
+  display:flex; flex-direction:column; min-height:0; --ink:var(--s-ink); --paper:var(--s-paper); --accent:var(--s-accent)}
+.sheet-h{display:flex; align-items:center; justify-content:space-between; gap:calc(var(--u)*3); padding:calc(var(--u)*4) calc(var(--u)*5) calc(var(--u)*3)}
+.sheet-h h2{font-size:calc(var(--u)*5.5)}
+.x{width:calc(var(--u)*11); height:calc(var(--u)*11); font-size:calc(var(--u)*4.5); padding:0}
+.board{flex:1; min-height:0; overflow-y:auto; padding:calc(var(--u)*2) calc(var(--u)*5); display:flex; flex-direction:column; gap:calc(var(--u)*1.5)}
+.lr{display:grid; grid-template-columns:calc(var(--u)*8) auto 1fr auto; gap:calc(var(--u)*3); align-items:center; font-size:calc(var(--u)*3.4); padding:calc(var(--u)*2) calc(var(--u)*3); font-variant-numeric:tabular-nums; background:var(--s-card)}
+.lr .av{width:calc(var(--u)*10); height:calc(var(--u)*10); font-size:calc(var(--u)*3.5); border-width:var(--u)}
+.lr .nm{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.lr.me{background:var(--s-ink); color:var(--s-paper)}
+.board-f{display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*3); padding:calc(var(--u)*4) calc(var(--u)*5) calc(var(--u)*5)}
+.note{font-size:calc(var(--u)*2.8); line-height:1.7; color:var(--s-muted); text-align:center}
+#toast{position:absolute; left:50%; top:calc(var(--u)*40); transform:translateX(-50%); width:max-content; max-width:80%; background:var(--s-ink); color:var(--s-paper); font-size:calc(var(--u)*3.4); line-height:1.6; text-align:center; padding:calc(var(--u)*3) calc(var(--u)*4); border:var(--u) solid var(--s-paper); pointer-events:none; z-index:5}
+[hidden]{display:none!important} *{-webkit-tap-highlight-color:transparent}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c" width="216" height="384" aria-label="Вид из кабины. Слева внизу джойстик, справа кнопки огня"></canvas>
+  <div id="ui">
+    <div class="panel" id="menu">
+      <h1>NOVA<br>STRIKE</h1>
+      <div class="sub">Сбивай врагов, береги щит.<br>Боссы прилетают по одному.</div>
+      <div class="score" id="mBest">РЕКОРД 0</div>
+      <button class="go" id="startBtn" type="button">В БОЙ</button>
+      <div class="sub">Джойстик — поворот<br>Справа — лазер и ракета</div>
+    </div>
+    <div class="panel" id="over" hidden>
+      <h2 id="overTitle">КОРАБЛЬ ПОДБИТ</h2>
+      <div class="score" id="res"></div>
+      <div class="btns">
+        <button class="go" id="againBtn" type="button">ЕЩЁ РАЗ</button>
+        <button class="go alt" id="menuBtn" type="button">МЕНЮ</button>
+      </div>
+    </div>
+    <div id="friends" aria-label="Друзья в игре"></div>
+    <button class="corner" id="boardBtn" type="button">РЕЙТИНГ</button>
+    <button class="corner" id="inviteBtn" type="button">ПОЗВАТЬ</button>
+    <div class="sheet" id="board" hidden>
+      <div class="sheet-h"><h2>РЕЙТИНГ</h2><button class="x" id="boardClose" type="button" aria-label="Закрыть рейтинг">X</button></div>
+      <div class="board" id="rows"></div>
+      <div class="board-f">
+        <button class="go" id="invite" type="button">ПОЗВАТЬ ДРУЗЕЙ</button>
+        <div class="note">Друзья именно в NOVA STRIKE.<br>Рекорд — лучший счёт за один вылет</div>
+      </div>
+    </div>
+    <div id="toast" hidden></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   NOVA STRIKE — космический бой из кабины пилота, пакет Arcade Jar.
+   Мир двухмерный, но всё считается в 3D относительно кабины: поворот
+   джойстиком вращает пространство вокруг пилота, корабль летит вперёд.
+   Враги заходят в атаку, пролетают мимо и разворачиваются; радар
+   показывает их со всех сторон. Каждые 10 сбитых — босс со своей
+   особенностью. Магазина нет: только очки, рекорд и рейтинг друзей.
+   ===================================================================== */
+const GAME_ID = 'nova';
+const W = 216, H = 384, VH = 292;            // экран и высота «окна» кабины
+const CX = W / 2, CY = 138, F = 170;          // центр прицела и фокус проекции
+const PL = { SPEED:14, TURN:1.55, SHIELD:100, HULL:100, REGEN:9, REGEN_DELAY:2.0, FIRE_DT:0.15, BOLT:170, MISSILE_CD:4.5 };
+
+const cv = document.getElementById('c'), ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+const $ = id => document.getElementById(id);
+const wrap = $('wrap');
+const K = '#0a0c18';
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const mod = (a, n) => ((a % n) + n) % n;
+const hash = n => { const s = Math.sin(n*12.9898)*43758.5453; return s - Math.floor(s); };
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; return [c, g]; };
+const len = v => Math.hypot(v.x, v.y, v.z);
+const norm = v => { const l = len(v) || 1; return { x:v.x/l, y:v.y/l, z:v.z/l }; };
+
+// ================= ПИКСЕЛЬНЫЕ ПРИМИТИВЫ =================
+function disc(g, cx, cy, r, col){ g.fillStyle = col; for (let dy = -r; dy <= r; dy++){ const hw = Math.floor(Math.sqrt(r*r - dy*dy + r*0.6)); g.fillRect(cx - hw, cy + dy, hw*2 + 1, 1); } }
+function ring(g, cx, cy, r, col){ g.fillStyle = col; for (let a = 0; a < 6.283; a += 0.5 / r){ g.fillRect(Math.round(cx + Math.cos(a)*r), Math.round(cy + Math.sin(a)*r), 1, 1); } }
+function poly(g, pts, col){   // заливка многоугольника ровными пикселями, без сглаживания
+  g.fillStyle = col; const ys = pts.map(p => p[1]), y0 = Math.floor(Math.min(...ys)), y1 = Math.ceil(Math.max(...ys));
+  for (let y = y0; y <= y1; y++){ const xs = [];
+    for (let i = 0; i < pts.length; i++){ const [ax, ay] = pts[i], [bx, by] = pts[(i + 1) % pts.length];
+      if ((ay <= y + 0.5 && by > y + 0.5) || (by <= y + 0.5 && ay > y + 0.5)) xs.push(ax + (y + 0.5 - ay) * (bx - ax) / (by - ay)); }
+    xs.sort((a, b) => a - b); for (let i = 0; i + 1 < xs.length; i += 2) g.fillRect(Math.round(xs[i]), y, Math.round(xs[i+1]) - Math.round(xs[i]), 1); }
+}
+function lineP(g, x0, y0, x1, y1){ const n = Math.max(Math.abs(x1-x0), Math.abs(y1-y0)) | 0; for (let i = 0; i <= n; i++){ const t = n ? i/n : 0; g.fillRect(Math.round(x0 + (x1-x0)*t), Math.round(y0 + (y1-y0)*t), 1, 1); } }
+
+// ================= СПРАЙТЫ КОРАБЛЕЙ (вид спереди, свой дизайн) =================
+// Каждый рисуется один раз в маленький холст и масштабируется по расстоянию — пиксели остаются крупными.
+function drawDrone(g){ // шар-дрон с красным глазом и четырьмя антеннами
+  g.fillStyle = '#5a5a8a'; [[3,3],[28,3],[3,28],[28,28]].forEach(([x,y]) => { lineP(g, 16, 16, x, y); g.fillRect(x - 1, y - 1, 3, 3); });
+  disc(g, 16, 16, 10, '#2a2a48'); disc(g, 16, 16, 9, '#6a6a9a'); disc(g, 14, 13, 6, '#9a9ad0'); disc(g, 12, 11, 2, '#d0d0ff');
+  disc(g, 16, 17, 4, '#3a0a14'); disc(g, 16, 17, 3, '#ff3a4a'); g.fillStyle = '#ffd0d0'; g.fillRect(15, 15, 2, 2);
+}
+function drawInterceptor(g){ // широкий шеврон-перехватчик с огнями на концах крыльев
+  poly(g, [[1,12],[16,20],[31,12],[31,16],[16,25],[1,16]], '#5a2a0a');
+  poly(g, [[2,12],[16,19],[30,12],[30,14],[16,22],[2,14]], '#f0a030');
+  poly(g, [[4,13],[16,19],[28,13]], '#ffe080');
+  disc(g, 16, 18, 4, '#1a1a2a'); disc(g, 16, 17, 3, '#3a6aa8'); g.fillStyle = '#a8e0ff'; g.fillRect(15, 15, 2, 1);
+  [[2,14],[29,14]].forEach(([x,y]) => { g.fillStyle = '#2affff'; g.fillRect(x, y - 1, 2, 3); g.fillStyle = '#ffffff'; g.fillRect(x, y, 1, 1); });
+}
+function drawGunship(g){ // тяжёлый штурмовик: корпус-трапеция и две пушки по бокам
+  poly(g, [[8,8],[24,8],[28,22],[4,22]], '#1a3a3a'); poly(g, [[9,9],[23,9],[26,21],[6,21]], '#3a8a8a'); poly(g, [[10,9],[22,9],[23,13],[9,13]], '#7ad0c0');
+  g.fillStyle = '#ffcc33'; for (let i = 0; i < 4; i++) g.fillRect(10 + i*4, 16, 2, 2);
+  for (const x of [1, 27]){ g.fillStyle = '#1a2a2a'; g.fillRect(x, 11, 5, 12); g.fillStyle = '#5a7a7a'; g.fillRect(x + 1, 12, 3, 10); g.fillStyle = '#ff5a3a'; g.fillRect(x + 1, 20, 3, 2); }
+  disc(g, 16, 14, 2, '#0a1a1a');
+}
+// ---- боссы, 48×48 ----
+function drawFalcon(g){ // «Сапсан»: серповидные лезвия, жёлто-чёрные полосы
+  poly(g, [[24,14],[2,4],[10,24],[2,44],[24,32],[46,44],[38,24],[46,4]], '#2a1a00');
+  poly(g, [[24,16],[5,7],[12,24],[5,41],[24,30],[43,41],[36,24],[43,7]], '#ffcc1a');
+  g.fillStyle = '#2a1a00'; for (let i = 0; i < 4; i++){ lineP(g, 8 + i*3, 9 + i*3, 14 + i*3, 24); lineP(g, 40 - i*3, 9 + i*3, 34 - i*3, 24); }
+  disc(g, 24, 24, 7, '#1a1a2a'); disc(g, 24, 24, 5, '#ff2a2a'); disc(g, 23, 22, 2, '#ffd0d0');
+}
+function drawHealer(g){ // «Целитель»: зелёный кристалл с кольцом
+  poly(g, [[24,2],[40,24],[24,46],[8,24]], '#0a3a1a'); poly(g, [[24,4],[38,24],[24,44],[10,24]], '#2ad46a'); poly(g, [[24,4],[24,44],[10,24]], '#7affb0');
+  poly(g, [[24,10],[30,24],[24,38],[18,24]], '#d0ffe0');
+  g.fillStyle = '#ffffff'; g.fillRect(23, 20, 3, 9); g.fillRect(20, 23, 9, 3);
+  for (let a = 0; a < 6.283; a += 0.06){ const x = Math.round(24 + Math.cos(a)*22), y = Math.round(24 + Math.sin(a)*6); if (Math.sin(a) > 0 || Math.abs(x - 24) > 12){ g.fillStyle = '#8affc8'; g.fillRect(x, y, 2, 1); } }
+}
+function drawBastion(g){ // «Бастион»: шестигранная крепость с турелью
+  const hex = (r, col) => poly(g, [0,1,2,3,4,5].map(i => [24 + Math.cos(i*Math.PI/3 + Math.PI/6)*r, 24 + Math.sin(i*Math.PI/3 + Math.PI/6)*r]), col);
+  hex(23, '#0a1430'); hex(21, '#3a5aa8'); hex(15, '#6a8ad8'); hex(9, '#1a2a5a');
+  g.fillStyle = '#9ab8ff'; for (let i = 0; i < 6; i++){ const a = i*Math.PI/3 + Math.PI/6; g.fillRect(Math.round(24 + Math.cos(a)*18) - 1, Math.round(24 + Math.sin(a)*18) - 1, 3, 3); }
+  disc(g, 24, 24, 5, '#ff8a2a'); disc(g, 24, 24, 2, '#ffe0a0');
+}
+function drawHive(g){ // «Матка»: органический улей с порами
+  disc(g, 24, 24, 21, '#2a0a3a'); disc(g, 24, 24, 19, '#7a2aa8'); disc(g, 20, 19, 12, '#a85ad8');
+  [[14,16,4],[30,14,3],[33,28,4],[18,32,3],[25,23,5],[11,26,2]].forEach(([x,y,r]) => { disc(g, x, y, r, '#2a0a3a'); disc(g, x, y, r - 1, '#ff7ad8'); });
+  g.fillStyle = '#d8a8ff'; g.fillRect(14, 10, 3, 2);
+}
+function drawSniper(g){ // «Снайпер»: длинный ствол прямо в лицо и стабилизаторы
+  poly(g, [[24,6],[44,20],[44,28],[24,42],[4,28],[4,20]], '#3a0a0a'); poly(g, [[24,8],[42,21],[42,27],[24,40],[6,27],[6,21]], '#a82a2a');
+  poly(g, [[6,21],[24,8],[24,24]], '#e85a4a');
+  disc(g, 24, 24, 11, '#1a0a0a'); disc(g, 24, 24, 9, '#5a5a6a'); disc(g, 24, 24, 6, '#1a0a0a'); disc(g, 24, 24, 4, '#ff3a2a'); disc(g, 23, 23, 1, '#ffffff');
+  g.fillStyle = '#ffcc33'; g.fillRect(2, 23, 4, 2); g.fillRect(42, 23, 4, 2);
+}
+function sprite(size, fn){ const [c, g] = mk(size, size); fn(g); return c; }
+
+// ================= ТИПЫ ВРАГОВ И БОССОВ =================
+const TYPES = {
+  drone:  { name:'Дрон',        img: sprite(32, drawDrone),       r:1.3, hp:2, speed:12, turn:1.6, cd:2.8, dmg:5,  pts:100 },
+  inter:  { name:'Перехватчик', img: sprite(32, drawInterceptor), r:1.6, hp:3, speed:22, turn:2.6, cd:2.1, dmg:5,  pts:150 },
+  gun:    { name:'Штурмовик',   img: sprite(32, drawGunship),     r:2.0, hp:6, speed:9,  turn:1.0, cd:1.5, dmg:8,  pts:250 },
+};
+const BOSSES = [
+  { id:'falcon',  name:'САПСАН',    img: sprite(48, drawFalcon),  r:3.2, hp:30, speed:34, turn:3.4, cd:1.7, dmg:8, pts:1500, note:'Очень быстрый: бьёт очередями и уходит' },
+  { id:'healer',  name:'ЦЕЛИТЕЛЬ',  img: sprite(48, drawHealer),  r:3.8, hp:42, speed:10, turn:1.2, cd:2.0, dmg:10, pts:1500, note:'Восстанавливает здоровье, добивай быстро' },
+  { id:'bastion', name:'БАСТИОН',   img: sprite(48, drawBastion), r:4.6, hp:55, speed:7,  turn:0.8, cd:2.3, dmg:16, pts:2000, note:'Включает щит: стреляй, когда он погас' },
+  { id:'hive',    name:'МАТКА',     img: sprite(48, drawHive),    r:4.6, hp:45, speed:8,  turn:0.9, cd:2.2, dmg:10, pts:2000, note:'Выпускает дронов, пока жива' },
+  { id:'sniper',  name:'СНАЙПЕР',   img: sprite(48, drawSniper),  r:3.4, hp:36, speed:12, turn:1.6, cd:99,  dmg:35, pts:2500, note:'Заряжает луч: отвернись, когда увидишь линию' },
+];
+
+// ================= ФОН: туманность и планета на панораме вокруг пилота =================
+// Панорама зациклена по обеим осям: поворот на 360° возвращает тот же вид.
+const PAN = Math.round(2 * Math.PI * F);   // ≈ 1068 px на полный оборот
+const [panC, panG] = mk(PAN, PAN);
+(function paintPanorama(){
+  const g = panG; g.fillStyle = '#03040e'; g.fillRect(0, 0, PAN, PAN);
+  // туманности: облака точек с дизерингом
+  const neb = (cx, cy, r, cols) => { for (let i = 0; i < r*r*0.9; i++){ const a = Math.random()*6.283, d = Math.pow(Math.random(), 0.6) * r, x = Math.round(cx + Math.cos(a)*d*1.4), y = Math.round(cy + Math.sin(a)*d);
+    g.fillStyle = cols[Math.min(cols.length - 1, Math.floor(d / r * cols.length))]; g.fillRect(mod(x, PAN), mod(y, PAN), 2, 2); } };
+  neb(260, 300, 120, ['#3a1a5a','#2a1448','#1a0e30','#0e0820']); neb(100, 620, 110, ['#1a3a5a','#122a48','#0a1a30']); neb(960, 980, 120, ['#4a1a2a','#301020','#180810']); neb(480, 880, 90, ['#1a4a3a','#103028','#081a14']); neb(760, 700, 140, ['#0e3a5a','#0a2a48','#081a30','#050e20']); neb(560, 160, 80, ['#5a1a3a','#3a1028','#200818']);
+  for (let i = 0; i < 1600; i++){ const r = Math.random(); g.fillStyle = r < .7 ? '#5a6080' : r < .92 ? '#c8d0ff' : r < .97 ? '#ffd8a0' : '#a8c8ff'; g.fillRect(Math.floor(Math.random()*PAN), Math.floor(Math.random()*PAN), 1, 1); }
+  // планета с кольцом и луна
+  const P0 = [700, 380], R = 70;
+  for (let dy = -R; dy <= R; dy++){ const hw = Math.floor(Math.sqrt(R*R - dy*dy)); for (let dx = -hw; dx <= hw; dx++){ const lit = (dx*-0.6 + dy*-0.8) / R, band = Math.sin((dy + dx*0.2) * 0.22);
+    g.fillStyle = lit > 0.35 ? (band > 0.3 ? '#ffd8a0' : '#f0b878') : lit > -0.2 ? (band > 0.3 ? '#d88a50' : '#b86a3a') : lit > -0.6 ? '#7a3a28' : '#3a1a18'; g.fillRect(P0[0] + dx, P0[1] + dy, 1, 1); } }
+  g.fillStyle = '#e8d0b0'; for (let a = 0; a < 6.283; a += 0.003){ const x = Math.round(P0[0] + Math.cos(a)*120), y = Math.round(P0[1] + Math.sin(a)*22 - Math.cos(a)*10); if (Math.sin(a) > 0 || Math.hypot(x - P0[0], y - P0[1]) > R){ g.fillRect(x, y, 2, 1); g.fillStyle = Math.sin(a*30) > 0 ? '#c8a888' : '#e8d0b0'; } }
+  disc(g, 900, 250, 16, '#5a5a6a'); disc(g, 895, 245, 13, '#9a9aaa'); [[892,250,3],[900,242,2],[903,254,2]].forEach(([x,y,r]) => disc(g, x, y, r, '#6a6a7a'));
+  // далёкая звезда-солнце
+  disc(g, 140, 820, 10, '#ffe8a0'); disc(g, 140, 820, 6, '#ffffff');
+  g.globalAlpha = .12; disc(g, 140, 820, 30, '#ffd88a'); g.globalAlpha = 1;
+})();
+
+// ================= СОСТОЯНИЕ =================
+let state = 'menu', sessionT = 0, score = 0, kills = 0, bossKills = 0, bossIdx = 0, nextBossAt = 10;
+let ship, enemies = [], bolts = [], ebolts = [], missiles = [], parts = [], stars = [], boss = null;
+let yawAcc = 0, pitchAcc = 0, shake = 0, hurt = 0, spawnT = 0, banner = null;
+let best = 0, USER = { name:'Вы' };
+
+function newStar(far){ return { x: rand(-70, 70), y: rand(-70, 70), z: far ? rand(90, 130) : rand(2, 130), px:null, py:null }; }
+function reset(){
+  ship = { shield: PL.SHIELD, hull: PL.HULL, lastHit: -99, fireT: 0, gun: 0, missileCd: 0 };
+  enemies = []; bolts = []; ebolts = []; missiles = []; parts = []; boss = null; banner = null;
+  stars = Array.from({ length: 140 }, () => newStar(false));
+  yawAcc = 3.9; pitchAcc = -2.45;
+  sessionT = 0; score = 0; kills = 0; bossKills = 0; bossIdx = 0; nextBossAt = 10; spawnT = 1.5; shake = 0; hurt = 0;
+}
+
+// ================= ВРАЩЕНИЕ ПРОСТРАНСТВА ВОКРУГ КАБИНЫ =================
+// Поворот вправо (yaw > 0) сдвигает всё влево; нос вверх (pitch > 0) — всё вниз.
+let cyw = 1, syw = 0, cpt = 1, spt = 0;
+function setRot(dy, dp){ cyw = Math.cos(dy); syw = Math.sin(dy); cpt = Math.cos(dp); spt = Math.sin(dp); }
+function rot(p){ let x = p.x*cyw - p.z*syw, z = p.x*syw + p.z*cyw; const y = p.y*cpt - z*spt; z = p.y*spt + z*cpt; p.x = x; p.y = y; p.z = z; }
+function proj(p){ if (p.z < 0.6) return null; const s = F / p.z; return { x: CX + p.x*s, y: CY - p.y*s, s }; }
+
+// ================= ВРАГИ =================
+function spawnEnemy(type, at){
+  const T = TYPES[type], behind = Math.random() < 0.18 && sessionT > 20;
+  const p = at ? { ...at } : { x: rand(-45, 45), y: rand(-30, 30), z: behind ? rand(-90, -60) : rand(85, 125) };
+  const d = norm({ x:-p.x + rand(-8, 8), y:-p.y + rand(-8, 8), z:-p.z });
+  enemies.push({ kind:'enemy', type, T, p, v:{ x:d.x*T.speed, y:d.y*T.speed, z:d.z*T.speed }, hp:T.hp, maxHp:T.hp, cd: rand(1, T.cd + 1), mode:'attack', modeT:0, aim:{ x:rand(-6, 6), y:rand(-6, 6) }, hitT:0 });
+}
+function spawnBoss(){
+  const B = BOSSES[bossIdx % BOSSES.length], lvl = Math.floor(bossIdx / BOSSES.length);
+  const hp = Math.round(B.hp * (1 + lvl * 0.5));
+  boss = { kind:'boss', B, T:B, p:{ x: rand(-20, 20), y: rand(-10, 15), z: 130 }, v:{ x:0, y:0, z:-B.speed }, hp, maxHp:hp, cd:2.5, mode:'attack', modeT:0, aim:{ x:0, y:0 },
+    hitT:0, shieldOn:false, shieldT:3, charge:0, spawnT:3, healFx:0, burst:0 };
+  enemies.push(boss);
+  banner = { text:`БОСС: ${B.name}`, sub:B.note, t:3.2 };
+}
+// управление врагом: заход в атаку на пилота → пролёт мимо → разворот
+function steer(e, dt){
+  const T = e.T, dist = len(e.p); e.modeT += dt;
+  let target;
+  if (e.kind === 'boss' && e.B.id === 'sniper'){   // снайпер держит дистанцию и обходит по кругу
+    const d = norm(e.p), want = 70; target = { x: e.p.x - d.x*(dist - want) + -d.z*20, y: e.p.y - d.y*(dist - want), z: e.p.z - d.z*(dist - want) + d.x*20 };
+  } else if (e.mode === 'attack'){
+    target = { x: e.aim.x, y: e.aim.y, z: 0 };
+    if (dist < (e.kind === 'boss' ? 26 : 14)){ e.mode = 'pass'; e.modeT = 0; }
+  } else {
+    target = { x: e.p.x + e.v.x, y: e.p.y + e.v.y + 2, z: e.p.z + e.v.z };
+    if (e.modeT > (e.kind === 'boss' ? 1.6 : 2.2) || dist > 110){ e.mode = 'attack'; e.modeT = 0; e.aim = { x:rand(-7, 7), y:rand(-7, 7) }; }
+  }
+  const want = norm({ x: target.x - e.p.x, y: target.y - e.p.y, z: target.z - e.p.z }), sp = T.speed, k = Math.min(1, T.turn * dt);
+  const cur = norm(e.v), nd = norm({ x: cur.x + (want.x - cur.x)*k, y: cur.y + (want.y - cur.y)*k, z: cur.z + (want.z - cur.z)*k });
+  // «Сапсан» ещё и рыскает из стороны в сторону, чтобы в него было сложнее попасть
+  const jig = e.kind === 'boss' && e.B.id === 'falcon' ? Math.sin(sessionT * 7) * 0.5 : 0;
+  e.v = { x: (nd.x + jig*nd.z)*sp, y: nd.y*sp, z: (nd.z - jig*nd.x)*sp };
+}
+function enemyFire(e, dt){
+  e.cd -= dt; const dist = len(e.p); if (dist > 95 || e.p.z < 6) return;
+  const B = e.kind === 'boss' ? e.B : null;
+  if (B && B.id === 'sniper') return;                 // снайпер стреляет лучом, см. sniperBeam
+  if (e.cd > 0) return;
+  const facing = -(e.v.x*e.p.x + e.v.y*e.p.y + e.v.z*e.p.z) / (len(e.v) * dist);
+  if (facing < 0.55 && !B) return;
+  const shots = B && B.id === 'falcon' ? 3 : B && B.id === 'bastion' ? 2 : 1;
+  for (let i = 0; i < shots; i++){
+    const spread = B ? 1.9 : 2.9, tgt = { x: rand(-spread, spread), y: rand(-spread, spread) - 0.4, z: 0 };
+    const d = norm({ x: tgt.x - e.p.x, y: tgt.y - e.p.y, z: tgt.z - e.p.z }), sp = 42 + (B ? 8 : 0);
+    ebolts.push({ p:{ x: e.p.x + i*0.8, y: e.p.y, z: e.p.z }, v:{ x:d.x*sp, y:d.y*sp, z:d.z*sp }, dmg: e.T.dmg, big: !!B, delay: i*0.12 });
+  }
+  e.cd = e.T.cd * rand(0.8, 1.25) * (e.kind === 'boss' ? 1 : Math.max(0.6, 1 - sessionT/400));
+}
+// угол между направлением на врага и носом корабля
+const offAxis = p => Math.acos(clamp(p.z / (len(p) || 1), -1, 1));
+function bossAbilities(e, dt){
+  const B = e.B;
+  if (B.id === 'healer'){ if (e.hp < e.maxHp){ e.hp = Math.min(e.maxHp, e.hp + 2.2 * dt); e.healFx = (e.healFx + dt) % 1; } }
+  if (B.id === 'bastion'){ e.shieldT -= dt; if (e.shieldT <= 0){ e.shieldOn = !e.shieldOn; e.shieldT = e.shieldOn ? 3 : 3.5; } }
+  if (B.id === 'hive'){ e.spawnT -= dt; if (e.spawnT <= 0 && enemies.filter(x => x.type === 'drone').length < 4){ e.spawnT = 5; spawnEnemy('drone', { x:e.p.x + rand(-3, 3), y:e.p.y + rand(-3, 3), z:e.p.z }); } }
+  if (B.id === 'sniper'){
+    e.cd -= dt;
+    if (e.charge > 0){ e.charge -= dt; if (e.charge <= 0){   // выстрел: попадает, только если снайпер всё ещё перед носом корабля
+        if (offAxis(e.p) < 0.42 && e.p.z > 0){ damage(e.T.dmg); burst(e.p, '#ff3a2a', 10); } else banner = { text:'УВЕРНУЛСЯ!', sub:'', t:1.2 };
+        e.beamFx = 0.25; e.cd = rand(3.5, 5); } }
+    else if (e.cd <= 0 && len(e.p) < 110){ e.charge = 2.1; }
+    e.beamFx = Math.max(0, (e.beamFx || 0) - dt);
+  }
+}
+function killEnemy(e){
+  e.dead = true; burst(e.p, e.kind === 'boss' ? '#ffd84a' : '#ff9a3a', e.kind === 'boss' ? 70 : 24);
+  if (e.kind === 'boss'){ score += e.T.pts * (1 + Math.floor(bossIdx / BOSSES.length)); bossKills++; boss = null; bossIdx++; nextBossAt = kills + 10; banner = { text:'БОСС СБИТ!', sub:`+${e.T.pts}`, t:2.4 };
+    ship.shield = PL.SHIELD; ship.hull = Math.min(PL.HULL, ship.hull + 35); shake = 0.6; }   // награда за босса: щит полный, корпус чинится
+  else { score += e.T.pts; kills++; ship.shield = Math.min(PL.SHIELD, ship.shield + 6); }
+}
+function hitEnemy(e, dmg){
+  if (e.kind === 'boss' && e.shieldOn){ burst(e.p, '#7ad8ff', 4); return; }   // щит «Бастиона» отражает
+  e.hp -= dmg; e.hitT = 0.12; burst(e.p, '#ffffff', 3);
+  if (e.hp <= 0) killEnemy(e);
+}
+
+// ================= ИГРОК =================
+function damage(d){
+  ship.lastHit = sessionT; hurt = 0.35; shake = Math.max(shake, 0.35);
+  const s = Math.min(ship.shield, d); ship.shield -= s; ship.hull -= (d - s);
+  if (ship.hull <= 0){ ship.hull = 0; die(); }
+}
+function fire(){
+  if (ship.fireT > 0) return; ship.fireT = PL.FIRE_DT;
+  const gx = ship.gun ? 1.7 : -1.7; ship.gun ^= 1;
+  // лёгкая помощь в прицеливании: если враг почти в перекрестье, лазер летит прямо в него
+  let aim = { x:0, y:0, z:90 }, bestA = 0.07;
+  for (const e of enemies){ if (e.p.z < 4) continue; const a = offAxis(e.p); if (a < bestA){ bestA = a; aim = { ...e.p }; } }
+  const d = norm({ x: aim.x - gx, y: aim.y + 1.3, z: aim.z }), sp = PL.BOLT;
+  bolts.push({ p:{ x:gx, y:-1.3, z:0.8 }, v:{ x:d.x*sp, y:d.y*sp, z:d.z*sp }, life:0.9 });
+}
+function fireMissile(){
+  if (ship.missileCd > 0) return; ship.missileCd = PL.MISSILE_CD;
+  let tgt = null, bestA = 0.5; for (const e of enemies){ if (e.p.z < 3) continue; const a = offAxis(e.p); if (a < bestA){ bestA = a; tgt = e; } }
+  missiles.push({ p:{ x:0, y:-2, z:1 }, v:{ x:0, y:0, z:40 }, tgt, life:4 });
+}
+function burst(p, col, n){ for (let i = 0; i < n; i++){ const d = norm({ x:rand(-1, 1), y:rand(-1, 1), z:rand(-1, 1) }), sp = rand(3, 14);
+  parts.push({ p:{ ...p }, v:{ x:d.x*sp, y:d.y*sp, z:d.z*sp }, life: rand(0.4, 1.1), col: Math.random() < .3 ? '#ffffff' : col }); } }
+
+// ================= ВВОД: джойстик слева, огонь справа =================
+const JOY = { x: 44, y: 340, r: 30 }, FIRE = { x: 184, y: 344, r: 22 }, MIS = { x: 168, y: 302, r: 13 }, RAD = { x: 104, y: 340, r: 24 };
+const input = { jx:0, jy:0, fire:false, keys:{} };
+const ptrs = new Map();   // pointerId → 'joy' | 'fire' | 'mis'
+function toLocal(e){ const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; }
+function joyFrom(p){ const dx = p.x - JOY.x, dy = p.y - JOY.y, d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / JOY.r); input.jx = dx / d * k; input.jy = dy / d * k; }
+function syncFire(){ input.fire = [...ptrs.values()].includes('fire'); }
+cv.addEventListener('pointerdown', e => {
+  if (state !== 'play') return; e.preventDefault(); const p = toLocal(e);
+  try { cv.setPointerCapture(e.pointerId); } catch(err){}
+  if (Math.hypot(p.x - MIS.x, p.y - MIS.y) < MIS.r + 6){ ptrs.set(e.pointerId, 'mis'); fireMissile(); return; }
+  if (p.x < W / 2){ ptrs.set(e.pointerId, 'joy'); joyFrom(p); } else { ptrs.set(e.pointerId, 'fire'); syncFire(); }
+});
+cv.addEventListener('pointermove', e => { if (ptrs.get(e.pointerId) === 'joy') joyFrom(toLocal(e)); });
+['pointerup','pointercancel'].forEach(t => cv.addEventListener(t, e => { if (ptrs.get(e.pointerId) === 'joy'){ input.jx = 0; input.jy = 0; } ptrs.delete(e.pointerId); syncFire(); }));
+const KEYS = { left:['ArrowLeft','a','A','ф','Ф'], right:['ArrowRight','d','D','в','В'], up:['ArrowUp','w','W','ц','Ц'], down:['ArrowDown','s','S','ы','Ы'],
+  fire:[' ','j','J','о','О'], mis:['Shift','k','K','л','Л','x','X','ч','Ч'] };
+const isK = (k, g) => KEYS[g].includes(k);
+addEventListener('keydown', e => {
+  if (state === 'play'){ for (const g in KEYS) if (isK(e.key, g)){ input.keys[g] = true; e.preventDefault(); } if (isK(e.key, 'mis') && !e.repeat) fireMissile(); }
+  if (e.key === 'Escape') closeSheets();
+  if (e.key === 'Enter' && state === 'menu' && $('board').hidden) start();
+});
+addEventListener('keyup', e => { for (const g in KEYS) if (isK(e.key, g)) input.keys[g] = false; });
+function steerInput(){
+  const k = input.keys, kx = (k.right ? 1 : 0) - (k.left ? 1 : 0), ky = (k.down ? 1 : 0) - (k.up ? 1 : 0);
+  return { x: clamp(input.jx + kx, -1, 1), y: clamp(input.jy + ky, -1, 1), fire: input.fire || !!k.fire };
+}
+
+// ================= ШАГ СИМУЛЯЦИИ =================
+function step(dt){
+  const play = state === 'play';
+  const st = play ? steerInput() : { x: Math.sin(sessionT*0.3)*0.25, y: Math.sin(sessionT*0.21)*0.15, fire:false };
+  // джойстик вверх — нос вверх (как в мобильных играх): y экрана растёт вниз, поэтому минус
+  const dyaw = st.x * PL.TURN * dt, dpitch = -st.y * PL.TURN * 0.8 * dt;
+  yawAcc += dyaw; pitchAcc += dpitch; setRot(dyaw, dpitch);
+  const fwd = PL.SPEED * dt;
+  const move = (o, withV) => { rot(o.p || o); if (withV && o.v) rot(o.v); const q = o.p || o; q.z -= fwd; };
+
+  for (const s of stars){ s.px = null; rot(s); s.z -= fwd * 2.2; if (s.z < 1 || Math.abs(s.x) > 80 || Math.abs(s.y) > 80 || s.z > 140) Object.assign(s, newStar(true)); }
+  for (const b of bolts){ move(b, true); b.p.x += b.v.x*dt; b.p.y += b.v.y*dt; b.p.z += b.v.z*dt; b.life -= dt; }
+  for (const b of ebolts){ move(b, true); if (b.delay > 0){ b.delay -= dt; continue; } b.p.x += b.v.x*dt; b.p.y += b.v.y*dt; b.p.z += b.v.z*dt; }
+  for (const m of missiles){ move(m, true); if (m.tgt && !m.tgt.dead){ const d = norm({ x:m.tgt.p.x - m.p.x, y:m.tgt.p.y - m.p.y, z:m.tgt.p.z - m.p.z }); m.v = { x:d.x*60, y:d.y*60, z:d.z*60 }; }
+    m.p.x += m.v.x*dt; m.p.y += m.v.y*dt; m.p.z += m.v.z*dt; m.life -= dt; if (Math.random() < .7) parts.push({ p:{ ...m.p }, v:{ x:rand(-1,1), y:rand(-1,1), z:rand(-1,1) }, life:0.4, col:'#ffb03a' }); }
+  for (const pa of parts){ move(pa, true); pa.p.x += pa.v.x*dt; pa.p.y += pa.v.y*dt; pa.p.z += pa.v.z*dt; pa.life -= dt; }
+  for (const e of enemies){ move(e, true); e.hitT = Math.max(0, e.hitT - dt);
+    if (play || state === 'menu'){ steer(e, dt); if (play){ enemyFire(e, dt); if (e.kind === 'boss') bossAbilities(e, dt); } }
+    e.p.x += e.v.x*dt; e.p.y += e.v.y*dt; e.p.z += e.v.z*dt; }
+
+  if (play){
+    sessionT += dt; ship.fireT -= dt; ship.missileCd = Math.max(0, ship.missileCd - dt);
+    if (st.fire) fire();
+    if (sessionT - ship.lastHit > PL.REGEN_DELAY) ship.shield = Math.min(PL.SHIELD, ship.shield + PL.REGEN * dt);
+    // попадания лазеров: отрезок полёта за кадр против сферы врага
+    for (const b of bolts){ if (b.life <= 0) continue;
+      for (const e of enemies){ if (e.dead) continue; const r = e.T.r * 1.35;
+        const ox = e.p.x - b.p.x, oy = e.p.y - b.p.y, oz = e.p.z - b.p.z, vl = len(b.v) * dt, vx = b.v.x/len(b.v), vy = b.v.y/len(b.v), vz = b.v.z/len(b.v);
+        const t = clamp(-(ox*vx + oy*vy + oz*vz), 0, vl), dx = ox + vx*t, dy = oy + vy*t, dz = oz + vz*t;
+        if (dx*dx + dy*dy + dz*dz < r*r){ b.life = 0; hitEnemy(e, 1); break; } } }
+    for (const m of missiles){ if (m.life <= 0) continue; for (const e of enemies){ if (e.dead) continue; if (Math.hypot(e.p.x - m.p.x, e.p.y - m.p.y, e.p.z - m.p.z) < e.T.r * 1.6){ m.life = 0; burst(m.p, '#ffb03a', 16); hitEnemy(e, 6); break; } } }
+    // попадания по кабине: снаряд, пролетевший рядом с пилотом
+    for (const b of ebolts){ if (b.delay > 0 || b.gone) continue; const d = len(b.p);
+      if (d < 1.4){ b.gone = true; damage(b.dmg); }
+      else if (d > 160 || (b.p.x*b.v.x + b.p.y*b.v.y + b.p.z*b.v.z) > 0 && d > 6) b.gone = true; }
+    // таран: враг влетел в кабину
+    // таран: враг влетел в кабину (босс бьёт раз в 2 секунды и отлетает, иначе урон шёл бы каждый кадр)
+    for (const e of enemies){ e.ramT = Math.max(0, (e.ramT || 0) - dt);
+      if (!e.dead && !e.ramT && len(e.p) < e.T.r + 0.8){ damage(e.kind === 'boss' ? 25 : 15);
+        if (e.kind !== 'boss') killEnemy(e); else { e.ramT = 2; e.mode = 'pass'; e.modeT = 0; const d = norm(e.p); e.v = { x:d.x*e.T.speed, y:d.y*e.T.speed, z:d.z*e.T.speed }; } } }
+    // новые враги и боссы
+    spawnT -= dt;
+    const cap = boss ? 2 : Math.min(7, 2 + Math.floor(sessionT / 35));
+    if (!boss && kills >= nextBossAt) spawnBoss();
+    else if (spawnT <= 0 && enemies.filter(e => e.kind === 'enemy').length < cap){
+      const r = Math.random(), late = sessionT > 45;
+      spawnEnemy(late && r < .25 ? 'gun' : r < .55 ? 'inter' : 'drone');
+      spawnT = Math.max(1.3, 4 - sessionT / 60);
+    }
+  } else if (state === 'menu'){ sessionT += dt; if (enemies.length < 3 && Math.random() < dt) spawnEnemy(['drone','inter','gun'][Math.floor(Math.random()*3)]); }
+
+  bolts = bolts.filter(b => b.life > 0); ebolts = ebolts.filter(b => !b.gone && len(b.p) < 200); missiles = missiles.filter(m => m.life > 0);
+  parts = parts.filter(p => p.life > 0); enemies = enemies.filter(e => !e.dead && len(e.p) < 220);
+  if (boss && !enemies.includes(boss)) boss = null;
+  shake = Math.max(0, shake - dt); hurt = Math.max(0, hurt - dt);
+  if (banner){ banner.t -= dt; if (banner.t <= 0) banner = null; }
+}
+function update(dt){ const n = Math.max(1, Math.ceil(dt / 0.02)); for (let i = 0; i < n; i++) step(dt / n); }
+
+// ================= ОТРИСОВКА =================
+function drawSpace(g, t){
+  // панорама: смещение от суммарного поворота; рисуем 2×2 копии, чтобы не было швов
+  const ox = mod(Math.round(-yawAcc * F + CX), PAN), oy = mod(Math.round(pitchAcc * F + CY), PAN);
+  for (const dx of [0, -PAN]) for (const dy of [0, -PAN]) g.drawImage(panC, ox + dx - PAN + PAN, oy + dy - PAN + PAN);
+  // звёзды-пыль: летят навстречу и дают ощущение скорости
+  for (const s of stars){ const q = proj(s); if (!q) continue; const b = clamp(1.4 - s.z / 100, 0.2, 1);
+    g.fillStyle = b > .8 ? '#ffffff' : b > .5 ? '#b8c4ff' : '#5a6490'; const sz = s.z < 18 ? 2 : 1;
+    g.fillRect(Math.round(q.x), Math.round(q.y), sz, sz);
+    if (s.z < 30){ const q2 = proj({ x:s.x, y:s.y, z:s.z + 3 }); if (q2){ g.globalAlpha = .5; lineP(g, Math.round(q.x), Math.round(q.y), Math.round(q2.x), Math.round(q2.y)); g.globalAlpha = 1; } } }
+}
+function drawObjects(g, t){
+  // всё, что перед кабиной, рисуем от дальнего к ближнему
+  const list = [];
+  for (const e of enemies) list.push({ z:e.p.z, f:() => drawEnemy(g, e, t) });
+  for (const b of ebolts) if (!(b.delay > 0)) list.push({ z:b.p.z, f:() => drawBolt(g, b, b.big ? '#ff3ad6' : '#ff4a4a', 3.5) });
+  for (const b of bolts) list.push({ z:b.p.z, f:() => drawBolt(g, b, '#5affe0', 5) });
+  for (const m of missiles) list.push({ z:m.p.z, f:() => { const q = proj(m.p); if (q){ const s = Math.max(2, Math.round(q.s * 0.6)); g.fillStyle = '#fff4c0'; g.fillRect(Math.round(q.x) - s/2, Math.round(q.y) - s/2, s, s); } } });
+  for (const p of parts) list.push({ z:p.p.z, f:() => { const q = proj(p.p); if (q){ const s = Math.max(1, Math.min(6, Math.round(q.s * 0.35))); g.globalAlpha = clamp(p.life * 2, 0, 1); g.fillStyle = p.col; g.fillRect(Math.round(q.x), Math.round(q.y), s, s); g.globalAlpha = 1; } } });
+  list.sort((a, b) => b.z - a.z); for (const o of list) o.f();
+}
+function drawBolt(g, b, col, l){
+  const q1 = proj(b.p), d = norm(b.v), q2 = proj({ x:b.p.x - d.x*l, y:b.p.y - d.y*l, z:b.p.z - d.z*l }); if (!q1 || !q2) return;
+  const w = q1.s > 25 ? 3 : q1.s > 8 ? 2 : 1; g.fillStyle = col;
+  for (let o = 0; o < w; o++) lineP(g, Math.round(q1.x) + o, Math.round(q1.y), Math.round(q2.x) + o, Math.round(q2.y));
+  g.fillStyle = '#ffffff'; g.fillRect(Math.round(q1.x), Math.round(q1.y), 1, 1);
+}
+function drawEnemy(g, e, t){
+  const q = proj(e.p); if (!q) return;
+  const base = e.T.img.width, size = Math.max(4, Math.round(e.T.r * 3.1 * q.s)), x = Math.round(q.x - size/2), y = Math.round(q.y - size/2);
+  if (x > W + 20 || x + size < -20 || y > VH + 20 || y + size < -20) return;
+  g.drawImage(e.T.img, 0, 0, base, base, x, y, size, size);
+  if (e.hitT > 0){ g.globalAlpha = .6; g.fillStyle = '#ffffff'; g.fillRect(x + size*0.25, y + size*0.25, size*0.5, size*0.5); g.globalAlpha = 1; }
+  if (e.kind === 'boss'){
+    const B = e.B;
+    if (B.id === 'bastion' && e.shieldOn){ g.globalAlpha = 0.35 + 0.15*Math.sin(t*8); disc(g, Math.round(q.x), Math.round(q.y), Math.round(size*0.62), '#5ad8ff'); g.globalAlpha = 1; ring(g, Math.round(q.x), Math.round(q.y), Math.round(size*0.62), '#c8f4ff'); }
+    if (B.id === 'healer' && e.hp < e.maxHp){ g.fillStyle = '#7affb0'; for (let i = 0; i < 4; i++){ const a = t*3 + i*1.57, r = size*0.6; g.fillRect(Math.round(q.x + Math.cos(a)*r), Math.round(q.y + Math.sin(a)*r - (t*20 % 10)), 2, 4); g.fillRect(Math.round(q.x + Math.cos(a)*r) - 1, Math.round(q.y + Math.sin(a)*r - (t*20 % 10)) + 1, 4, 2); } }
+    if (B.id === 'sniper' && e.charge > 0){ // линия прицела: предупреждение «отвернись»
+      g.globalAlpha = 0.4 + 0.5*Math.abs(Math.sin(t*12)); g.fillStyle = '#ff2a2a'; lineP(g, Math.round(q.x), Math.round(q.y), CX, CY); lineP(g, Math.round(q.x) + 1, Math.round(q.y), CX + 1, CY); g.globalAlpha = 1; }
+    if (B.id === 'sniper' && e.beamFx > 0){ g.fillStyle = '#ffd0d0'; for (let o = -2; o <= 2; o++) lineP(g, Math.round(q.x) + o, Math.round(q.y), CX + o*3, VH); }
+  }
+}
+// ---- кабина: стойки фонаря, приборная панель, радар, щит и корпус ----
+const [cockC, cockG] = mk(W, H);
+(function paintCockpit(){
+  const g = cockG;
+  // стойки фонаря
+  poly(g, [[0,0],[26,0],[8,VH - 30],[0,VH - 20]], '#1a2038'); poly(g, [[W,0],[W - 26,0],[W - 8,VH - 30],[W,VH - 20]], '#1a2038');
+  poly(g, [[2,0],[22,0],[6,VH - 34],[2,VH - 26]], '#2e3858'); poly(g, [[W - 2,0],[W - 22,0],[W - 6,VH - 34],[W - 2,VH - 26]], '#2e3858');
+  g.fillStyle = '#4a5a88'; lineP(g, 22, 0, 6, VH - 34); lineP(g, W - 22, 0, W - 6, VH - 34);
+  poly(g, [[0,0],[W,0],[W,8],[0,8]], '#1a2038'); g.fillStyle = '#4a5a88'; g.fillRect(20, 8, W - 40, 1);
+  // приборная панель с наклоном
+  poly(g, [[0,VH - 24],[34,VH - 6],[W - 34,VH - 6],[W,VH - 24],[W,H],[0,H]], '#141a30');
+  poly(g, [[0,VH - 20],[34,VH - 2],[W - 34,VH - 2],[W,VH - 20],[W,H],[0,H]], '#222a48');
+  g.fillStyle = '#3a4878'; lineP(g, 0, VH - 20, 34, VH - 2); lineP(g, W - 34, VH - 2, W, VH - 20); g.fillRect(34, VH - 2, W - 68, 1);
+  // гнёзда под джойстик, радар и кнопки
+  disc(g, JOY.x, JOY.y, JOY.r + 4, '#0e1224'); disc(g, JOY.x, JOY.y, JOY.r + 2, '#1a2040'); ring(g, JOY.x, JOY.y, JOY.r + 2, '#3a4878');
+  disc(g, RAD.x, RAD.y, RAD.r + 3, '#0a0e1c'); ring(g, RAD.x, RAD.y, RAD.r + 3, '#3a4878');
+  // заклёпки и мелкие лампочки
+  g.fillStyle = '#4a5a88'; for (let x = 8; x < W; x += 16) g.fillRect(x, H - 5, 2, 2);
+})();
+function drawCockpit(g, t){
+  g.drawImage(cockC, 0, 0);
+  // радар-сфера: центр — прямо по курсу, край — позади
+  const RX = RAD.x, RY = RAD.y, RR = RAD.r;
+  g.fillStyle = '#12304a'; for (let r = 9; r <= RR; r += 9) ring(g, RX, RY, r, '#1a4a6a'); g.fillRect(RX - RR, RY, RR*2, 1); g.fillRect(RX, RY - RR, 1, RR*2);
+  for (const e of enemies){ const d = norm(e.p), a = Math.acos(clamp(d.z, -1, 1)) / Math.PI * RR, ang = Math.atan2(-d.y, d.x);
+    const x = Math.round(RX + Math.cos(ang)*a), y = Math.round(RY + Math.sin(ang)*a);
+    if (e.kind === 'boss'){ g.fillStyle = Math.sin(t*10) > 0 ? '#ffcc33' : '#ff6a1a'; g.fillRect(x - 2, y - 2, 4, 4); }
+    else { g.fillStyle = d.z > 0 ? '#ff4a4a' : '#a83a3a'; g.fillRect(x - 1, y - 1, 2, 2); } }
+  g.fillStyle = '#5affe0'; g.fillRect(RX, RY, 1, 1);
+  // щит и корпус — вертикальные шкалы справа от радара
+  const bar = (x, v, max, col, lbl) => { g.fillStyle = '#0a0e1c'; g.fillRect(x, 316, 8, 50); const h = Math.round(48 * v / max);
+    g.fillStyle = v / max < 0.25 && Math.sin(t*10) > 0 ? '#ff3a3a' : col; g.fillRect(x + 1, 365 - h, 6, h); g.fillStyle = '#7a88b8'; g.font = "5px 'Press Start 2P', monospace"; g.textAlign = 'center'; g.fillText(lbl, x + 4, 374); };
+  bar(134, ship.shield, PL.SHIELD, '#5ab8ff', 'Щ'); bar(146, ship.hull, PL.HULL, '#ffb03a', 'К');
+  // джойстик
+  const kx = Math.round(JOY.x + input.jx * JOY.r * 0.8), ky = Math.round(JOY.y + input.jy * JOY.r * 0.8);
+  disc(g, kx, ky + 2, 12, '#05070e'); disc(g, kx, ky, 12, '#3a4878'); disc(g, kx - 2, ky - 2, 8, '#5a6aa8'); disc(g, kx - 4, ky - 4, 3, '#8a9ad8');
+  // кнопки огня
+  const btn = (b, col, dark, pressed, label, cdk) => { const o = pressed ? 2 : 0; disc(g, b.x, b.y + 3, b.r, '#05070e'); disc(g, b.x, b.y + o, b.r, dark); disc(g, b.x, b.y + o - 1, b.r - 2, col);
+    if (cdk > 0){ g.globalAlpha = .65; g.fillStyle = '#05070e'; for (let dy = -b.r; dy <= b.r; dy++){ if ((dy + b.r) / (2*b.r) > 1 - cdk) continue; const hw = Math.floor(Math.sqrt(b.r*b.r - dy*dy)); g.fillRect(b.x - hw, b.y + o + dy, hw*2 + 1, 1); } g.globalAlpha = 1; }
+    g.fillStyle = '#ffffff'; g.font = `${b.r > 20 ? 7 : 5}px 'Press Start 2P', monospace`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(label, b.x, b.y + o); };
+  btn(FIRE, '#e84a3a', '#7a1a14', steerInput().fire, 'ОГОНЬ', 0);
+  btn(MIS, '#ffb02a', '#7a4a0a', false, 'Р', ship.missileCd / PL.MISSILE_CD);
+  g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+}
+function drawCrosshair(g, t){
+  let lock = false; for (const e of enemies) if (e.p.z > 4 && offAxis(e.p) < 0.07){ lock = true; break; }
+  g.fillStyle = lock ? '#ff5a3a' : '#5affe0';
+  g.fillRect(CX - 9, CY, 5, 1); g.fillRect(CX + 5, CY, 5, 1); g.fillRect(CX, CY - 9, 1, 5); g.fillRect(CX, CY + 5, 1, 5);
+  g.fillRect(CX - 1, CY, 3, 1); g.fillRect(CX, CY - 1, 1, 3);
+  if (lock){ ring(g, CX, CY, 12, '#ff5a3a'); }
+}
+function txt(g, s, x, y, col, size, align){ g.font = `${size || 8}px 'Press Start 2P', monospace`; g.textAlign = align || 'left'; g.textBaseline = 'top';
+  g.fillStyle = K; g.fillText(s, x + 1, y + 1); g.fillStyle = col; g.fillText(s, x, y); g.textAlign = 'left'; }
+function drawHUD(g, t){
+  txt(g, String(score), 30, 14, '#ffffff', 8);
+  txt(g, `x${kills}`, W - 30, 14, '#9aa8d8', 6, 'right');
+  if (boss){ const B = boss.B, w = 120, x = CX - w/2, y = 30;
+    txt(g, B.name, CX, y - 10, '#ffcc33', 6, 'center');
+    g.fillStyle = K; g.fillRect(x - 1, y - 1, w + 2, 6); g.fillStyle = '#3a1a1a'; g.fillRect(x, y, w, 4);
+    g.fillStyle = boss.shieldOn ? '#5ad8ff' : '#ff4a3a'; g.fillRect(x, y, Math.round(w * boss.hp / boss.maxHp), 4);
+    // стрелка к боссу, если он вне экрана
+    const q = proj(boss.p); if (!q || q.x < 10 || q.x > W - 10 || q.y < 10 || q.y > VH - 10){ const a = Math.atan2(-boss.p.y, boss.p.x * (boss.p.z < 0 ? -1 : 1) || 0.001) ;
+      const ax = Math.round(CX + Math.cos(a)*70), ay = Math.round(CY + Math.sin(a)*70); g.fillStyle = '#ffcc33'; g.fillRect(ax - 2, ay - 2, 5, 5); g.fillStyle = K; g.fillRect(ax - 1, ay - 1, 3, 3); } }
+  if (banner){ g.globalAlpha = Math.min(1, banner.t * 2); txt(g, banner.text, CX, 62, '#ffcc33', 8, 'center'); if (banner.sub) txt(g, banner.sub, CX, 76, '#d8e4ff', 5, 'center'); g.globalAlpha = 1; }
+  if (sessionT < 4 && !boss){ g.globalAlpha = Math.min(1, 4 - sessionT); txt(g, 'ДЖОЙСТИК — ПОВОРОТ', CX, 200, '#d8e4ff', 5, 'center'); txt(g, 'СПРАВА — ОГОНЬ', CX, 212, '#d8e4ff', 5, 'center'); g.globalAlpha = 1; }
+}
+function draw(t){
+  const sx = shake > 0 ? Math.round(rand(-2, 2) * shake * 4) : 0, sy = shake > 0 ? Math.round(rand(-2, 2) * shake * 4) : 0;
+  ctx.save(); ctx.translate(sx, sy);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, VH); ctx.clip();
+  drawSpace(ctx, t); drawObjects(ctx, t); if (state === 'play') drawCrosshair(ctx, t);
+  ctx.restore();
+  ctx.restore();
+  drawCockpit(ctx, t);
+  if (state === 'play' || state === 'dead') drawHUD(ctx, t);
+  if (hurt > 0){ ctx.globalAlpha = hurt * 1.2; ctx.fillStyle = '#ff2a2a'; ctx.fillRect(0, 0, W, 4); ctx.fillRect(0, 0, 4, VH); ctx.fillRect(W - 4, 0, 4, VH); ctx.fillRect(0, VH - 4, W, 4); ctx.globalAlpha = hurt * 0.25; ctx.fillRect(0, 0, W, VH); ctx.globalAlpha = 1; }
+}
+
+// ================= МАСШТАБ =================
+function fit(){
+  const big = innerWidth >= 700 && innerHeight >= 700; document.body.classList.toggle('framed', big);
+  const aw = innerWidth - (big ? 32 : 0), ah = innerHeight - (big ? 24 : 0);
+  let s = Math.min(aw / W, ah / H); if (big && s >= 2) s = Math.floor(s);
+  wrap.style.width = W*s + 'px'; wrap.style.height = H*s + 'px'; document.documentElement.style.setProperty('--u', (s * 0.85) + 'px');
+  document.body.style.background = big ? '' : 'linear-gradient(#03040e 50%, #222a48 50%)';
+}
+addEventListener('resize', fit); fit();
+
+// ================= МЕНЮ, РЕЙТИНГ, ДРУЗЬЯ =================
+let toastT; function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 1800); }
+let FRIENDS = [], BOARD = [];
+const esc = s => String(s).replace(/[<>&"]/g, '');
+function avatar(f){ return f.photo ? `<span class="av"><img src="${esc(f.photo)}" alt=""></span>` : `<span class="av" style="background:${esc(f.c || '#3a4878')}">${esc((f.n || '?')[0])}</span>`; }
+function renderFriends(){
+  $('friends').innerHTML = FRIENDS.slice(0, 4).map(f => `<button class="fr" type="button" title="${esc(f.n)}">${avatar(f)}<span class="fs">${f.s}</span></button>`).join('')
+    + `<button class="fr" type="button" id="addFriend" aria-label="Пригласить друга"><span class="av add">+</span><span class="fs">ЗВАТЬ</span></button>`;
+  $('friends').querySelectorAll('.fr').forEach(b => b.onclick = b.id === 'addFriend' ? invite : openBoard);
+}
+function renderBoard(){
+  $('rows').innerHTML = BOARD.map((r, i) => `<div class="lr${r.me ? ' me' : ''}"><span>${i + 1}</span>${avatar(r)}<span class="nm">${esc(r.n)}</span><span>${r.s}</span></div>`).join('')
+    + (BOARD.filter(r => !r.me).length ? '' : `<div class="note" style="padding:calc(var(--u)*3) 0">Друзей пока нет.<br>Нажми «Позвать друзей»</div>`);
+}
+async function loadSocial(){ FRIENDS = await Hub.friends(); BOARD = await Hub.leaderboard(); renderFriends(); renderBoard(); }
+function openBoard(){ $('board').hidden = false; renderBoard(); }
+function closeSheets(){ $('board').hidden = true; }
+function invite(){ Hub.invite(); }
+$('boardBtn').onclick = openBoard; $('boardClose').onclick = closeSheets; $('inviteBtn').onclick = invite; $('invite').onclick = invite;
+function setHome(show){ $('boardBtn').hidden = !show; $('inviteBtn').hidden = !show; $('friends').hidden = !show; }
+function refreshMenu(){ $('mBest').textContent = `РЕКОРД ${best}`; }
+
+// ================= ЦИКЛ =================
+let last = 0;
+function frame(ms){
+  const t = ms / 1000, dt = last ? Math.min((ms - last) / 1000, 0.05) : 1/60; last = ms;
+  update(dt);   // мир живёт и после поражения: враги пролетают за панелью результатов
+  draw(t);
+  requestAnimationFrame(frame);
+}
+function start(){ closeSheets(); reset(); state = 'play'; $('menu').hidden = true; $('over').hidden = true; setHome(false); last = 0; input.jx = input.jy = 0; ptrs.clear(); syncFire(); }
+function die(){
+  if (state !== 'play') return; state = 'over'; burst({ x:0, y:0, z:3 }, '#ff6a3a', 30); ptrs.clear(); input.jx = input.jy = 0; syncFire();
+  const rec = score > best; if (rec) best = score;
+  Hub.submitRun({ score, duration: Math.round(sessionT) }).then(() => loadSocial());
+  $('overTitle').textContent = rec && score > 0 ? 'НОВЫЙ РЕКОРД!' : 'КОРАБЛЬ ПОДБИТ';
+  $('res').innerHTML = `СЧЁТ ${score}<br>СБИТО ${kills}<br>БОССОВ ${bossKills}<br>ЛУЧШЕЕ ${best}`;
+  $('over').hidden = false; setHome(true); refreshMenu();
+}
+function toMenu(){ state = 'menu'; reset(); $('over').hidden = true; $('menu').hidden = false; setHome(true); }
+$('startBtn').onclick = start; $('againBtn').onclick = start; $('menuBtn').onclick = toMenu;
+document.addEventListener('visibilitychange', () => { if (document.hidden){ input.jx = input.jy = 0; ptrs.clear(); syncFire(); for (const k in input.keys) input.keys[k] = false; } });
+
+reset(); refreshMenu(); requestAnimationFrame(frame);
+Hub.init(GAME_ID).then(r => { USER = r.user || USER; best = r.best || 0; refreshMenu(); loadSocial(); });
+</script>
+</body>
+</html>
