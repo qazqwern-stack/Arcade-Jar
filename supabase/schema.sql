@@ -198,3 +198,37 @@ insert into shop_items (game_id, item_id, cur, price, consumable) values
   ('words', 'hint_letter', 'coin', 5, true),
   ('words', 'hint_word', 'coin', 15, true)
 on conflict (game_id, item_id) do update set cur = excluded.cur, price = excluded.price, consumable = excluded.consumable;
+
+-- ---------- цены магазина PIXEL RUN (из кода игры) ----------
+insert into shop_items (game_id, item_id, cur, price) values
+  ('pixelrun', 'hills', 'free', 0),
+  ('pixelrun', 'cave', 'free', 0),
+  ('pixelrun', 'synth', 'coin', 150),
+  ('pixelrun', 'win98', 'coin', 100),
+  ('pixelrun', 'gameboy', 'coin', 50),
+  ('pixelrun', 'matrix', 'coin', 150),
+  ('pixelrun', 'snow', 'coin', 100),
+  ('pixelrun', 'desert', 'coin', 100),
+  ('pixelrun', 'candy', 'coin', 150),
+  ('pixelrun', 'space', 'coin', 200),
+  ('pixelrun', 'pix', 'free', 0),
+  ('pixelrun', 'kitty', 'free', 0),
+  ('pixelrun', 'bot', 'free', 0),
+  ('pixelrun', 'fox', 'free', 0),
+  ('pixelrun', 'knight', 'coin', 100),
+  ('pixelrun', 'astro', 'coin', 150),
+  ('pixelrun', 'ninja', 'coin', 100),
+  ('pixelrun', 'wizard', 'coin', 150),
+  ('pixelrun', 'pirate', 'coin', 100),
+  ('pixelrun', 'skater', 'coin', 100),
+  ('pixelrun', 'penguin', 'coin', 100),
+  ('pixelrun', 'dino', 'coin', 100),
+  ('pixelrun', 'ghost', 'coin', 150),
+  ('pixelrun', 'pumpkin', 'coin', 150),
+  ('pixelrun', 'floppy', 'coin', 50),
+  ('pixelrun', 'cassette', 'coin', 50),
+  ('pixelrun', 'chick', 'coin', 50),
+  ('pixelrun', 'viking', 'coin', 150),
+  ('pixelrun', 'cyber', 'coin', 200),
+  ('pixelrun', 'golden', 'coin', 300)
+on conflict (game_id, item_id) do update set cur = excluded.cur, price = excluded.price;
