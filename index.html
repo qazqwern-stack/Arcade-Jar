@@ -287,6 +287,8 @@ const GAMES = [
     blurb:'Прыгай всё выше, собирай монеты и открывай 23 фона и 42 героя.' },
   { id:'pixelrun', title:'PIXEL RUN', genre:'platform', status:'live', src:'games/pixelrun/index.html',
     blurb:'Герой бежит сам и всё быстрее — прыгай через пропасти и на врагов. 10 карт и 20 героев.' },
+  { id:'wings', title:'PIXEL WINGS', genre:'arcade', status:'live', src:'games/wings/index.html',
+    blurb:'Тапай и пролетай между колоннами. 10 карт с анимацией и 20 героев за монеты.' },
   { id:'novel', title:'Последний звонок', genre:'novel', status:'soon', blurb:'История про выпускной. Твои выборы решают финал.' },
   { id:'words', title:'Слова из слова', genre:'puzzle', status:'live', src:'games/words/index.html',
     blurb:'Собирай слова из букв длинного слова. 166 уровней и подсказки.' },
@@ -326,6 +328,15 @@ const COVERS = {
     sprite(g, ["...kkkkkk...","..khhhhhhk..",".khhhhhhhhk.",".khsbssbshk.",".khsssssshk.",".khsskksshk.","..khhhhhhk..",".khhhyyhhhk.","kshhhhhhhhsk",".khhhhhhhhk.",".kppk..kppk.","kkk......kkk"],
       {k:'#16121c', h:'#2ab3a6', s:'#f2c29a', b:'#16121c', y:'#ffd84a', p:'#2a2a4a'}, 12, gy-24);
     g.fillStyle='#6b4a10'; g.fillRect(bx+8,by-9,5,6); g.fillStyle='#ffd84a'; g.fillRect(bx+9,by-8,3,4); },
+  wings(g, w, h){ for (let y=0;y<h;y++){ g.fillStyle = y < h*.45 ? '#7ec8ff' : y < h*.8 ? '#bfe6ff' : '#e6f7ff'; g.fillRect(0,y,w,1); }
+    g.fillStyle = '#74c860'; for (let x=0;x<w;x++){ const y = Math.round(h-14 - 6*(0.5+0.5*Math.sin(x*0.12))); g.fillRect(x,y,1,h-y); }
+    g.fillStyle = '#d9a066'; g.fillRect(0,h-8,w,8); g.fillStyle = '#6cd24a'; g.fillRect(0,h-8,w,2);
+    const col = (x, top, bot) => { for (const [y0,y1] of [[0,top],[bot,h-8]]){ g.fillStyle='#16121c'; g.fillRect(x-1,y0,16,y1-y0); g.fillStyle='#bdb5a4'; g.fillRect(x,y0,14,y1-y0); g.fillStyle='#e6e0d0'; g.fillRect(x+1,y0,2,y1-y0); g.fillStyle='#7a7264'; g.fillRect(x+12,y0,2,y1-y0); }
+      g.fillStyle='#d8d0bc'; g.fillRect(x-2,top-3,18,3); g.fillRect(x-2,bot,18,3); };
+    col(w-26, h*.32|0, h*.32+30|0); col(w*.45|0, h*.18|0, h*.18+30|0);
+    sprite(g, ["............","....kkkkk...","...kbbbbbk..","..kbbbbbwek.",".kbbbbbbbkoo",".kbbbbbbbkok",".kllllbbbkk.",".kllllllbk..","..kllllbk...","...kkkkk...."],
+      {k:'#16121c', b:'#9a6a3a', l:'#f0dcc0', w:'#fff', e:'#16121c', o:'#ffb02e'}, 14, h*.42|0);
+    g.fillStyle='#6a4422'; g.fillRect(16, (h*.42|0)+3, 4, 2); g.fillStyle='#6b4a10'; g.fillRect(w*.45+4|0,(h*.18+12)|0,5,6); g.fillStyle='#ffd84a'; g.fillRect(w*.45+5|0,(h*.18+13)|0,3,4); },
   novel(g, w, h){ for (let y=0;y<h;y++){ g.fillStyle = y < h*0.3 ? '#3a2a7a' : y < h*0.55 ? '#a85aa8' : '#ff9a8a'; g.fillRect(0,y,w,1); }
     g.fillStyle = '#2a1a3a'; g.fillRect(10, h*0.4|0, w-20, h); for (let x=16; x<w-16; x+=10){ g.fillStyle = '#ffd88a'; g.fillRect(x, (h*0.5|0), 4, 4); g.fillRect(x, (h*0.5|0)+9, 4, 4); }
     g.fillStyle = '#2a1a3a'; g.fillRect(w/2-6|0, (h*0.25|0), 12, 14); g.fillStyle='#ffd88a'; g.fillRect(w/2-2|0, (h*0.25|0)+4, 4, 4);

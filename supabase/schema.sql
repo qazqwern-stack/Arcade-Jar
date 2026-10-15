@@ -232,3 +232,37 @@ insert into shop_items (game_id, item_id, cur, price) values
   ('pixelrun', 'cyber', 'coin', 200),
   ('pixelrun', 'golden', 'coin', 300)
 on conflict (game_id, item_id) do update set cur = excluded.cur, price = excluded.price;
+
+-- ---------- цены магазина PIXEL WINGS (из кода игры) ----------
+insert into shop_items (game_id, item_id, cur, price) values
+  ('wings', 'meadow', 'free', 0),
+  ('wings', 'night', 'free', 0),
+  ('wings', 'synth', 'coin', 100),
+  ('wings', 'win98', 'coin', 100),
+  ('wings', 'ocean', 'coin', 150),
+  ('wings', 'aurora', 'coin', 150),
+  ('wings', 'candy', 'coin', 100),
+  ('wings', 'volcano', 'coin', 150),
+  ('wings', 'space', 'coin', 200),
+  ('wings', 'storm', 'coin', 200),
+  ('wings', 'sparrow', 'free', 0),
+  ('wings', 'chick', 'free', 0),
+  ('wings', 'bee', 'free', 0),
+  ('wings', 'bat', 'free', 0),
+  ('wings', 'owl', 'coin', 100),
+  ('wings', 'parrot', 'coin', 100),
+  ('wings', 'penguin', 'coin', 100),
+  ('wings', 'duck', 'coin', 50),
+  ('wings', 'pig', 'coin', 100),
+  ('wings', 'cat', 'coin', 100),
+  ('wings', 'fish', 'coin', 100),
+  ('wings', 'robot', 'coin', 150),
+  ('wings', 'ghost', 'coin', 150),
+  ('wings', 'ufo', 'coin', 150),
+  ('wings', 'rocket', 'coin', 150),
+  ('wings', 'toast', 'coin', 50),
+  ('wings', 'floppy', 'coin', 50),
+  ('wings', 'dragon', 'coin', 200),
+  ('wings', 'phoenix', 'coin', 200),
+  ('wings', 'golden', 'coin', 300)
+on conflict (game_id, item_id) do update set cur = excluded.cur, price = excluded.price;
