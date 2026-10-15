@@ -686,7 +686,7 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => { if (isL(e.key)) keys.l = false; if (isR(e.key)) keys.r = false; if (isJ(e.key)) keys.j = false; });
 // пульт внизу: ◄ ► и большая кнопка прыжка; тап по самому полю — тоже прыжок
-const BTN = { j:{x:6,y:261,w:168,h:50} };   // одна большая кнопка прыжка; тап по полю тоже прыжок
+const BTN = { j:{x:6,y:261,w:168,h:50} };   // не рисуется: прыжок — тап в любом месте экрана
 const ptrs = new Map();
 function zone(e){ const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
   return 'j'; }
@@ -854,7 +854,14 @@ function drawLevel(g, w, lv, t, bgCam, mode, heroItem){
   for (let c = c0; c <= c1; c++){ const col = lv.cols[c], x = c*T - cam;
     if (col && col[ROWS-1] === 1) for (let y = PFH; y < H; y += T) g.drawImage(ts.gb, x, y);
     else { g.fillStyle = w.pal.dark; g.fillRect(x, PFH, T, H - PFH); } }
-  if (mode === 'play') drawPad(g, w);
+  // кнопок нет: прыжок — тап в любом месте экрана (или пробел / стрелка вверх)
+  if (mode === 'play' && sessionT < 3) drawTapHint(g, w);
+}
+function drawTapHint(g, w){
+  // подсказка первые 3 секунды забега, потом исчезает
+  g.globalAlpha = Math.min(1, 3 - sessionT); g.fillStyle = w.ui.ink;
+  g.font = "8px 'Press Start 2P', monospace"; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('ТАПНИ — ПРЫЖОК', W / 2, PFH + (H - PFH) / 2); g.globalAlpha = 1; g.textAlign = 'left';
 }
 function drawPad(g, w){
   const u = w.ui;
