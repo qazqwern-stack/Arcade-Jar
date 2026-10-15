@@ -213,7 +213,7 @@ h2{font-size:calc(var(--u)*8)}
 const GAME_ID = 'pixelrun';
 const W = 180, H = 320, T = 12, ROWS = 21, PFH = ROWS * T;   // игровое поле 180×252, ниже — пульт
 
-// Экономика: монета на ~22 клетки пути (+ монеты в «?»-блоках).
+// Экономика: монета на ~22 клетки пути (+ монеты в блок со звездойах).
 // Хороший забег ≈ 10–12 монет в минуту, карты и герои стоят 50–300.
 const ECON = { perTile: 1/22, cap: 6 };
 // Физика (кадр 60 fps). Прыжок ≈ 3.7 клетки вверх и ≈ 4.5 клетки в длину на бегу.
@@ -239,10 +239,10 @@ const stepRows = rows => rows.map((r, j) => j >= 10 ? (r.slice(1, 6) + '..' + r.
 const frames = (rows, pal) => [sprite(rows, pal), sprite(stepRows(rows), pal)];
 
 // ================= ГЕРОИ =================
-const PIX = ["...kkkkkk...","..krrrrrrk..",".krrrrrrrrrk","..kssbssbk..","..kssssssk..","..ksskkssk..","...kssssk...","..kttttttk..",".ksttttttsk.","..kttttttk..","..kppkkppk..","..kkk..kkk.."];
+const PIX = ["...kkkkkk...","..khhhhhhk..",".khhhhhhhhk.",".khsbssbshk.",".khsssssshk.",".khsskksshk.","..khhhhhhk..",".khhhyyhhhk.","kshhhhhhhhsk",".khhhhhhhhk.","..kppkkppk..","..kkk..kkk.."];
 const H_ = (id, name, cur, price, desc, pal, rows, fx) => ({ id, name, cur, price, desc, pal, rows, fx });
 const HEROES = [
-  H_('pix','Пикс','free',0,'Стартовый герой. Кепка задом наперёд не носится.', {k:K,r:'#e83a3a',s:'#f2c29a',b:K,t:'#3a6adf',p:'#2a2a4a'}, PIX),
+  H_('pix','Пикс','free',0,'Стартовый герой. Капюшон не снимает даже летом.', {k:K,h:'#2ab3a6',s:'#f2c29a',b:K,y:'#ffd84a',p:'#2a2a4a'}, PIX),
   H_('kitty','Мурка','free',0,'Стартовый герой. Приземляется на четыре лапы.', {k:K,o:'#f0962e',w:'#fff1d6',b:K,p:'#ff9ec4'},
     ["..k......k..",".kok....kok.",".kookkkkook.","kooooooooook","koobooooobok","kooooppooook","koowwwwwwook",".kowwwwwwok.",".kooooooook.",".kooooooook.","..kok..kok..","..kk....kk.."]),
   H_('bot','Робот Болт','free',0,'Стартовый герой. Работает на солнечных батарейках.', {k:K,s:'#c3cbe0',c:'#5ee0ff',b:K,y:'#ffcc33'},
@@ -254,7 +254,7 @@ const HEROES = [
     ["....kyyk....","....kkkk....","...kssssk...","..kssssssk..","..ksbbbbsk..","..kssssssk..",".krrrrrrrrk.","krrrryyrrrrk",".krrryyrrrk.",".krrrrrrrrk.","..kssk.kssk.","..kkk...kkk."]),
   H_('astro','Космонавт','coin',150,'Шлем держит давление, ноги держат ритм.', {k:K,w:'#f4f6ff',c:'#5ad1ff',v:'#ffffff',r:'#e83a3a',b:'#3a5ad6'},
     ["...kkkkkk...","..kwwwwwwk..",".kwwwwwwwwk.",".kwccccccwk.",".kwcvccccwk.",".kwccccccwk.","..kwwwwwwk..",".kwwwrrwwwk.","kwwwwbbwwwwk",".kwwwwwwwwk.","..kwwk.kwwk.","..kkk..kkk.."]),
-  H_('ninja','Ниндзя','coin',100,'Бесшумный бег по крышам и трубам.', {k:K,n:'#2a2e3a',r:'#e83a3a',s:'#f2c29a',b:K},
+  H_('ninja','Ниндзя','coin',100,'Бесшумный бег по крышам и пенькам.', {k:K,n:'#2a2e3a',r:'#e83a3a',s:'#f2c29a',b:K},
     ["...kkkkkk...","..knnnnnnk..",".knnnnnnnnkr",".krrrrrrrrk.",".knsbssbsnk.",".knnnnnnnnk.","..knnnnnnk..",".knnnrrnnnk.","knnnnnnnnnnk",".knnnnnnnnk.","..knnk.knnk.","..kkk..kkk.."]),
   H_('wizard','Волшебник','coin',150,'Колпак со звездой. Борода до колен.', {k:K,p:'#7a4ad6',y:'#ffd84a',s:'#f2c29a',b:K,w:'#f4f0e8'},
     [".....kk.....","....kppk....","...kpypk....","...kppppk...","kkkkkkkkkkkk","..kssssssk..","..ksbssbsk..","..kwwwwwwk..",".kpwwwwwwpk.","kpppwwwwpppk",".kppppppppk.","..kkk..kkk.."]),
@@ -284,8 +284,9 @@ const HEROES = [
 ].map(h => ({ ...h, kind:'h', spr: frames(h.rows, h.pal) }));
 
 // ================= ВРАГИ (форма общая, цвета берутся из карты) =================
-const WALKER = ["....kkkk....","..kkeeeekk..",".keeeeeeeek.","kewbeeeebwek","keeeeeeeeeek","keeekkkkeeek",".keeeeeeeek.","..kffffffk..","..kffffffk..",".kddk..kddk.",".kkk....kkk.","............"];
-const HOPPER = ["............","..k.k..k.k..","..kekkkkek..",".keeeeeeeek.","kewbeeeebwek","keeeeeeeeeek","keeekkkkeeek",".keeeeeeeek.","..keeeeeek..",".kddk..kddk.","kddk....kddk","kkk......kkk"];
+const WALKER = ["............","............",".....kk.....","....keek....","...keeeek...","..keeeeeek..",".kewbeewbek.",".keeeeeeeek.","keeeeeeeeeek","keeffeeffeek","keeeeeeeeeek",".kkkkkkkkkk."];
+const WALKER2 = ["............","............","............","....kkkk....","...keeeek...","..keeeeeek..",".kewbeewbek.","keeeeeeeeeek","keeeeeeeeeek","keeffeeffeek","keeeeeeeeeek",".kkkkkkkkkk."];
+const HOPPER = ["............","..k......k..","..ke....ek..","...keeeek...","..keeeeeek..",".keeeeeeeek.",".kewbeewbek.",".keeeeeeeek.","keeeeeeeeeek","keeffeeffeek","keeeeeeeeeek",".kkkkkkkkkk."];
 
 // ================= КАРТЫ =================
 // Фон рисуется один раз в холст 180×252 и прокручивается медленнее уровня.
@@ -315,7 +316,7 @@ const WORLDS = [
   { id:'hills', name:'Зелёные холмы', cur:'free', price:0, desc:'Стартовая карта. Голубое небо, облака и холмы — классика.',
     ui:{ink:'#1d2a5a', paper:'#fff6e0', accent:'#e85a3a', frame:'#0d1630'},
     pal: P_({top:'#5ccf3a', body:'#c8783a', dark:'#7a3e1a', dot:'#e0a060', brick:'#c8602a', mortar:'#5a2a10', q:'#ffc23a', qEdge:'#8a5010', qMark:'#fff4c0', used:'#9a6a3a',
-      pipe:'#3ab44a', pipeL:'#a8f080', pipeD:'#1a6a2a', hard:'#b0704a', hardL:'#e8a878', hardD:'#5a3018', e:'#a0522d', d:'#3a1a0a', f:'#f0d0a0', eye:'#ffffff'}),
+      pipe:'#a8693a', pipeL:'#d89a5a', pipeD:'#5a3018', hard:'#b0704a', hardL:'#e8a878', hardD:'#5a3018', e:'#8a5ad0', d:'#3a1a0a', f:'#c8a8ff', eye:'#ffffff'}),
     sky(g){ g.fillStyle = '#6ec6ff'; g.fillRect(0,0,W,PFH); vgrad(g, 110, 200, ['#6ec6ff','#a8e0ff']);
       [[10,24],[82,52],[132,16],[44,92],[150,84]].forEach(([x,y]) => cloudAt(g, x, y, '#ffffff', '#b8e4ff'));
       hill(g, 196, 42, 2, '#8ad870', 0.5); hill(g, 210, 24, 3, '#5ab44a', 1.7); } },
@@ -435,7 +436,7 @@ const WORLDS = [
 // фон каждой карты рисуется один раз
 WORLDS.forEach(w => { const [c, g] = mk(W, PFH); w.sky(g); w.bgc = c; });
 
-// плитки карты: земля, кирпич, «?»-блок, пустой блок, камень, труба
+// плитки карты: земля, кирпич, блок со звездой, пустой блок, камень, труба
 function makeTiles(p){
   const t = {};
   const tile = fn => { const [c, g] = mk(T, T); fn(g); return c; };
@@ -450,7 +451,7 @@ function makeTiles(p){
     g.fillRect(0,5,T,1); g.fillRect(0,11,T,1); g.fillRect(5,0,1,5); g.fillRect(11,6,1,5); g.fillRect(0,6,1,5); });
   const q = mark => g => { g.fillStyle = p.qEdge; g.fillRect(0,0,T,T); g.fillStyle = p.q; g.fillRect(1,1,10,10);
     g.fillStyle = p.qEdge; [[2,2],[9,2],[2,9],[9,9]].forEach(([x,y]) => g.fillRect(x,y,1,1));
-    g.fillStyle = mark; [[5,3],[6,3],[4,4],[7,4],[7,5],[6,6],[5,7],[5,9]].forEach(([x,y]) => g.fillRect(x,y,1,1)); };
+    g.fillStyle = mark; [[5,2],[6,2],[5,3],[6,3],[2,4],[3,4],[4,4],[5,4],[6,4],[7,4],[8,4],[9,4],[3,5],[4,5],[5,5],[6,5],[7,5],[8,5],[4,6],[5,6],[6,6],[7,6],[3,7],[4,7],[7,7],[8,7],[3,8],[8,8]].forEach(([x,y]) => g.fillRect(x,y,1,1)); };
   t.q = [tile(q(p.qMark)), tile(q(p.qEdge))];
   t.used = tile(g => { g.fillStyle = p.qEdge; g.fillRect(0,0,T,T); g.fillStyle = p.used; g.fillRect(1,1,10,10); g.fillStyle = p.qEdge; [[2,2],[9,2],[2,9],[9,9]].forEach(([x,y]) => g.fillRect(x,y,1,1)); });
   t.hard = tile(g => { g.fillStyle = p.hard; g.fillRect(0,0,T,T); g.fillStyle = p.hardL; g.fillRect(0,0,T,1); g.fillRect(0,0,1,T); g.fillRect(3,3,5,1); g.fillRect(3,3,1,5);
@@ -459,10 +460,11 @@ function makeTiles(p){
     g.fillStyle = p.pipe; g.fillRect(x0, 0, x1 - x0, T); g.fillStyle = p.pipeD;
     if (left) g.fillRect(x0, 0, 1, T); else { g.fillRect(x1 - 1, 0, 1, T); g.fillRect(x1 - 4, cap ? 1 : 0, 2, cap ? 10 : T); }
     if (cap){ g.fillRect(0, 0, T, 1); g.fillRect(0, 11, T, 1); }
-    g.fillStyle = p.pipeL; if (left) g.fillRect(x0 + 2, cap ? 1 : 0, 2, cap ? 10 : T); };
+    g.fillStyle = p.pipeL; if (left) g.fillRect(x0 + 2, cap ? 1 : 0, 2, cap ? 10 : T);
+    if (!cap){ g.fillStyle = p.pipeD; g.fillRect(x0 + 5, 3, 3, 1); g.fillRect(x0 + 6, 8, 3, 1); } };
   t.ptl = tile(pipe(true, true)); t.ptr = tile(pipe(true, false)); t.pbl = tile(pipe(false, true)); t.pbr = tile(pipe(false, false));
   const ep = { k:K, e:p.e, d:p.d, f:p.f, w:p.eye, b:K };
-  t.walker = frames(WALKER, ep); t.hopper = frames(HOPPER, ep);
+  t.walker = [sprite(WALKER, ep), sprite(WALKER2, ep)]; t.hopper = [sprite(HOPPER, ep), sprite(WALKER2, ep)];
   return t;
 }
 WORLDS.forEach(w => w.tiles = makeTiles(w.pal));
@@ -601,7 +603,7 @@ function fit(){
 addEventListener('resize', () => { fit(); try { paintBars(byId(WORLDS, P.world)); } catch(e){} }); fit();
 
 // ================= УРОВЕНЬ =================
-// Плитки: 1 земля, 2 кирпич, 3 «?»-блок с монетой, 4 пустой блок, 5 камень, 6–9 труба
+// Плитки: 1 земля, 2 кирпич, 3 блок со звездой с монетой, 4 пустой блок, 5 камень, 6–9 труба
 const EMPTY = new Uint8Array(ROWS);
 let L, state = 'menu', calm = true, genX = 0, gh = 3, budget = 0, dropX = 0;
 let stomps = 0, runCoins = 0, sessionT = 0, startX = 0, maxX = 0, demoHold = false, deathBy = '';
