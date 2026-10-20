@@ -291,6 +291,8 @@ const GAMES = [
     blurb:'Тапай и пролетай между колоннами. 10 карт с анимацией и 20 героев за монеты.' },
   { id:'nova', title:'NOVA STRIKE', genre:'arcade', status:'live', src:'games/nova/index.html',
     blurb:'Космический бой из кабины пилота: джойстик, лазеры, ракеты и пять боссов.' },
+  { id:'shell', title:'LAST SHELL', genre:'puzzle', status:'live', src:'games/shell/index.html',
+    blurb:'Дуэль с механическим крупье: боевые и холостые патроны, расчёт и предметы.' },
   { id:'novel', title:'Последний звонок', genre:'novel', status:'soon', blurb:'История про выпускной. Твои выборы решают финал.' },
   { id:'words', title:'Слова из слова', genre:'puzzle', status:'live', src:'games/words/index.html',
     blurb:'Собирай слова из букв длинного слова. 166 уровней и подсказки.' },
@@ -348,6 +350,12 @@ const COVERS = {
     g.fillStyle='#5affe0'; g.fillRect(sx-1,sy-12,1,4); g.fillRect(sx-1,sy+12,1,4); g.fillRect(sx-12,sy+1,4,1); g.fillRect(sx+9,sy+1,4,1);
     g.fillStyle='#1a2038'; g.beginPath(); g.moveTo(0,0); g.lineTo(10,0); g.lineTo(3,h-14); g.lineTo(0,h-10); g.fill(); g.beginPath(); g.moveTo(w,0); g.lineTo(w-10,0); g.lineTo(w-3,h-14); g.lineTo(w,h-10); g.fill();
     g.fillStyle='#222a48'; g.fillRect(0,h-12,w,12); g.fillStyle='#e84a3a'; g.fillRect(w-16,h-10,8,8); g.fillStyle='#3a4878'; g.fillRect(6,h-10,8,8); g.fillStyle='#12304a'; g.fillRect(w/2-8|0,h-11,16,10); g.fillStyle='#ff4a4a'; g.fillRect(w/2-2|0,h-7,2,2); },
+  shell(g, w, h){ g.fillStyle = '#120c0a'; g.fillRect(0,0,w,h);
+    for (let y=0;y<h*0.45;y+=6) for (let x=-(y/6%2)*6;x<w;x+=12){ g.fillStyle='#24140e'; g.fillRect(x+1,y+1,10,4); }
+    g.fillStyle='#145032'; g.fillRect(0,h*0.55|0,w,h); g.fillStyle='#2a160c'; g.fillRect(0,h*0.52|0,w,4);
+    const x0=w/2|0, y0=h*0.22|0; g.fillStyle='#2a2234'; g.fillRect(x0-18,y0+10,36,h*0.3|0); g.fillStyle='#d8d0c0'; g.fillRect(x0-2,y0+12,4,8);
+    g.fillStyle='#a8822a'; g.beginPath(); g.arc(x0,y0+4,8,0,6.283); g.fill(); g.fillStyle='#ff3020'; g.fillRect(x0+2,y0+2,3,3); g.fillStyle='#0c0a10'; g.fillRect(x0-9,y0-5,18,2); g.fillRect(x0-6,y0-16,12,11);
+    const sx=(w/2-15)|0, sy=h*0.72|0; [1,1,0,1,0].forEach((l,i)=>{ g.fillStyle='#0c0806'; g.fillRect(sx+i*7,sy,6,11); g.fillStyle=l?'#d8302a':'#3a6ad8'; g.fillRect(sx+i*7+1,sy+1,4,7); g.fillStyle='#d8a83a'; g.fillRect(sx+i*7+1,sy+8,4,2); }); },
   novel(g, w, h){ for (let y=0;y<h;y++){ g.fillStyle = y < h*0.3 ? '#3a2a7a' : y < h*0.55 ? '#a85aa8' : '#ff9a8a'; g.fillRect(0,y,w,1); }
     g.fillStyle = '#2a1a3a'; g.fillRect(10, h*0.4|0, w-20, h); for (let x=16; x<w-16; x+=10){ g.fillStyle = '#ffd88a'; g.fillRect(x, (h*0.5|0), 4, 4); g.fillRect(x, (h*0.5|0)+9, 4, 4); }
     g.fillStyle = '#2a1a3a'; g.fillRect(w/2-6|0, (h*0.25|0), 12, 14); g.fillStyle='#ffd88a'; g.fillRect(w/2-2|0, (h*0.25|0)+4, 4, 4);

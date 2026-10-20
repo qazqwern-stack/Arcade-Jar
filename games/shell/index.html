@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>LAST SHELL</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" media="print" onload="this.media='all'">
+<script src="../../hub-sdk.js"></script>
+<style>
+/* Layout: one 9:16 pixel screen 216×384. Top — the dealer behind a felt table in a basement,
+   middle — the table with items and the shotgun, bottom — life meters, log and two big actions.
+   Menu and rating sheets reuse the Arcade Jar pixel shell; there is no shop in this game. */
+:root{
+  --ink:#f0e0c0; --paper:#1a100c; --accent:#d8402e; --frame:#060403;
+  --s-ink:#1d1a2b; --s-paper:#e9e7f2; --s-card:#f7f6fb; --s-accent:#6b5fd6; --s-muted:#6e6a82;
+  --u:2px;
+  --pixel:'Press Start 2P', 'Courier New', monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--frame); color:var(--ink); font-family:var(--pixel); display:flex; align-items:center; justify-content:center; overflow:hidden; margin:0; padding:0}
+#wrap{position:relative; max-width:100%}
+body.framed #wrap{box-shadow:0 0 0 calc(var(--u)*2) #3a2418}
+canvas{image-rendering:pixelated}
+#c{display:block; width:100%; height:100%; touch-action:none; user-select:none; -webkit-user-select:none}
+#ui{position:absolute; inset:0; pointer-events:none}
+button,a.go{font-family:var(--pixel); cursor:pointer; border:calc(var(--u)*1.5) solid var(--ink); color:var(--ink); background:var(--paper); text-decoration:none}
+button:active,a.go:active{transform:translate(var(--u),var(--u))}
+button:focus-visible,a.go:focus-visible{outline:calc(var(--u)*1.5) dashed var(--ink); outline-offset:calc(var(--u)*1.5)}
+.panel{position:absolute; left:calc(var(--u)*10); right:calc(var(--u)*10); top:calc(var(--u)*16); pointer-events:auto; background:var(--paper); color:var(--ink);
+  border:calc(var(--u)*2) solid var(--ink); box-shadow:calc(var(--u)*3) calc(var(--u)*3) 0 var(--accent);
+  padding:calc(var(--u)*7) calc(var(--u)*6); display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*5); text-align:center}
+h1,h2{margin:0; font-weight:400; line-height:1.15; letter-spacing:.04em}
+h1{font-size:calc(var(--u)*12); text-shadow:var(--u) var(--u) 0 var(--accent)}
+h2{font-size:calc(var(--u)*8)}
+.sub{font-size:calc(var(--u)*3.6); line-height:1.8; color:#9aa8d8}
+.go{font-size:calc(var(--u)*5.5); padding:calc(var(--u)*4) calc(var(--u)*8); background:var(--ink); color:var(--paper); box-shadow:var(--u) var(--u) 0 var(--accent); display:inline-block}
+.go.alt{background:var(--paper); color:var(--ink)}
+.btns{display:flex; gap:calc(var(--u)*4); flex-wrap:wrap; justify-content:center}
+.score{font-size:calc(var(--u)*5); line-height:1.8; font-variant-numeric:tabular-nums}
+.corner{position:absolute; bottom:calc(var(--u)*8); pointer-events:auto; font-size:calc(var(--u)*4); padding:calc(var(--u)*3.5) calc(var(--u)*4); box-shadow:var(--u) var(--u) 0 var(--accent)}
+#boardBtn{left:calc(var(--u)*8)} #inviteBtn{right:calc(var(--u)*8)}
+#friends{position:absolute; left:calc(var(--u)*6); right:calc(var(--u)*6); bottom:calc(var(--u)*125); pointer-events:auto; display:flex; justify-content:center; gap:calc(var(--u)*4)}
+.fr{display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*1.5); background:none; border:0; padding:0; color:var(--ink)}
+.av{width:calc(var(--u)*15); height:calc(var(--u)*15); border-radius:50%; border:calc(var(--u)*1.2) solid var(--ink); display:flex; align-items:center; justify-content:center; font-size:calc(var(--u)*5); color:#fff; overflow:hidden; box-sizing:border-box; flex:none}
+.av img{width:100%; height:100%; object-fit:cover}
+.av.add{background:var(--paper); color:var(--ink); font-size:calc(var(--u)*6)}
+.fs{font-size:calc(var(--u)*2.9); background:var(--paper); color:var(--ink); padding:calc(var(--u)*.8) calc(var(--u)*1.5); font-variant-numeric:tabular-nums; line-height:1.4}
+.sheet{position:absolute; inset:calc(var(--u)*6); pointer-events:auto; background:var(--s-paper); color:var(--s-ink); border:calc(var(--u)*2) solid var(--s-ink); box-shadow:calc(var(--u)*3) calc(var(--u)*3) 0 var(--s-ink);
+  display:flex; flex-direction:column; min-height:0; --ink:var(--s-ink); --paper:var(--s-paper); --accent:var(--s-accent)}
+.sheet-h{display:flex; align-items:center; justify-content:space-between; gap:calc(var(--u)*3); padding:calc(var(--u)*4) calc(var(--u)*5) calc(var(--u)*3)}
+.sheet-h h2{font-size:calc(var(--u)*5.5)}
+.x{width:calc(var(--u)*11); height:calc(var(--u)*11); font-size:calc(var(--u)*4.5); padding:0}
+.board{flex:1; min-height:0; overflow-y:auto; padding:calc(var(--u)*2) calc(var(--u)*5); display:flex; flex-direction:column; gap:calc(var(--u)*1.5)}
+.lr{display:grid; grid-template-columns:calc(var(--u)*8) auto 1fr auto; gap:calc(var(--u)*3); align-items:center; font-size:calc(var(--u)*3.4); padding:calc(var(--u)*2) calc(var(--u)*3); font-variant-numeric:tabular-nums; background:var(--s-card)}
+.lr .av{width:calc(var(--u)*10); height:calc(var(--u)*10); font-size:calc(var(--u)*3.5); border-width:var(--u)}
+.lr .nm{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.lr.me{background:var(--s-ink); color:var(--s-paper)}
+.board-f{display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*3); padding:calc(var(--u)*4) calc(var(--u)*5) calc(var(--u)*5)}
+.note{font-size:calc(var(--u)*2.8); line-height:1.7; color:var(--s-muted); text-align:center}
+#toast{position:absolute; left:50%; top:calc(var(--u)*40); transform:translateX(-50%); width:max-content; max-width:80%; background:var(--s-ink); color:var(--s-paper); font-size:calc(var(--u)*3.4); line-height:1.6; text-align:center; padding:calc(var(--u)*3) calc(var(--u)*4); border:var(--u) solid var(--s-paper); pointer-events:none; z-index:5}
+[hidden]{display:none!important} *{-webkit-tap-highlight-color:transparent}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c" width="216" height="384" aria-label="Стол с крупье. Внизу кнопки: выстрел в крупье и в себя, на столе — ваши предметы"></canvas>
+  <div id="ui">
+    <div class="panel" id="menu">
+      <h1>LAST<br>SHELL</h1>
+      <div class="sub">Запомни патроны: красные — боевые,<br>синие — холостые. Стреляй в крупье<br>или в себя — холостой оставит ход.</div>
+      <div class="score" id="mBest">РЕКОРД 0</div>
+      <button class="go" id="startBtn" type="button">СЕСТЬ ЗА СТОЛ</button>
+      <div class="sub">3 раунда в партии. Со 2-го — предметы:<br>лупа, пила, сигареты, пиво, наручники</div>
+    </div>
+    <div class="panel" id="over" hidden>
+      <h2 id="overTitle">ИГРА ОКОНЧЕНА</h2>
+      <div class="score" id="res"></div>
+      <div class="btns">
+        <button class="go" id="againBtn" type="button">ЕЩЁ РАЗ</button>
+        <button class="go alt" id="menuBtn" type="button">МЕНЮ</button>
+      </div>
+    </div>
+    <div id="friends" aria-label="Друзья в игре"></div>
+    <button class="corner" id="boardBtn" type="button">РЕЙТИНГ</button>
+    <button class="corner" id="inviteBtn" type="button">ПОЗВАТЬ</button>
+    <div class="sheet" id="board" hidden>
+      <div class="sheet-h"><h2>РЕЙТИНГ</h2><button class="x" id="boardClose" type="button" aria-label="Закрыть рейтинг">X</button></div>
+      <div class="board" id="rows"></div>
+      <div class="board-f">
+        <button class="go" id="invite" type="button">ПОЗВАТЬ ДРУЗЕЙ</button>
+        <div class="note">Друзья именно в LAST SHELL.<br>Рекорд — лучший счёт за вечер</div>
+      </div>
+    </div>
+    <div id="toast" hidden></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   LAST SHELL — дуэль с механическим крупье, пакет Arcade Jar.
+   Перед заряжанием крупье показывает боевые (красные) и холостые (синие)
+   патроны и перемешивает их. В свой ход стреляй в крупье или в себя:
+   холостой в себя — ход остаётся за тобой. Три раунда: 2, 4 и 6 зарядов
+   дефибриллятора; в третьем при 2 зарядах и меньше провода перерезаны —
+   лечиться нельзя. Со второго раунда выдаются предметы. Выиграл три
+   раунда — новая партия, счёт растёт; проиграл раунд — конец вечера.
+   ===================================================================== */
+const GAME_ID = 'shell';
+const W = 216, H = 384;
+const ROUND_HP = [2, 4, 6], ITEMS_PER_LOAD = [0, 2, 4], MAX_ITEMS = 8;
+const PTS = { hit: 50, round: 200, match: 600 };
+
+const cv = document.getElementById('c'), ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+const $ = id => document.getElementById(id);
+const wrap = $('wrap');
+const K = '#0c0806';
+const rand = (a, b) => a + Math.random() * (b - a);
+const ri = (a, b) => Math.floor(rand(a, b + 1));
+const sleep = ms => new Promise(r => setTimeout(r, ms * SPEED));
+let SPEED = 1;   // для автотестов можно ускорить
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; return [c, g]; };
+function disc(g, cx, cy, r, col){ g.fillStyle = col; for (let dy = -r; dy <= r; dy++){ const hw = Math.floor(Math.sqrt(r*r - dy*dy + r*0.6)); g.fillRect(cx - hw, cy + dy, hw*2 + 1, 1); } }
+function poly(g, pts, col){ g.fillStyle = col; const ys = pts.map(p => p[1]), y0 = Math.floor(Math.min(...ys)), y1 = Math.ceil(Math.max(...ys));
+  for (let y = y0; y <= y1; y++){ const xs = []; for (let i = 0; i < pts.length; i++){ const [ax, ay] = pts[i], [bx, by] = pts[(i + 1) % pts.length];
+    if ((ay <= y + 0.5 && by > y + 0.5) || (by <= y + 0.5 && ay > y + 0.5)) xs.push(ax + (y + 0.5 - ay) * (bx - ax) / (by - ay)); }
+    xs.sort((a, b) => a - b); for (let i = 0; i + 1 < xs.length; i += 2) g.fillRect(Math.round(xs[i]), y, Math.round(xs[i+1]) - Math.round(xs[i]), 1); } }
+function txt(g, s, x, y, col, size, align){ g.font = `${size || 6}px 'Press Start 2P', monospace`; g.textAlign = align || 'left'; g.textBaseline = 'top';
+  g.fillStyle = K; g.fillText(s, x + 1, y + 1); g.fillStyle = col; g.fillText(s, x, y); g.textAlign = 'left'; }
+
+// ================= СПРАЙТЫ =================
+// Ружьё сбоку, 120×24: приклад с текстурой дерева, ствольная коробка, цевьё-помпа,
+// ствол с подствольным магазином и мушкой. Отпиленный ствол заканчивается на 92 px.
+function gunSprite(sawed){
+  const [c, g] = mk(124, 24);
+  // приклад
+  poly(g, [[0,9],[26,6],[36,6],[36,18],[24,21],[2,22]], '#2a1408');
+  poly(g, [[1,10],[26,7],[35,7],[35,17],[24,20],[3,21]], '#7a4422');
+  poly(g, [[2,11],[26,8],[34,8],[34,11],[2,14]], '#a8663a');
+  g.fillStyle = '#5a3014'; for (let i = 0; i < 5; i++){ for (let x = 4 + i*2; x < 32; x += 6) g.fillRect(x, 12 + i*2, 3, 1); }   // волокна дерева
+  g.fillStyle = '#1a0c06'; g.fillRect(0, 9, 2, 13); g.fillStyle = '#3a1a0a'; g.fillRect(1, 10, 1, 11);                         // затыльник
+  // шейка и спусковая скоба
+  g.fillStyle = '#1a1a20'; g.fillRect(36, 15, 10, 3); poly(g, [[40,17],[48,17],[47,22],[42,22]], '#1a1a20'); g.fillStyle = '#0c0806'; g.fillRect(42, 18, 4, 3); g.fillStyle = '#6a6a78'; g.fillRect(44, 17, 1, 3);
+  // ствольная коробка
+  g.fillStyle = '#121218'; g.fillRect(36, 5, 30, 12); g.fillStyle = '#3a3a48'; g.fillRect(37, 6, 28, 10); g.fillStyle = '#5a5a6a'; g.fillRect(37, 6, 28, 2); g.fillStyle = '#7a7a8c'; g.fillRect(37, 6, 28, 1);
+  g.fillStyle = '#0c0c10'; g.fillRect(48, 9, 12, 3); g.fillStyle = '#c8a040'; g.fillRect(50, 10, 3, 1);                     // окно выброса и патрон
+  g.fillStyle = '#8a8a9a'; g.fillRect(40, 13, 2, 2); g.fillRect(61, 13, 2, 2);                                               // винты
+  const end = sawed ? 92 : 120;
+  // ствол
+  g.fillStyle = '#121218'; g.fillRect(66, 5, end - 66, 6); g.fillStyle = '#4a4a5a'; g.fillRect(66, 6, end - 67, 4); g.fillStyle = '#8a8a9c'; g.fillRect(66, 6, end - 67, 1); g.fillStyle = '#2a2a34'; g.fillRect(66, 9, end - 67, 1);
+  // подствольный магазин
+  const magEnd = Math.min(end - 2, 112);
+  g.fillStyle = '#121218'; g.fillRect(66, 11, magEnd - 66, 5); g.fillStyle = '#3a3a48'; g.fillRect(66, 12, magEnd - 67, 3); g.fillStyle = '#6a6a7a'; g.fillRect(66, 12, magEnd - 67, 1);
+  g.fillStyle = '#1a1a20'; g.fillRect(magEnd - 2, 11, 3, 5);
+  // цевьё-помпа с рёбрами
+  const pump0 = 70, pump1 = Math.min(98, end - 6);
+  g.fillStyle = '#2a1408'; g.fillRect(pump0, 10, pump1 - pump0, 8); g.fillStyle = '#7a4422'; g.fillRect(pump0 + 1, 11, pump1 - pump0 - 2, 6); g.fillStyle = '#a8663a'; g.fillRect(pump0 + 1, 11, pump1 - pump0 - 2, 1);
+  g.fillStyle = '#4a2410'; for (let x = pump0 + 3; x < pump1 - 2; x += 3) g.fillRect(x, 12, 1, 5);
+  // дуло и мушка
+  g.fillStyle = '#0c0c10'; g.fillRect(end - 2, 4, 3, 8); g.fillStyle = '#e8e8f0'; g.fillRect(end - 4, 3, 2, 2);
+  if (sawed){ g.fillStyle = '#d8d8e8'; g.fillRect(end + 1, 5, 1, 6); g.fillStyle = '#ffd84a'; g.fillRect(end + 2, 6, 1, 1); g.fillRect(end + 2, 9, 1, 1); }   // свежий срез и опилки
+  return c;
+}
+const GUN = { full: gunSprite(false), sawed: gunSprite(true) };
+
+// Предметы 24×24, с объёмом и тенью
+function itemSprite(fn){ const [c, g] = mk(24, 24); g.globalAlpha = .35; disc(g, 12, 21, 8, '#000'); g.globalAlpha = 1; fn(g); return c; }
+const ITEMS = {
+  glass:  { name:'ЛУПА',      desc:'Посмотреть патрон в стволе', img: itemSprite(g => {
+    g.fillStyle = '#2a1408'; for (let i = 0; i < 9; i++) g.fillRect(12 + i, 12 + i, 3, 3); g.fillStyle = '#8a5a2a'; for (let i = 0; i < 8; i++) g.fillRect(13 + i, 12 + i, 2, 2); g.fillStyle = '#c8a040'; g.fillRect(12, 12, 3, 3);
+    disc(g, 9, 9, 8, '#1a1a20'); disc(g, 9, 9, 7, '#b8962e'); disc(g, 9, 9, 5, '#6aa8c8'); disc(g, 9, 9, 4, '#a8e0f8'); g.fillStyle = '#ffffff'; g.fillRect(6, 6, 3, 2); g.fillRect(6, 8, 1, 2); }) },
+  saw:    { name:'ПИЛА',      desc:'Следующий боевой — двойной урон', img: itemSprite(g => {
+    poly(g, [[1,9],[16,7],[16,15],[1,15]], '#1a1a20'); poly(g, [[2,10],[15,8],[15,14],[2,14]], '#b8b8c8'); g.fillStyle = '#e8e8f8'; g.fillRect(3, 10, 12, 1);
+    g.fillStyle = '#1a1a20'; for (let x = 2; x < 16; x += 2){ g.fillRect(x, 15, 1, 2); g.fillRect(x + 1, 16, 1, 1); }
+    g.fillStyle = '#5a0a0a'; g.fillRect(15, 6, 8, 11); g.fillStyle = '#c83a2a'; g.fillRect(16, 7, 6, 9); g.fillStyle = '#ff6a4a'; g.fillRect(16, 7, 6, 1); g.fillStyle = '#5a0a0a'; g.fillRect(18, 10, 3, 4); }) },
+  smokes: { name:'СИГАРЕТЫ',  desc:'+1 заряд жизни', img: itemSprite(g => {
+    g.fillStyle = '#1a0c06'; g.fillRect(4, 6, 15, 16); g.fillStyle = '#e8e0d0'; g.fillRect(5, 7, 13, 14); g.fillStyle = '#fff8ec'; g.fillRect(5, 7, 2, 14);
+    g.fillStyle = '#b8302a'; g.fillRect(5, 12, 13, 5); g.fillStyle = '#f0c840'; g.fillRect(8, 13, 7, 3); g.fillStyle = '#b8302a'; g.fillRect(10, 14, 3, 1);
+    g.fillStyle = '#f4ecdc'; g.fillRect(6, 2, 3, 5); g.fillRect(10, 3, 3, 4); g.fillRect(14, 1, 3, 6); g.fillStyle = '#e8a03a'; g.fillRect(6, 2, 3, 1); g.fillRect(14, 1, 3, 1); g.fillStyle = '#c8b8a0'; g.fillRect(10, 3, 3, 1); }) },
+  beer:   { name:'ПИВО',      desc:'Выбросить патрон без выстрела', img: itemSprite(g => {
+    g.fillStyle = '#0c1a08'; g.fillRect(6, 3, 12, 19); g.fillStyle = '#2a7a2a'; g.fillRect(7, 5, 10, 16); g.fillStyle = '#5ab85a'; g.fillRect(8, 5, 2, 16); g.fillStyle = '#1a5a1a'; g.fillRect(15, 5, 2, 16);
+    g.fillStyle = '#9a9aaa'; g.fillRect(7, 3, 10, 2); g.fillStyle = '#d8d8e8'; g.fillRect(8, 3, 6, 1); g.fillStyle = '#5a5a6a'; g.fillRect(12, 2, 3, 1);
+    g.fillStyle = '#f0d84a'; g.fillRect(7, 10, 10, 6); g.fillStyle = '#c83a2a'; g.fillRect(9, 12, 6, 2); g.fillStyle = '#9a9aaa'; g.fillRect(7, 20, 10, 1); }) },
+  cuffs:  { name:'НАРУЧНИКИ', desc:'Соперник пропустит ход', img: itemSprite(g => {
+    const r = (cx, cy) => { disc(g, cx, cy, 6, '#1a1a20'); disc(g, cx, cy, 5, '#7a7a8a'); disc(g, cx - 1, cy - 1, 4, '#a8a8b8'); disc(g, cx, cy, 3, '#14100c'); g.fillStyle = '#5a5a6a'; g.fillRect(cx + 3, cy - 1, 3, 3); };
+    r(6, 14); r(17, 14); g.fillStyle = '#1a1a20'; g.fillRect(9, 5, 6, 3); g.fillStyle = '#c8c8d8'; for (let x = 8; x < 16; x += 2) g.fillRect(x, 6, 1, 1); g.fillRect(6, 7, 2, 2); g.fillRect(16, 7, 2, 2); }) },
+};
+const ITEM_IDS = Object.keys(ITEMS);
+// Патрон 8×18: пластиковая гильза с рёбрами, латунное донце с закраиной, завальцовка сверху
+function shellSprite(live){ const [c, g] = mk(8, 18); const a = live ? ['#7a0e0a','#d8302a','#ff7a5a'] : ['#0e1e5a','#3a6ad8','#8ab0ff'];
+  g.fillStyle = K; g.fillRect(0, 0, 8, 18); g.fillStyle = a[0]; g.fillRect(1, 1, 6, 12); g.fillStyle = a[1]; g.fillRect(2, 1, 4, 12); g.fillStyle = a[2]; g.fillRect(2, 2, 1, 10);
+  g.fillStyle = a[0]; g.fillRect(3, 1, 2, 2); g.fillRect(1, 5, 6, 1); g.fillRect(1, 9, 6, 1);
+  g.fillStyle = '#8a6a1a'; g.fillRect(1, 13, 6, 4); g.fillStyle = '#d8a83a'; g.fillRect(1, 13, 6, 3); g.fillStyle = '#ffe08a'; g.fillRect(2, 13, 1, 3); g.fillStyle = '#5a4210'; g.fillRect(0, 16, 8, 1); return c; }
+const SHELL = { live: shellSprite(true), blank: shellSprite(false) };
+
+// ================= ФОН: подвал с лампой, стол с сукном =================
+const [bgC, bgG] = mk(W, H);
+(function paintRoom(){
+  const g = bgG;
+  g.fillStyle = '#120c0a'; g.fillRect(0, 0, W, H);
+  // кирпичная стена
+  for (let y = 0; y < 150; y += 8) for (let x = -((y / 8) % 2) * 8; x < W; x += 16){ g.fillStyle = (x * 7 + y * 3) % 5 ? '#24140e' : '#2c1a12'; g.fillRect(x + 1, y + 1, 14, 6); }
+  // трубы и вентиль
+  g.fillStyle = '#2a2a2e'; g.fillRect(0, 22, W, 5); g.fillStyle = '#4a4a50'; g.fillRect(0, 22, W, 1); g.fillStyle = '#2a2a2e'; g.fillRect(186, 22, 5, 60); disc(g, 188, 84, 5, '#5a2a1a');
+  // табличка
+  g.fillStyle = '#3a2a1a'; g.fillRect(14, 44, 40, 18); g.fillStyle = '#c8a86a'; g.fillRect(15, 45, 38, 16); g.fillStyle = '#3a2a1a'; g.fillRect(18, 49, 30, 2); g.fillRect(18, 54, 22, 2);
+  // стол: тёмное дерево и зелёное сукно в перспективе
+  poly(g, [[0,148],[W,148],[W,264],[0,264]], '#2a160c');
+  poly(g, [[10,150],[W - 10,150],[W,258],[0,258]], '#0e3a24'); poly(g, [[14,152],[W - 14,152],[W - 4,256],[4,256]], '#145032');
+  for (let i = 0; i < 300; i++){ g.fillStyle = i % 2 ? '#1a5a3a' : '#104830'; g.fillRect(8 + (i * 37) % (W - 16), 154 + (i * 53) % 100, 1, 1); }
+  g.fillStyle = '#3a2010'; g.fillRect(0, 258, W, 8); g.fillStyle = '#5a3418'; g.fillRect(0, 258, W, 1);
+  // разметка мест под предметы
+  g.globalAlpha = .18; g.fillStyle = '#c8e8c8'; for (let i = 0; i < 8; i++){ g.fillRect(SLOT_X(i), 184, 24, 1); g.fillRect(SLOT_X(i), 256, 24, 1); } g.globalAlpha = 1;
+  // нижняя панель управления
+  g.fillStyle = '#0a0706'; g.fillRect(0, 266, W, H - 266);
+})();
+function SLOT_X(i){ return 4 + i * 26; }
+
+// ================= КРУПЬЕ (свой дизайн: механический, в цилиндре и латунной маске) =================
+function drawDealer(g, t, mood){
+  const bob = Math.round(Math.sin(t * 1.4) * 1), jolt = mood.jolt > 0 ? Math.round(Math.sin(t * 60) * 3) : 0, slump = mood.dead ? 16 : 0;
+  const x0 = 108 + jolt, y0 = 62 + bob + slump;
+  // пиджак: плечи, лацканы, пуговицы, платок
+  poly(g, [[x0 - 58,152],[x0 - 44,y0 + 38],[x0 + 44,y0 + 38],[x0 + 58,152]], '#0c0a12');
+  poly(g, [[x0 - 55,152],[x0 - 42,y0 + 41],[x0 + 42,y0 + 41],[x0 + 55,152]], '#2a2234');
+  poly(g, [[x0 - 40,y0 + 44],[x0 - 30,y0 + 42],[x0 - 22,152],[x0 - 52,152]], '#3a3046');   // свет на левом плече
+  poly(g, [[x0 - 14,y0 + 40],[x0 - 2,y0 + 82],[x0 - 22,y0 + 60]], '#1a1622'); poly(g, [[x0 + 14,y0 + 40],[x0 + 2,y0 + 82],[x0 + 22,y0 + 60]], '#1a1622');   // лацканы
+  poly(g, [[x0 - 11,y0 + 40],[x0,y0 + 80],[x0 + 11,y0 + 40]], '#e0d8c8'); g.fillStyle = '#b8b0a0'; g.fillRect(x0 - 1, y0 + 44, 2, 34);   // рубашка
+  poly(g, [[x0 - 7,y0 + 41],[x0,y0 + 45],[x0 + 7,y0 + 41],[x0 + 7,y0 + 49],[x0,y0 + 45],[x0 - 7,y0 + 49]], '#8a1a1a'); disc(g, x0, y0 + 45, 2, '#c83a2a');  // бабочка
+  g.fillStyle = '#c8a040'; [[x0 - 4, y0 + 58], [x0 - 4, y0 + 68]].forEach(([x, y]) => { g.fillRect(x - 12, y, 3, 3); }); g.fillStyle = '#f0d070'; g.fillRect(x0 - 16, y0 + 58, 1, 1);
+  poly(g, [[x0 + 22,y0 + 54],[x0 + 32,y0 + 52],[x0 + 30,y0 + 58],[x0 + 22,y0 + 58]], '#c83a2a');   // платок в кармане
+  // цепочка часов
+  g.fillStyle = '#c8a040'; for (let i = 0; i < 14; i++) g.fillRect(x0 - 26 + i * 2, y0 + 74 + Math.round(Math.sin(i / 13 * Math.PI) * 4), 1, 1);
+  // шея: поршни и шестерня
+  g.fillStyle = '#2a1e0a'; g.fillRect(x0 - 8, y0 + 26, 16, 16); g.fillStyle = '#6a5428'; g.fillRect(x0 - 7, y0 + 27, 4, 14); g.fillRect(x0 + 3, y0 + 27, 4, 14); g.fillStyle = '#a8883a'; g.fillRect(x0 - 7, y0 + 27, 1, 14); g.fillRect(x0 + 3, y0 + 27, 1, 14);
+  const gear = Math.floor(t * 4) % 2; disc(g, x0, y0 + 34, 3, '#c8a040'); g.fillStyle = '#5a4214'; g.fillRect(x0 - (gear ? 1 : 0), y0 + 31, 1, 7); g.fillRect(x0 - 3, y0 + 34 - (gear ? 0 : 1), 7, 1);
+  // голова: латунная маска с объёмом
+  disc(g, x0, y0 + 10, 23, '#2a1c08'); disc(g, x0, y0 + 10, 22, '#7a5a1a'); disc(g, x0 - 2, y0 + 8, 20, '#a8822a'); disc(g, x0 - 6, y0 + 3, 13, '#d0aa44'); disc(g, x0 - 9, y0 - 1, 5, '#f0d070'); disc(g, x0 - 10, y0 - 2, 2, '#fff4c0');
+  g.fillStyle = '#5a4214'; for (let a = 0; a < 6.283; a += 0.7){ g.fillRect(Math.round(x0 + Math.cos(a) * 19), Math.round(y0 + 10 + Math.sin(a) * 19), 2, 2); }   // заклёпки по краю
+  g.fillStyle = '#e8c860'; for (let a = 0; a < 6.283; a += 0.7){ g.fillRect(Math.round(x0 + Math.cos(a) * 19), Math.round(y0 + 10 + Math.sin(a) * 19), 1, 1); }
+  // рот-решётка
+  g.fillStyle = '#2a1c08'; g.fillRect(x0 - 12, y0 + 21, 24, 7); g.fillStyle = '#100a04'; g.fillRect(x0 - 11, y0 + 22, 22, 5); g.fillStyle = '#8a6a24'; for (let i = -10; i <= 10; i += 4) g.fillRect(x0 + i, y0 + 22, 2, 5);
+  // глаз-линза в оправе и монокль-заглушка
+  const blink = Math.sin(t * 0.9) > 0.97;
+  disc(g, x0 + 9, y0 + 8, 8, '#2a1c08'); disc(g, x0 + 9, y0 + 8, 7, '#5a4214'); disc(g, x0 + 9, y0 + 8, 5, '#140808');
+  if (!blink && !mood.dead){ const pulse = 0.5 + 0.5 * Math.sin(t * 3); disc(g, x0 + 9, y0 + 8, 4, mood.angry ? '#c81a10' : '#c8401a'); disc(g, x0 + 9, y0 + 8, 2 + Math.round(pulse), mood.angry ? '#ff3020' : '#ff7a2a'); g.fillStyle = '#ffe8d0'; g.fillRect(x0 + 7, y0 + 6, 2, 1);
+    g.globalAlpha = .12 + .08 * pulse; disc(g, x0 + 9, y0 + 8, 11, '#ff5a2a'); g.globalAlpha = 1; }
+  disc(g, x0 - 9, y0 + 8, 5, '#2a1c08'); disc(g, x0 - 9, y0 + 8, 4, '#5a4214'); g.fillStyle = '#2a1c08'; g.fillRect(x0 - 13, y0 + 8, 9, 1); g.fillRect(x0 - 9, y0 + 4, 1, 9);
+  // трещины от попаданий
+  if (mood.cracks > 0){ g.fillStyle = '#140c04'; for (let i = 0; i < mood.cracks; i++){ let cx = x0 - 14 + i * 9, cy = y0 - 6; for (let k = 0; k < 10; k++){ g.fillRect(cx, cy, 1, 2); cx += (k + i) % 2 ? 1 : -1; cy += 2; } g.fillStyle = '#f0d070'; g.fillRect(x0 - 13 + i * 9, y0 - 6, 1, 4); g.fillStyle = '#140c04'; } }
+  // цилиндр с лентой и бликом
+  g.fillStyle = '#060508'; g.fillRect(x0 - 27, y0 - 12, 54, 6); g.fillStyle = '#1a1820'; g.fillRect(x0 - 26, y0 - 12, 52, 1);
+  g.fillStyle = '#060508'; g.fillRect(x0 - 17, y0 - 44, 34, 33); g.fillStyle = '#16141c'; g.fillRect(x0 - 16, y0 - 43, 32, 31); g.fillStyle = '#2a2632'; g.fillRect(x0 - 14, y0 - 42, 3, 22); g.fillStyle = '#3a3644'; g.fillRect(x0 - 14, y0 - 42, 1, 22);
+  g.fillStyle = '#5a1020'; g.fillRect(x0 - 16, y0 - 19, 32, 6); g.fillStyle = '#8a2030'; g.fillRect(x0 - 16, y0 - 19, 32, 1); g.fillStyle = '#c8a040'; g.fillRect(x0 + 8, y0 - 18, 4, 4); g.fillStyle = '#5a1020'; g.fillRect(x0 + 9, y0 - 17, 2, 2);
+  // руки-манипуляторы на краю стола
+  for (const s of [-1, 1]){ const hx = x0 + s * 52;
+    g.fillStyle = '#0c0a12'; g.fillRect(hx - 9, 134, 18, 16); g.fillStyle = '#2a2234'; g.fillRect(hx - 8, 135, 16, 14); g.fillStyle = '#e0d8c8'; g.fillRect(hx - 8, 146, 16, 3);   // манжета
+    g.fillStyle = '#2a1c08'; g.fillRect(hx - 10, 149, 20, 6); g.fillStyle = '#a8822a'; g.fillRect(hx - 9, 150, 18, 4); g.fillStyle = '#e8c860'; g.fillRect(hx - 9, 150, 18, 1);
+    for (let i = 0; i < 4; i++){ const fx = hx - 9 + i * 5; g.fillStyle = '#2a1c08'; g.fillRect(fx, 154, 4, 7); g.fillStyle = '#c8a040'; g.fillRect(fx + 1, 154, 2, 6); g.fillStyle = '#5a4214'; g.fillRect(fx + 1, 157, 2, 1); } }
+}
+// Дефибриллятор: корпус с ручкой, шкала зарядов-молний, индикатор хода
+function drawDefib(g, x, y, hp, max, cut, label, t, active){
+  const w = 102, h = 34;
+  g.fillStyle = active ? (Math.sin(t * 5) > 0 ? '#ffd84a' : '#a88a2a') : K; g.fillRect(x - 1, y - 1, w + 2, h + 2);
+  g.fillStyle = '#1a1a1e'; g.fillRect(x, y, w, h); g.fillStyle = '#3a3a42'; g.fillRect(x + 1, y + 1, w - 2, h - 2); g.fillStyle = '#5a5a64'; g.fillRect(x + 1, y + 1, w - 2, 1);
+  g.fillStyle = '#c83a2a'; g.fillRect(x + w - 16, y + 3, 12, 6); g.fillStyle = '#ffffff'; g.fillRect(x + w - 11, y + 4, 2, 4); g.fillRect(x + w - 13, y + 5, 6, 2);   // крест
+  txt(g, label, x + 4, y + 3, active ? '#ffd84a' : '#d8d8e0', 6);
+  const cell = Math.min(15, Math.floor((w - 8) / max));
+  for (let i = 0; i < max; i++){ const bx = x + 4 + i * cell, by = y + 14, bw = cell - 2;
+    g.fillStyle = K; g.fillRect(bx, by, bw, 16);
+    if (i < hp){ g.fillStyle = cut ? '#5a1a10' : '#3a2e08'; g.fillRect(bx + 1, by + 1, bw - 2, 14); const col = cut ? '#e85a3a' : '#ffd84a', m = bx + bw / 2;
+      poly(g, [[m + 1,by + 2],[m - 3,by + 9],[m,by + 9],[m - 1,by + 14],[m + 4,by + 6],[m + 1,by + 6]], col); }
+    else { g.fillStyle = '#26262c'; g.fillRect(bx + 1, by + 1, bw - 2, 14); } }
+  if (cut){ const c = Math.sin(t * 6) > 0 ? '#ff5a3a' : '#a83a2a'; g.fillStyle = c; for (let i = 0; i < 5; i++){ g.fillRect(x + w - 30 + i, y + 3 + i, 1, 1); g.fillRect(x + w - 26 - i, y + 3 + i, 1, 1); } g.fillRect(x + w - 32, y + 8, 3, 2); g.fillRect(x + w - 25, y + 8, 3, 2); }
+}
+
+// ================= СОСТОЯНИЕ ИГРЫ =================
+let state = 'menu';           // menu | play | over
+let G = null, best = 0, USER = { name:'Вы' };
+let busy = false;             // идёт анимация или ход крупье
+let gun = { pose:'table', t:0 }, flash = 0, shake = 0, bang = null, reveal = null, mood = { jolt:0, angry:false, dead:false, cracks:0 };
+let msgs = [], showLoad = null;
+function say(s){ msgs.push({ s, t: 4 }); if (msgs.length > 2) msgs.shift(); }
+
+function newGame(){ G = { match:1, round:0, score:0, roundsWon:0, matchesWon:0 }; startRound(0); }
+function startRound(r){
+  Object.assign(G, { round:r, max:ROUND_HP[r], hp:{ p:ROUND_HP[r], d:ROUND_HP[r] }, items:{ p:[], d:[] }, cuffed:{ p:0, d:0 }, saw:false, turn:'p',
+    shells:[], spent:[], known:{ p:null, d:null }, dmem:{} });
+  mood = { jolt:0, angry:false, dead:false, cracks:0 };
+  loadGun(true);
+}
+const suddenDeath = who => G.round === 2 && G.hp[who] <= 2;
+async function loadGun(first){
+  busy = true; gun.pose = 'table';
+  const n = ri(2, 8), live = Math.max(1, Math.min(n - 1, Math.round(n * rand(0.3, 0.65))));
+  const shells = Array(live).fill(true).concat(Array(n - live).fill(false));
+  showLoad = { live, blank: n - live, t: 0 };
+  say(first ? `РАУНД ${G.round + 1}. ЗАРЯДОВ: ${G.max}` : 'НОВЫЙ ЗАРЯД');
+  await sleep(2600);
+  // перемешать и зарядить
+  for (let i = shells.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [shells[i], shells[j]] = [shells[j], shells[i]]; }
+  G.shells = shells; G.known = { p:null, d:null }; G.dmem = {}; G.saw = false; showLoad = null; G.spent = [];
+  const k = ITEMS_PER_LOAD[G.round];
+  if (k){ for (const who of ['p','d']) for (let i = 0; i < k && G.items[who].length < MAX_ITEMS; i++) G.items[who].push(ITEM_IDS[Math.floor(Math.random() * ITEM_IDS.length)]);
+    say(`ПРЕДМЕТЫ: +${k} КАЖДОМУ`); await sleep(900); }
+  busy = false;
+  if (G.turn === 'd') dealerTurn();
+}
+const remaining = () => G.shells.length;
+const liveLeft = () => G.shells.filter(Boolean).length;
+
+// ================= ВЫСТРЕЛ =================
+async function shoot(shooter, target){
+  busy = true;
+  const other = shooter === 'p' ? 'd' : 'p';
+  gun.pose = shooter === 'p' ? (target === 'd' ? 'pAimD' : 'pAimP') : (target === 'p' ? 'dAimP' : 'dAimD');
+  say(shooter === target ? (shooter === 'p' ? 'ВЫ СТРЕЛЯЕТЕ В СЕБЯ…' : 'КРУПЬЕ СТРЕЛЯЕТ В СЕБЯ…') : (shooter === 'p' ? 'ВЫ СТРЕЛЯЕТЕ В КРУПЬЕ…' : 'КРУПЬЕ СТРЕЛЯЕТ В ВАС…'));
+  await sleep(900);
+  const live = G.shells.shift(), dmg = live ? (G.saw ? 2 : 1) : 0;
+  G.spent.push(live); G.known = { p:null, d:null }; G.saw = false;
+  if (live){
+    flash = 0.35; shake = 0.5; bang = { s:'БАХ!', t:0.9 };
+    G.hp[target] = Math.max(0, G.hp[target] - dmg);
+    if (target === 'd'){ mood.jolt = 0.5; mood.cracks = Math.min(4, mood.cracks + dmg); G.score += PTS.hit * dmg; }
+    say(dmg > 1 ? `БОЕВОЙ! −${dmg} ЗАРЯДА` : 'БОЕВОЙ! −1 ЗАРЯД');
+  } else { bang = { s:'щёлк', t:0.7 }; say('ХОЛОСТОЙ'); }
+  await sleep(1100); gun.pose = 'table';
+  if (G.hp.p <= 0 || G.hp.d <= 0){ await sleep(400); return endRound(G.hp.d <= 0 ? 'p' : 'd'); }
+  // холостой в себя — ход остаётся; иначе ход переходит (если соперник не в наручниках)
+  let next = (target === shooter && !live) ? shooter : other;
+  if (next === other && G.cuffed[other] > 0){ G.cuffed[other] = 0; next = shooter; say(`${other === 'p' ? 'ВЫ СКОВАНЫ' : 'КРУПЬЕ СКОВАН'}: ПРОПУСК ХОДА`); await sleep(900); }
+  G.turn = next;
+  if (!remaining()){ busy = false; await sleep(300); return loadGun(false); }
+  busy = false;
+  if (G.turn === 'd') dealerTurn();
+}
+async function endRound(winner){
+  busy = true;
+  if (winner === 'p'){
+    mood.dead = true; G.score += PTS.round; G.roundsWon++;
+    if (G.round === 2){ G.score += PTS.match; G.matchesWon++; say(`ПАРТИЯ ВЫИГРАНА! +${PTS.match}`); await sleep(2200); G.match++; G.turn = 'p'; mood.dead = false; startRound(0); return; }
+    say(`РАУНД ВЫИГРАН! +${PTS.round}`); await sleep(2000); G.turn = 'p'; startRound(G.round + 1);
+  } else { say('ВЫ ПРОИГРАЛИ…'); await sleep(1600); gameOver(); }
+}
+
+// ================= ПРЕДМЕТЫ =================
+async function useItem(who, idx){
+  const id = G.items[who][idx], other = who === 'p' ? 'd' : 'p';
+  if (id === 'smokes' && (G.hp[who] >= G.max || suddenDeath(who))){ if (who === 'p') say(suddenDeath('p') ? 'ПРОВОДА ПЕРЕРЕЗАНЫ' : 'ЗАРЯД ПОЛНЫЙ'); return false; }
+  if (id === 'saw' && G.saw){ if (who === 'p') say('СТВОЛ УЖЕ ОТПИЛЕН'); return false; }
+  if (id === 'cuffs' && G.cuffed[other]){ if (who === 'p') say('УЖЕ В НАРУЧНИКАХ'); return false; }
+  busy = true; G.items[who].splice(idx, 1);
+  const by = who === 'p' ? 'ВЫ' : 'КРУПЬЕ';
+  switch (id){
+    case 'glass': G.known[who] = G.shells[0]; if (who === 'p'){ reveal = { live: G.shells[0], t: 1.6 }; say(`В СТВОЛЕ ${G.shells[0] ? 'БОЕВОЙ' : 'ХОЛОСТОЙ'}`); } else { G.dmem[0] = G.shells[0]; say('КРУПЬЕ СМОТРИТ В СТВОЛ…'); } break;
+    case 'saw': G.saw = true; say(`${by}: ПИЛА. ДВОЙНОЙ УРОН`); break;
+    case 'smokes': G.hp[who] = Math.min(G.max, G.hp[who] + 1); say(`${by}: +1 ЗАРЯД`); break;
+    case 'beer': { const s = G.shells.shift(); G.spent.push(s); G.known = { p:null, d:null }; reveal = { live: s, t: 1.3, ejected: true }; say(`ВЫБРОШЕН ${s ? 'БОЕВОЙ' : 'ХОЛОСТОЙ'}`); break; }
+    case 'cuffs': G.cuffed[other] = 1; say(`${other === 'p' ? 'ВЫ СКОВАНЫ' : 'КРУПЬЕ СКОВАН'} НА ХОД`); break;
+  }
+  await sleep(900);
+  busy = false;
+  if (!remaining()){ await loadGun(false); return true; }
+  return true;
+}
+
+// ================= ИИ КРУПЬЕ =================
+// Знает, сколько боевых и холостых осталось, помнит то, что увидел в лупу.
+let dealerRunning = false;   // защита от двух параллельных ходов крупье (например, после перезарядки)
+async function dealerTurn(){
+  if (state !== 'play' || G.turn !== 'd' || busy || dealerRunning) return;
+  dealerRunning = true;
+  busy = true; await sleep(700); busy = false;
+  for (let guard = 0; guard < 10; guard++){
+    if (state !== 'play' || G.turn !== 'd' || !remaining()){ dealerRunning = false; return; }
+    const n = remaining(), L = liveLeft(), known = G.known.d !== null ? G.known.d : (L === 0 ? false : L === n ? true : null);
+    const has = id => G.items.d.indexOf(id);
+    let act = null;
+    if (has('smokes') >= 0 && G.hp.d < G.max && !suddenDeath('d')) act = has('smokes');
+    else if (known === null && has('glass') >= 0) act = has('glass');
+    else if (has('cuffs') >= 0 && !G.cuffed.p && n > 1) act = has('cuffs');
+    else if (known === true && has('saw') >= 0 && !G.saw) act = has('saw');
+    else if (known === null && has('beer') >= 0 && L / n >= 0.5 && n > 1) act = has('beer');
+    if (act !== null){ busy = true; await sleep(500); busy = false; const ok = await useItem('d', act); if (ok) continue; }
+    // выбор цели
+    let target;
+    if (known === true) target = 'p';
+    else if (known === false) target = 'd';
+    else target = L / n >= 0.5 ? 'p' : 'd';
+    mood.angry = target === 'p';
+    dealerRunning = false;
+    return shoot('d', target);
+  }
+  dealerRunning = false;
+}
+
+// ================= ВВОД ИГРОКА =================
+const BTN = { shootD:{ x:4, y:340, w:102, h:40, label:'В КРУПЬЕ' }, shootP:{ x:110, y:340, w:102, h:40, label:'В СЕБЯ' } };
+const itemRect = (who, i) => ({ x: SLOT_X(i), y: who === 'p' ? 232 : 160, w: 24, h: 24 });
+let hover = null, pressed = null, tip = null;
+function hitBtn(p){ for (const k in BTN){ const b = BTN[k]; if (p.x >= b.x && p.x < b.x + b.w && p.y >= b.y && p.y < b.y + b.h) return k; }
+  if (G) for (let i = 0; i < G.items.p.length; i++){ const r = itemRect('p', i); if (p.x >= r.x - 3 && p.x < r.x + r.w + 3 && p.y >= r.y - 4 && p.y < r.y + r.h + 4) return 'item' + i; }
+  return null; }
+const canAct = () => state === 'play' && G && G.turn === 'p' && !busy && !showLoad && remaining() > 0;
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect(), p = { x:(e.clientX - r.left) / r.width * W, y:(e.clientY - r.top) / r.height * H };
+  const h = hitBtn(p); if (!h || !canAct()) return; e.preventDefault(); pressed = h; setTimeout(() => pressed = null, 120);
+  act(h);
+});
+function act(h){
+  if (h === 'shootD') shoot('p', 'd');
+  else if (h === 'shootP') shoot('p', 'p');
+  else if (h.startsWith('item')){ const i = +h.slice(4); tip = { id: G.items.p[i], t: 2 }; useItem('p', i); }
+}
+addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeSheets();
+  if (e.key === 'Enter' && state === 'menu' && $('board').hidden){ start(); return; }
+  if (!canAct()) return;
+  if (['1','ArrowUp','w','W','ц','Ц'].includes(e.key)) act('shootD');
+  else if (['2','ArrowDown','s','S','ы','Ы'].includes(e.key)) act('shootP');
+  else if (/^[3-9]$/.test(e.key) && G.items.p[+e.key - 3]) act('item' + (+e.key - 3));
+});
+
+// ================= ОТРИСОВКА =================
+function drawGun(g, t){
+  const img = G && G.saw ? GUN.sawed : GUN.full;
+  g.save();
+  switch (gun.pose){
+    case 'table': g.globalAlpha = .35; g.fillStyle = '#000'; g.fillRect(50, 208, 116, 4); g.globalAlpha = 1; g.translate(46, 190); g.drawImage(img, 0, 0); break;
+    case 'pAimD': g.translate(122, 262); g.rotate(-Math.PI / 2 + 0.1); g.drawImage(img, 0, -12); break;      // вы целитесь в крупье
+    case 'dAimD': g.translate(150, 158); g.rotate(-Math.PI / 2 - 0.42); g.drawImage(img, -26, -12); break;   // крупье — себе под подбородок
+    case 'pAimP': case 'dAimP': {   // ствол смотрит прямо в камеру: дуло и подствольный магазин
+      g.restore(); const cx = 108, near = gun.pose === 'pAimP', cy = near ? 204 : 186, r = near ? 32 : 18;
+      disc(g, cx, cy + Math.round(r * 1.05), Math.round(r * 0.62), '#121218'); disc(g, cx, cy + Math.round(r * 1.05), Math.round(r * 0.5), '#3a3a48'); disc(g, cx, cy + Math.round(r * 1.05), Math.round(r * 0.28), '#0c0c10');
+      disc(g, cx, cy, r + 3, '#121218'); disc(g, cx, cy, r, '#4a4a5a'); disc(g, cx - Math.round(r * 0.2), cy - Math.round(r * 0.2), Math.round(r * 0.8), '#6a6a7c');
+      disc(g, cx, cy, Math.round(r * 0.62), '#2a2a34'); disc(g, cx, cy, Math.round(r * 0.52), K);
+      g.fillStyle = '#c8c8d8'; g.fillRect(cx - r + 4, cy - 3, 3, 2); g.fillRect(cx - 2, cy - r + 3, 4, 2);
+      if (G && G.saw){ g.fillStyle = '#ffd84a'; for (let a = 0; a < 6.283; a += 0.9) g.fillRect(Math.round(cx + Math.cos(a) * (r + 1)), Math.round(cy + Math.sin(a) * (r + 1)), 1, 1); }
+      return; }
+  }
+  g.restore();
+}
+function drawTable(g, t){
+  if (!G) return;
+  // предметы: у крупье — у его края стола, у вас — у вашего, ваши кликабельны
+  G.items.d.forEach((id, i) => { const r = itemRect('d', i); g.drawImage(ITEMS[id].img, r.x, r.y); });
+  G.items.p.forEach((id, i) => { const r = itemRect('p', i), on = canAct();
+    g.fillStyle = on ? (pressed === 'item' + i ? '#ffd84a' : '#3a8a5a') : '#1a3a2a'; g.fillRect(r.x - 1, r.y - 1, r.w + 2, r.h + 2); g.fillStyle = '#0e3a24'; g.fillRect(r.x, r.y, r.w, r.h);
+    g.drawImage(ITEMS[id].img, r.x, r.y); });
+  // стреляные гильзы лежат справа на сукне — их можно пересчитать
+  G.spent.forEach((s, i) => { const x = 184 + (i % 3) * 10, y = 186 + Math.floor(i / 3) * 14; g.save(); g.translate(x, y); g.rotate(0.3 + (i % 2) * 0.5); g.globalAlpha = .8; g.drawImage(s ? SHELL.live : SHELL.blank, -4, -9); g.restore(); });
+  if (!showLoad) drawGun(g, t);
+  if (G.cuffed.d){ txt(g, 'СКОВАН', 108, 128, '#e8e8f0', 7, 'center'); }
+  if (G.cuffed.p){ txt(g, 'ВЫ СКОВАНЫ', 108, 216, '#e8e8f0', 7, 'center'); }
+}
+function drawLoad(g, t){
+  const s = showLoad; s.t += 1/60;
+  const all = Array(s.live).fill(true).concat(Array(s.blank).fill(false)), n = all.length, step = 22, x0 = 108 - (n - 1) * step / 2;
+  g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(8, 176, W - 16, 58);
+  all.forEach((live, i) => { const up = Math.max(0, Math.min(1, s.t * 3 - i * 0.25)); g.save(); g.translate(Math.round(x0 + i * step), Math.round(216 - up * 10)); g.scale(2, 2); g.drawImage(live ? SHELL.live : SHELL.blank, -4, -9); g.restore(); });
+  txt(g, `${s.live} БОЕВ.`, 58, 180, '#ff7a5a', 7, 'center'); txt(g, `${s.blank} ХОЛОСТ.`, 158, 180, '#8ab0ff', 7, 'center');
+}
+function drawLamp(g, t){
+  const sw = Math.sin(t * 0.8) * 6, lx = 108 + sw;
+  g.fillStyle = '#2a2a2e'; g.fillRect(107, 0, 2, 8); poly(g, [[lx - 14, 16],[lx - 6, 8],[lx + 6, 8],[lx + 14, 16]], '#3a3a40'); g.fillStyle = '#5a5a60'; g.fillRect(Math.round(lx) - 6, 8, 12, 1); disc(g, Math.round(lx), 16, 3, '#fff0b0');
+  g.globalAlpha = .07; poly(g, [[lx - 14, 16],[lx + 14, 16],[lx + 86, 258],[lx - 86, 258]], '#fff0b0'); g.globalAlpha = 1;
+}
+function drawPanel(g, t){
+  const myTurn = G.turn === 'p' && !showLoad, dTurn = G.turn === 'd' && !showLoad;
+  drawDefib(g, 4, 270, G.hp.d, G.max, suddenDeath('d'), 'КРУПЬЕ', t, dTurn);
+  drawDefib(g, 110, 270, G.hp.p, G.max, suddenDeath('p'), myTurn ? 'ВАШ ХОД' : 'ВЫ', t, myTurn);
+  txt(g, `РАУНД ${G.round + 1}/3  ПАРТИЯ ${G.match}  ${G.score}`, 108, 309, '#d8c8a8', 6, 'center');
+  msgs.forEach((m, i) => { g.globalAlpha = Math.min(1, m.t); txt(g, m.s, 108, 319 + i * 9, i === msgs.length - 1 ? '#ffffff' : '#8a8a90', 6, 'center'); g.globalAlpha = 1; });
+  const on = canAct();
+  for (const k in BTN){ const b = BTN[k], down = pressed === k, o = down ? 2 : 0, red = k === 'shootD';
+    g.fillStyle = K; g.fillRect(b.x, b.y + 3, b.w, b.h); g.fillStyle = on ? (red ? '#7a1a12' : '#1a2a7a') : '#2a2420'; g.fillRect(b.x, b.y + o, b.w, b.h);
+    g.fillStyle = on ? (red ? '#d8402e' : '#3a6ad8') : '#3a322c'; g.fillRect(b.x + 2, b.y + o + 2, b.w - 4, b.h - 6);
+    g.fillStyle = on ? (red ? '#ff7a5a' : '#8ab0ff') : '#4a4038'; g.fillRect(b.x + 2, b.y + o + 2, b.w - 4, 2);
+    txt(g, b.label, b.x + b.w / 2, b.y + o + 12, on ? '#ffffff' : '#6a5a4a', 8, 'center'); }
+}
+function draw(t){
+  const sx = shake > 0 ? Math.round(rand(-3, 3) * shake * 2) : 0, sy = shake > 0 ? Math.round(rand(-3, 3) * shake * 2) : 0;
+  ctx.save(); ctx.translate(sx, sy);
+  ctx.drawImage(bgC, 0, 0);
+  drawLamp(ctx, t);
+  drawDealer(ctx, t, mood);
+  if (state !== 'menu' && G){ drawTable(ctx, t); if (showLoad) drawLoad(ctx, t); drawPanel(ctx, t); }
+  if (reveal){ ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(48, 168, 120, 72); ctx.save(); ctx.translate(108, 198); ctx.scale(3, 3); ctx.drawImage(reveal.live ? SHELL.live : SHELL.blank, -4, -9); ctx.restore();
+    txt(ctx, reveal.live ? 'БОЕВОЙ' : 'ХОЛОСТОЙ', 108, 228, reveal.live ? '#ff7a5a' : '#8ab0ff', 7, 'center'); }
+  if (bang){ ctx.globalAlpha = Math.min(1, bang.t * 2); txt(ctx, bang.s, 108, 100, bang.s === 'БАХ!' ? '#ffe08a' : '#c8c8d0', bang.s === 'БАХ!' ? 24 : 10, 'center'); ctx.globalAlpha = 1; }
+  ctx.restore();
+  if (flash > 0){ ctx.globalAlpha = flash * 2; ctx.fillStyle = '#fff4d0'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+}
+function tick(dt){
+  flash = Math.max(0, flash - dt); shake = Math.max(0, shake - dt); mood.jolt = Math.max(0, mood.jolt - dt);
+  if (bang){ bang.t -= dt; if (bang.t <= 0) bang = null; }
+  if (reveal){ reveal.t -= dt; if (reveal.t <= 0) reveal = null; }
+  for (const m of msgs) m.t = Math.max(0.35, m.t - dt * 0.4);
+}
+
+// ================= МАСШТАБ, МЕНЮ, РЕЙТИНГ =================
+function fit(){
+  const big = innerWidth >= 700 && innerHeight >= 700; document.body.classList.toggle('framed', big);
+  const aw = innerWidth - (big ? 32 : 0), ah = innerHeight - (big ? 24 : 0);
+  let s = Math.min(aw / W, ah / H); if (big && s >= 2) s = Math.floor(s);
+  wrap.style.width = W*s + 'px'; wrap.style.height = H*s + 'px'; document.documentElement.style.setProperty('--u', (s * 0.85) + 'px');
+  document.body.style.background = big ? '' : 'linear-gradient(#120c0a 50%, #0a0706 50%)';
+}
+addEventListener('resize', fit); fit();
+let FRIENDS = [], BOARD = [];
+const esc = s => String(s).replace(/[<>&"]/g, '');
+function avatar(f){ return f.photo ? `<span class="av"><img src="${esc(f.photo)}" alt=""></span>` : `<span class="av" style="background:${esc(f.c || '#5a3a2a')}">${esc((f.n || '?')[0])}</span>`; }
+function renderFriends(){
+  $('friends').innerHTML = FRIENDS.slice(0, 4).map(f => `<button class="fr" type="button" title="${esc(f.n)}">${avatar(f)}<span class="fs">${f.s}</span></button>`).join('')
+    + `<button class="fr" type="button" id="addFriend" aria-label="Пригласить друга"><span class="av add">+</span><span class="fs">ЗВАТЬ</span></button>`;
+  $('friends').querySelectorAll('.fr').forEach(b => b.onclick = b.id === 'addFriend' ? invite : openBoard);
+}
+function renderBoard(){
+  $('rows').innerHTML = BOARD.map((r, i) => `<div class="lr${r.me ? ' me' : ''}"><span>${i + 1}</span>${avatar(r)}<span class="nm">${esc(r.n)}</span><span>${r.s}</span></div>`).join('')
+    + (BOARD.filter(r => !r.me).length ? '' : `<div class="note" style="padding:calc(var(--u)*3) 0">Друзей пока нет.<br>Нажми «Позвать друзей»</div>`);
+}
+async function loadSocial(){ FRIENDS = await Hub.friends(); BOARD = await Hub.leaderboard(); renderFriends(); renderBoard(); }
+function openBoard(){ $('board').hidden = false; renderBoard(); }
+function closeSheets(){ $('board').hidden = true; }
+function invite(){ Hub.invite(); }
+$('boardBtn').onclick = openBoard; $('boardClose').onclick = closeSheets; $('inviteBtn').onclick = invite; $('invite').onclick = invite;
+function setHome(show){ $('boardBtn').hidden = !show; $('inviteBtn').hidden = !show; $('friends').hidden = !show; }
+function refreshMenu(){ $('mBest').textContent = `РЕКОРД ${best}`; }
+
+let last = 0;
+function frame(ms){ const t = ms / 1000, dt = last ? Math.min((ms - last) / 1000, 0.05) : 1/60; last = ms; tick(dt); draw(t); requestAnimationFrame(frame); }
+let startT = 0;
+function start(){ closeSheets(); state = 'play'; msgs = []; $('menu').hidden = true; $('over').hidden = true; setHome(false); startT = performance.now(); newGame(); }
+function gameOver(){
+  state = 'over'; busy = false;
+  const rec = G.score > best; if (rec) best = G.score;
+  Hub.submitRun({ score: G.score, duration: Math.round((performance.now() - startT) / 1000) }).then(() => loadSocial());
+  $('overTitle').textContent = rec && G.score > 0 ? 'НОВЫЙ РЕКОРД!' : 'ИГРА ОКОНЧЕНА';
+  $('res').innerHTML = `СЧЁТ ${G.score}<br>РАУНДОВ ${G.roundsWon}<br>ПАРТИЙ ${G.matchesWon}<br>ЛУЧШЕЕ ${best}`;
+  $('over').hidden = false; setHome(true); refreshMenu();
+}
+function toMenu(){ state = 'menu'; G = null; $('over').hidden = true; $('menu').hidden = false; setHome(true); }
+$('startBtn').onclick = start; $('againBtn').onclick = start; $('menuBtn').onclick = toMenu;
+
+refreshMenu(); requestAnimationFrame(frame);
+Hub.init(GAME_ID).then(r => { USER = r.user || USER; best = r.best || 0; refreshMenu(); loadSocial(); });
+</script>
+</body>
+</html>
