@@ -293,6 +293,8 @@ const GAMES = [
     blurb:'Космический бой из кабины пилота: джойстик, лазеры, ракеты и пять боссов.' },
   { id:'shell', title:'LAST SHELL', genre:'puzzle', status:'live', src:'games/shell/index.html',
     blurb:'Дуэль с механическим крупье: боевые и холостые патроны, расчёт и предметы.' },
+  { id:'crypt', title:'GUN CRYPT', genre:'arcade', status:'live', src:'games/crypt/index.html',
+    blurb:'Подземелье из 3 этажей: 16 пушек из сундуков, перекаты сквозь пули и босс на каждом этаже.' },
   { id:'novel', title:'Последний звонок', genre:'novel', status:'soon', blurb:'История про выпускной. Твои выборы решают финал.' },
   { id:'words', title:'Слова из слова', genre:'puzzle', status:'live', src:'games/words/index.html',
     blurb:'Собирай слова из букв длинного слова. 166 уровней и подсказки.' },
@@ -356,6 +358,18 @@ const COVERS = {
     const x0=w/2|0, y0=h*0.22|0; g.fillStyle='#2a2234'; g.fillRect(x0-18,y0+10,36,h*0.3|0); g.fillStyle='#d8d0c0'; g.fillRect(x0-2,y0+12,4,8);
     g.fillStyle='#a8822a'; g.beginPath(); g.arc(x0,y0+4,8,0,6.283); g.fill(); g.fillStyle='#ff3020'; g.fillRect(x0+2,y0+2,3,3); g.fillStyle='#0c0a10'; g.fillRect(x0-9,y0-5,18,2); g.fillRect(x0-6,y0-16,12,11);
     const sx=(w/2-15)|0, sy=h*0.72|0; [1,1,0,1,0].forEach((l,i)=>{ g.fillStyle='#0c0806'; g.fillRect(sx+i*7,sy,6,11); g.fillStyle=l?'#d8302a':'#3a6ad8'; g.fillRect(sx+i*7+1,sy+1,4,7); g.fillStyle='#d8a83a'; g.fillRect(sx+i*7+1,sy+8,4,2); }); },
+  crypt(g, w, h){ g.fillStyle = '#24202e'; g.fillRect(0,0,w,h);
+    for (let y=0;y<h;y+=8) for (let x=0;x<w;x+=8){ g.fillStyle = (x+y)/8%2 ? '#2a2c3a' : '#262836'; g.fillRect(x,y,8,8); }
+    g.fillStyle='#4a4e6a'; g.fillRect(0,0,w,10); g.fillStyle='#6a6e90'; g.fillRect(0,0,w,2); g.fillStyle='#1a1c2a'; g.fillRect(0,10,w,2);
+    g.fillStyle='#ffd84a'; g.fillRect(14,3,2,4); g.fillRect(w-16,3,2,4);
+    const bx=w*0.68|0, by=h*0.36|0; g.fillStyle='#0c0a10'; g.beginPath(); g.arc(bx,by,15,0,6.283); g.fill(); g.fillStyle='#3ab84a'; g.beginPath(); g.arc(bx,by,14,0,6.283); g.fill();
+    g.fillStyle='#7ae88a'; g.beginPath(); g.arc(bx-4,by-4,7,0,6.283); g.fill(); g.fillStyle='#0c0a10'; g.fillRect(bx-6,by-1,3,4); g.fillRect(bx+4,by-1,3,4);
+    g.fillStyle='#ffd84a'; g.fillRect(bx-10,by-17,21,3); for (let i=-2;i<=2;i++) g.fillRect(bx+i*4-1,by-22+(i%2?2:0),3,6);
+    g.fillStyle='#ff5a5a'; [[0.3,0.3],[0.45,0.55],[0.55,0.25],[0.8,0.62],[0.62,0.7]].forEach(([a,b])=>{ g.fillRect(w*a|0,h*b|0,3,3); });
+    const hx=w*0.22|0, hy=h*0.62|0; g.fillStyle='#0c0a10'; g.fillRect(hx-1,hy-1,14,16); g.fillStyle='#5a3a22'; g.fillRect(hx-1,hy,14,3); g.fillStyle='#f2c29a'; g.fillRect(hx+2,hy+3,8,4);
+    g.fillStyle='#ff8a2a'; g.fillRect(hx+2,hy+7,8,2); g.fillStyle='#2a5a8a'; g.fillRect(hx+2,hy+9,8,4); g.fillStyle='#e83a8a'; g.fillRect(hx+11,hy+6,8,3); g.fillStyle='#3ae8ff'; g.fillRect(hx+19,hy+6,2,3);
+    g.fillStyle='#ff3ad6'; g.fillRect(hx+26,hy+2,1,5); g.fillRect(hx+24,hy+6,3,2); g.fillStyle='#ffe03a'; g.fillRect(hx+34,hy-3,1,5); g.fillRect(hx+32,hy+1,3,2);
+    g.fillStyle='#0c0a10'; g.fillRect(w*0.12|0,h*0.2|0,11,12); g.fillStyle='#c83a2a'; g.fillRect((w*0.12|0)+1,(h*0.2|0)+1,9,10); g.fillStyle='#ffd84a'; g.fillRect((w*0.12|0)+4,(h*0.2|0)+5,3,2); },
   novel(g, w, h){ for (let y=0;y<h;y++){ g.fillStyle = y < h*0.3 ? '#3a2a7a' : y < h*0.55 ? '#a85aa8' : '#ff9a8a'; g.fillRect(0,y,w,1); }
     g.fillStyle = '#2a1a3a'; g.fillRect(10, h*0.4|0, w-20, h); for (let x=16; x<w-16; x+=10){ g.fillStyle = '#ffd88a'; g.fillRect(x, (h*0.5|0), 4, 4); g.fillRect(x, (h*0.5|0)+9, 4, 4); }
     g.fillStyle = '#2a1a3a'; g.fillRect(w/2-6|0, (h*0.25|0), 12, 14); g.fillStyle='#ffd88a'; g.fillRect(w/2-2|0, (h*0.25|0)+4, 4, 4);
