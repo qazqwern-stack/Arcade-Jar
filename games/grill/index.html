@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>GRILL RUSH</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" media="print" onload="this.media='all'">
+<script src="../../hub-sdk.js"></script>
+<style>
+/* Layout: one 9:16 pixel screen 216×384. Top — diner hall with guests behind the counter and order bubbles,
+   middle — two trays, grill, fryer and soda machine, bottom — ingredient bins and trash. Menu and rating reuse the Arcade Jar shell. */
+:root{
+  --ink:#fff0d8; --paper:#2a1418; --accent:#ff5ab0; --frame:#140c10;
+  --s-ink:#1d1a2b; --s-paper:#e9e7f2; --s-card:#f7f6fb; --s-accent:#6b5fd6; --s-muted:#6e6a82;
+  --u:2px;
+  --pixel:'Press Start 2P', 'Courier New', monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--frame); color:var(--ink); font-family:var(--pixel); display:flex; align-items:center; justify-content:center; overflow:hidden; margin:0; padding:0}
+#wrap{position:relative; max-width:100%}
+body.framed #wrap{box-shadow:0 0 0 calc(var(--u)*2) #2a2434}
+canvas{image-rendering:pixelated}
+#c{display:block; width:100%; height:100%; touch-action:none; user-select:none; -webkit-user-select:none}
+#ui{position:absolute; inset:0; pointer-events:none}
+button,a.go{font-family:var(--pixel); cursor:pointer; border:calc(var(--u)*1.5) solid var(--ink); color:var(--ink); background:var(--paper); text-decoration:none}
+button:active,a.go:active{transform:translate(var(--u),var(--u))}
+button:focus-visible,a.go:focus-visible{outline:calc(var(--u)*1.5) dashed var(--ink); outline-offset:calc(var(--u)*1.5)}
+.panel{position:absolute; left:calc(var(--u)*10); right:calc(var(--u)*10); top:calc(var(--u)*16); pointer-events:auto; background:var(--paper); color:var(--ink);
+  border:calc(var(--u)*2) solid var(--ink); box-shadow:calc(var(--u)*3) calc(var(--u)*3) 0 var(--accent);
+  padding:calc(var(--u)*7) calc(var(--u)*6); display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*5); text-align:center}
+h1,h2{margin:0; font-weight:400; line-height:1.15; letter-spacing:.04em}
+h1{font-size:calc(var(--u)*12); text-shadow:var(--u) var(--u) 0 var(--accent)}
+h2{font-size:calc(var(--u)*8)}
+.sub{font-size:calc(var(--u)*3.6); line-height:1.8; color:#9aa8d8}
+.go{font-size:calc(var(--u)*5.5); padding:calc(var(--u)*4) calc(var(--u)*8); background:var(--ink); color:var(--paper); box-shadow:var(--u) var(--u) 0 var(--accent); display:inline-block}
+.go.alt{background:var(--paper); color:var(--ink)}
+.btns{display:flex; gap:calc(var(--u)*4); flex-wrap:wrap; justify-content:center}
+.score{font-size:calc(var(--u)*5); line-height:1.8; font-variant-numeric:tabular-nums}
+.corner{position:absolute; bottom:calc(var(--u)*8); pointer-events:auto; font-size:calc(var(--u)*4); padding:calc(var(--u)*3.5) calc(var(--u)*4); box-shadow:var(--u) var(--u) 0 var(--accent)}
+#boardBtn{left:calc(var(--u)*8)} #inviteBtn{right:calc(var(--u)*8)}
+#friends{position:absolute; left:calc(var(--u)*6); right:calc(var(--u)*6); bottom:calc(var(--u)*125); pointer-events:auto; display:flex; justify-content:center; gap:calc(var(--u)*4)}
+.fr{display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*1.5); background:none; border:0; padding:0; color:var(--ink)}
+.av{width:calc(var(--u)*15); height:calc(var(--u)*15); border-radius:50%; border:calc(var(--u)*1.2) solid var(--ink); display:flex; align-items:center; justify-content:center; font-size:calc(var(--u)*5); color:#fff; overflow:hidden; box-sizing:border-box; flex:none}
+.av img{width:100%; height:100%; object-fit:cover}
+.av.add{background:var(--paper); color:var(--ink); font-size:calc(var(--u)*6)}
+.fs{font-size:calc(var(--u)*2.9); background:var(--paper); color:var(--ink); padding:calc(var(--u)*.8) calc(var(--u)*1.5); font-variant-numeric:tabular-nums; line-height:1.4}
+.sheet{position:absolute; inset:calc(var(--u)*6); pointer-events:auto; background:var(--s-paper); color:var(--s-ink); border:calc(var(--u)*2) solid var(--s-ink); box-shadow:calc(var(--u)*3) calc(var(--u)*3) 0 var(--s-ink);
+  display:flex; flex-direction:column; min-height:0; --ink:var(--s-ink); --paper:var(--s-paper); --accent:var(--s-accent)}
+.sheet-h{display:flex; align-items:center; justify-content:space-between; gap:calc(var(--u)*3); padding:calc(var(--u)*4) calc(var(--u)*5) calc(var(--u)*3)}
+.sheet-h h2{font-size:calc(var(--u)*5.5)}
+.x{width:calc(var(--u)*11); height:calc(var(--u)*11); font-size:calc(var(--u)*4.5); padding:0}
+.board{flex:1; min-height:0; overflow-y:auto; padding:calc(var(--u)*2) calc(var(--u)*5); display:flex; flex-direction:column; gap:calc(var(--u)*1.5)}
+.lr{display:grid; grid-template-columns:calc(var(--u)*8) auto 1fr auto; gap:calc(var(--u)*3); align-items:center; font-size:calc(var(--u)*3.4); padding:calc(var(--u)*2) calc(var(--u)*3); font-variant-numeric:tabular-nums; background:var(--s-card)}
+.lr .av{width:calc(var(--u)*10); height:calc(var(--u)*10); font-size:calc(var(--u)*3.5); border-width:var(--u)}
+.lr .nm{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.lr.me{background:var(--s-ink); color:var(--s-paper)}
+.board-f{display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*3); padding:calc(var(--u)*4) calc(var(--u)*5) calc(var(--u)*5)}
+.note{font-size:calc(var(--u)*2.8); line-height:1.7; color:var(--s-muted); text-align:center}
+#toast{position:absolute; left:50%; top:calc(var(--u)*40); transform:translateX(-50%); width:max-content; max-width:80%; background:var(--s-ink); color:var(--s-paper); font-size:calc(var(--u)*3.4); line-height:1.6; text-align:center; padding:calc(var(--u)*3) calc(var(--u)*4); border:var(--u) solid var(--s-paper); pointer-events:none; z-index:5}
+[hidden]{display:none!important} *{-webkit-tap-highlight-color:transparent}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c" width="216" height="384" aria-label="Закусочная: сверху гости у стойки с заказами, снизу кухня с грилем, фритюром, автоматом с колой и лотками продуктов"></canvas>
+  <div id="ui">
+    <div class="panel" id="menu">
+      <h1>GRILL<br>RUSH</h1>
+      <div class="sub">Жарь котлеты, картошку, наливай колу.<br>Собери заказ на подносе<br>и тапни по гостю.</div>
+      <div class="score" id="mBest">РЕКОРД 0</div>
+      <button class="go" id="startBtn" type="button">ОТКРЫТЬ СМЕНУ</button>
+      <div class="sub">Не передержи на гриле!<br>3 голодных гостя — конец смены</div>
+    </div>
+    <div class="panel" id="over" hidden>
+      <h2 id="overTitle">ИГРА ОКОНЧЕНА</h2>
+      <div class="score" id="res"></div>
+      <div class="btns">
+        <button class="go" id="againBtn" type="button">ЕЩЁ РАЗ</button>
+        <button class="go alt" id="menuBtn" type="button">МЕНЮ</button>
+      </div>
+    </div>
+    <div id="friends" aria-label="Друзья в игре"></div>
+    <button class="corner" id="boardBtn" type="button">РЕЙТИНГ</button>
+    <button class="corner" id="inviteBtn" type="button">ПОЗВАТЬ</button>
+    <div class="sheet" id="board" hidden>
+      <div class="sheet-h"><h2>РЕЙТИНГ</h2><button class="x" id="boardClose" type="button" aria-label="Закрыть рейтинг">X</button></div>
+      <div class="board" id="rows"></div>
+      <div class="board-f">
+        <button class="go" id="invite" type="button">ПОЗВАТЬ ДРУЗЕЙ</button>
+        <div class="note">Друзья именно в GRILL RUSH.<br>Рекорд — лучшая смена</div>
+      </div>
+    </div>
+    <div id="toast" hidden></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   GRILL RUSH — кулинарная лихорадка, пакет Arcade Jar.
+   Сверху у стойки ждут гости с облачками-заказами, снизу — кухня.
+   Тап по котлетам кладёт котлету на гриль, по картошке — во фритюр,
+   по стакану — под автомат. Готовое тапаешь — оно уходит на выбранный
+   поднос. Бургер собирается по порядку: нижняя булка, начинка, верхняя
+   булка. Собранный поднос отдаёшь тапом по гостю. Передержал — уголёк,
+   в мусор. Три ушедших гостя — смена окончена.
+   ===================================================================== */
+const GAME_ID = 'grill';
+const W = 216, H = 384;
+const COOK = { patty: 4.2, pattyBurn: 5.5, fries: 3.6, friesBurn: 6.5, soda: 2.2 };
+
+const cv = document.getElementById('c'), ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+const $ = id => document.getElementById(id);
+const wrap = $('wrap');
+const K = '#140c10';
+const rand = (a, b) => a + Math.random() * (b - a);
+const ri = (a, b) => Math.floor(rand(a, b + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; return [c, g]; };
+const R = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w, h); };
+function disc(g, cx, cy, r, col){ g.fillStyle = col; cx = Math.round(cx); cy = Math.round(cy); for (let dy = -r; dy <= r; dy++){ const hw = Math.floor(Math.sqrt(r*r - dy*dy + r*0.6)); g.fillRect(cx - hw, cy + dy, hw*2 + 1, 1); } }
+function oval(g, cx, cy, rx, ry, col){ g.fillStyle = col; cx = Math.round(cx); cy = Math.round(cy); for (let dy = -ry; dy <= ry; dy++){ const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy / (ry + .5)) ** 2))); g.fillRect(cx - hw, cy + dy, hw * 2 + 1, 1); } }
+function txt(g, s, x, y, col, size, align, shadow){ g.font = `${size || 6}px 'Press Start 2P', monospace`; g.textAlign = align || 'left'; g.textBaseline = 'top';
+  if (shadow !== false){ g.fillStyle = K; g.fillText(s, x + 1, y + 1); } g.fillStyle = col; g.fillText(s, x, y); g.textAlign = 'left'; }
+
+// ================= ЗОНЫ ЭКРАНА =================
+const SLOT_X = [29, 81, 135, 187], COUNTER_Y = 104;
+const TRAYS = [{ x: 8, y: 130, w: 96, h: 40 }, { x: 112, y: 130, w: 96, h: 40 }];
+const GRILL = { x: 4, y: 180, w: 102, h: 92 };
+const GSLOTS = [0, 1, 2, 3].map(i => ({ x: GRILL.x + 6 + (i % 2) * 46, y: GRILL.y + 10 + Math.floor(i / 2) * 38, w: 44, h: 34 }));
+const FRYER = { x: 109, y: 180, w: 52, h: 92 };
+const FSLOTS = [0, 1].map(i => ({ x: FRYER.x + 5, y: FRYER.y + 10 + i * 40, w: 42, h: 36 }));
+const SODA = { x: 164, y: 176, w: 48, h: 96 };
+const SSLOTS = [0, 1].map(i => ({ x: SODA.x + 4 + i * 21, y: SODA.y + 52, w: 19, h: 36 }));
+const BINS = ['patty', 'bun', 'cheese', 'lettuce', 'fries', 'cup', 'trash'].map((id, i) => ({ id, x: 2 + i * 30.5, y: 288, w: 29, h: 80 }));
+const BIN_LABEL = { patty:'КОТЛЕТЫ', bun:'БУЛКИ', cheese:'СЫР', lettuce:'САЛАТ', fries:'ФРИ', cup:'КОЛА', trash:'МУСОР' };
+
+// ================= ЕДА: иконки =================
+// Бургер собирается снизу вверх из слоёв; одна функция рисует и поднос, и облачко заказа.
+function drawLayer(g, kind, cx, y, state){
+  // y — нижняя граница слоя; возвращает высоту
+  switch (kind){
+    case 'bunB': R(g, cx - 8, y - 4, 16, 4, K); R(g, cx - 7, y - 4, 14, 3, '#d8903e'); R(g, cx - 7, y - 4, 14, 1, '#f0b860'); R(g, cx - 6, y - 1, 12, 1, '#a86424'); return 3;
+    case 'patty': { const c = state === 'burnt' ? ['#1a1410','#2a2018'] : ['#5a2e14','#7a4422']; R(g, cx - 8, y - 4, 16, 4, K); R(g, cx - 7, y - 4, 14, 3, c[0]); R(g, cx - 6, y - 4, 12, 1, c[1]); R(g, cx - 4, y - 3, 1, 1, c[1]); R(g, cx + 2, y - 3, 1, 1, c[1]); return 3; }
+    case 'cheese': R(g, cx - 8, y - 2, 16, 2, '#ffd84a'); R(g, cx - 8, y - 2, 16, 1, '#fff08a'); R(g, cx - 5, y, 2, 1, '#ffd84a'); R(g, cx + 3, y, 1, 2, '#ffd84a'); return 1;
+    case 'lettuce': for (let i = -8; i < 8; i++) R(g, cx + i, y - 2 - (i % 2 ? 0 : 1), 1, 2 + (i % 2 ? 0 : 1), i % 3 ? '#5ac83a' : '#8ae85a'); R(g, cx - 8, y - 1, 16, 1, '#3a9a2a'); return 2;
+    case 'bunT': R(g, cx - 6, y - 7, 12, 1, K); R(g, cx - 7, y - 6, 14, 1, K); R(g, cx - 8, y - 5, 16, 5, K);
+      R(g, cx - 5, y - 6, 10, 1, '#e8a04a'); R(g, cx - 7, y - 5, 14, 4, '#d8903e'); R(g, cx - 6, y - 5, 6, 1, '#f8c870'); R(g, cx - 7, y - 2, 14, 1, '#a86424');
+      R(g, cx - 4, y - 4, 1, 1, '#fff4d0'); R(g, cx, y - 5, 1, 1, '#fff4d0'); R(g, cx + 3, y - 4, 1, 1, '#fff4d0'); R(g, cx - 2, y - 3, 1, 1, '#fff4d0'); return 6;
+  }
+  return 0;
+}
+// стопка: массив слоёв снизу вверх
+function drawStack(g, layers, cx, by){ let y = by; for (const l of layers){ y -= drawLayer(g, l, cx, y); } return by - y; }
+function orderLayers(b){ const L = ['bunB', 'patty']; if (b.cheese) L.push('cheese'); if (b.patties > 1) L.push('patty'); if (b.lettuce) L.push('lettuce'); L.push('bunT'); return L; }
+function drawFries(g, cx, by, burnt){
+  const st = burnt ? ['#3a2a14','#2a1e10'] : ['#ffd84a','#f0b830'];
+  for (let i = 0; i < 5; i++){ const x = cx - 4 + i * 2, h = 5 + (i * 7) % 3; R(g, x, by - 8 - h + 3, 2, h, K); R(g, x, by - 8 - h + 3, 1, h - 1, i % 2 ? st[0] : st[1]); }
+  R(g, cx - 5, by - 8, 11, 8, K); R(g, cx - 4, by - 7, 9, 7, '#d8302a'); R(g, cx - 4, by - 7, 2, 7, '#ff5a4a'); R(g, cx - 1, by - 5, 3, 3, '#ffd84a'); R(g, cx - 5, by - 8, 11, 1, '#a81a14');
+}
+function drawCup(g, cx, by, fill){
+  // fill 0..1 — сколько налито
+  R(g, cx - 4, by - 12, 9, 12, K); R(g, cx - 3, by - 11, 7, 11, '#f4f0e8'); R(g, cx - 3, by - 11, 1, 11, '#ffffff');
+  if (fill > 0){ const h = Math.round(9 * fill); R(g, cx - 3, by - 1 - h, 7, h, '#5a2a14'); R(g, cx - 3, by - 1 - h, 7, 1, '#c88a5a'); }
+  R(g, cx - 3, by - 7, 7, 2, '#d8302a'); R(g, cx - 1, by - 7, 3, 1, '#ffffff');
+  if (fill >= 1){ R(g, cx - 4, by - 13, 9, 1, '#c8c8d8'); R(g, cx + 1, by - 18, 1, 6, '#e83a6a'); R(g, cx + 1, by - 18, 3, 1, '#e83a6a'); }
+}
+function drawRawPatty(g, cx, cy, t, k, state){
+  // на гриле: k — прожарка 0..1 (до готовности), state raw/cooking/cooked/burnt
+  const cols = state === 'burnt' ? ['#16100c','#2a2018','#0a0806'] : state === 'cooked' ? ['#6a3418','#8a4a24','#4a2410'] :
+    [lerpC('#e87a8a', '#7a4422', k), lerpC('#f8a0a8', '#9a5a2a', k), lerpC('#c85a6a', '#5a2e14', k)];
+  oval(g, cx, cy + 1, 13, 7, K); oval(g, cx, cy, 12, 6, cols[2]); oval(g, cx, cy - 1, 11, 5, cols[0]); oval(g, cx - 3, cy - 2, 5, 2, cols[1]);
+  if (state === 'cooked' || (state === 'cooking' && k > 0.5)){ g.fillStyle = state === 'cooked' ? '#2a140a' : 'rgba(42,20,10,.6)'; for (let i = -6; i <= 6; i += 4) g.fillRect(cx + i, cy - 4, 2, 7); }
+}
+function lerpC(a, b, k){ const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16); const c = [16, 8, 0].map(s => Math.round(((pa >> s) & 255) * (1 - k) + ((pb >> s) & 255) * k)); return '#' + c.map(v => v.toString(16).padStart(2, '0')).join(''); }
+
+// ================= ГОСТИ =================
+// Каждый гость — смешной человечек или существо, по пояс над стойкой. mood: 0 спокоен, 1 нервничает, 2 злится, 3 доволен
+function face(g, x, y, mood, eye, blink){
+  const e = eye || K;
+  if (blink && mood !== 3){ R(g, x - 4, y + 1, 3, 1, e); R(g, x + 2, y + 1, 3, 1, e); }
+  else if (mood === 3){ R(g, x - 4, y + 1, 1, 1, e); R(g, x - 3, y, 1, 1, e); R(g, x - 2, y + 1, 1, 1, e); R(g, x + 2, y + 1, 1, 1, e); R(g, x + 3, y, 1, 1, e); R(g, x + 4, y + 1, 1, 1, e); }
+  else { R(g, x - 4, y, 2, 2, e); R(g, x + 2, y, 2, 2, e); R(g, x - 4, y, 1, 1, '#ffffff'); R(g, x + 2, y, 1, 1, '#ffffff'); }
+  if (mood === 2){ R(g, x - 5, y - 2, 2, 1, e); R(g, x - 3, y - 1, 1, 1, e); R(g, x + 3, y - 2, 2, 1, e); R(g, x + 2, y - 1, 1, 1, e); }
+  if (mood === 1){ R(g, x - 5, y - 2, 3, 1, e); R(g, x + 2, y - 2, 3, 1, e); }
+  // рот
+  if (mood === 3){ R(g, x - 2, y + 4, 5, 1, e); R(g, x - 1, y + 5, 3, 1, '#c83a3a'); }
+  else if (mood === 2){ R(g, x - 2, y + 5, 5, 1, e); R(g, x - 3, y + 6, 1, 1, e); R(g, x + 3, y + 6, 1, 1, e); }
+  else if (mood === 1){ R(g, x - 2, y + 5, 5, 1, e); }
+  else { R(g, x - 1, y + 5, 3, 1, e); }
+}
+const GUESTS = {
+  dad(g, x, b, m, bl){ // усатый папа в кепке и клетчатой рубашке
+    R(g, x - 14, b - 18, 28, 18, K); R(g, x - 13, b - 17, 26, 17, '#c83a3a'); for (let i = -12; i < 13; i += 4){ R(g, x + i, b - 17, 1, 17, '#8a1a1a'); } for (let j = b - 15; j < b; j += 4) R(g, x - 13, j, 26, 1, '#8a1a1a');
+    R(g, x - 3, b - 17, 6, 5, '#f4f0e8'); R(g, x - 3, b - 21, 6, 4, '#e8a878');
+    R(g, x - 8, b - 36, 16, 16, K); R(g, x - 7, b - 35, 14, 15, '#f0b88a'); R(g, x - 7, b - 25, 14, 1, '#d8946c');
+    face(g, x, b - 30, m, null, bl); R(g, x - 5, b - 26, 10, 2, '#5a3018'); R(g, x - 6, b - 25, 2, 1, '#5a3018'); R(g, x + 4, b - 25, 2, 1, '#5a3018');
+    R(g, x - 9, b - 39, 18, 6, K); R(g, x - 8, b - 38, 16, 4, '#3a6ad8'); R(g, x - 8, b - 38, 16, 1, '#6a9aff'); R(g, x - 2, b - 37, 4, 2, '#ffffff'); R(g, x + 6, b - 35, 7, 2, '#2a4aa8');
+  },
+  punk(g, x, b, m, bl){ // панк с розовым ирокезом
+    R(g, x - 14, b - 18, 28, 18, K); R(g, x - 13, b - 17, 26, 17, '#2a2a34'); R(g, x - 13, b - 17, 3, 17, '#4a4a58'); R(g, x - 5, b - 17, 10, 17, '#e8e4d8'); R(g, x - 4, b - 13, 8, 4, '#c83a3a');
+    for (let i = 0; i < 3; i++) R(g, x + 9, b - 14 + i * 4, 1, 1, '#c8ccd8');
+    R(g, x - 7, b - 35, 14, 15, K); R(g, x - 6, b - 34, 12, 14, '#f8d0b0'); face(g, x, b - 29, m, null, bl); R(g, x + 6, b - 28, 1, 2, '#ffd84a');
+    for (let i = 0; i < 5; i++){ R(g, x - 2, b - 44 + i * 2, 4, 10 - i, K); R(g, x - 1, b - 43 + i * 2, 2, 9 - i, i % 2 ? '#ff5ab0' : '#ff8ad0'); }
+    R(g, x - 6, b - 34, 2, 3, '#ff5ab0'); R(g, x + 4, b - 34, 2, 3, '#ff5ab0');
+  },
+  granny(g, x, b, m, bl){ // бабушка в очках
+    R(g, x - 14, b - 18, 28, 18, K); R(g, x - 13, b - 17, 26, 17, '#8a5ab0'); for (let j = b - 15; j < b; j += 3) R(g, x - 13, j, 26, 1, '#6a3a90'); R(g, x - 4, b - 17, 8, 5, '#f4f0e8'); disc(g, x, b - 10, 1, '#ffd84a');
+    R(g, x - 7, b - 35, 14, 15, K); R(g, x - 6, b - 34, 12, 14, '#f0c8a8'); face(g, x, b - 29, m, null, bl);
+    R(g, x - 6, b - 30, 5, 4, K); R(g, x + 1, b - 30, 5, 4, K); R(g, x - 5, b - 29, 3, 2, 'rgba(200,230,255,.6)'); R(g, x + 2, b - 29, 3, 2, 'rgba(200,230,255,.6)'); R(g, x - 1, b - 29, 2, 1, K);
+    R(g, x - 8, b - 38, 16, 6, '#d8d8e0'); R(g, x - 8, b - 34, 2, 6, '#d8d8e0'); R(g, x + 6, b - 34, 2, 6, '#d8d8e0'); disc(g, x, b - 41, 4, K); disc(g, x, b - 41, 3, '#c8c8d0'); R(g, x - 1, b - 43, 2, 1, '#ffffff');
+  },
+  robot(g, x, b, m, bl){ // робот с экраном-лицом
+    R(g, x - 14, b - 18, 28, 18, K); R(g, x - 13, b - 17, 26, 17, '#8a94a8'); R(g, x - 13, b - 17, 26, 2, '#b8c0d0'); R(g, x - 6, b - 13, 12, 7, '#3a4050'); R(g, x - 5, b - 12, 2, 2, '#ff3a3a'); R(g, x - 1, b - 12, 2, 2, '#ffd84a'); R(g, x + 3, b - 12, 2, 2, '#4ad86a');
+    R(g, x - 2, b - 21, 4, 4, '#5a6070');
+    R(g, x - 10, b - 38, 20, 18, K); R(g, x - 9, b - 37, 18, 16, '#a8b0c0'); R(g, x - 9, b - 37, 18, 2, '#d8e0f0'); R(g, x - 7, b - 34, 14, 10, '#102028');
+    const ec = m === 2 ? '#ff3a3a' : m === 3 ? '#4affa0' : '#4ad8ff'; face(g, x, b - 31, m, ec, bl);
+    R(g, x - 1, b - 44, 2, 6, K); disc(g, x, b - 45, 2, Math.sin(performance.now() / 200) > 0 ? '#ff3a3a' : '#ff8a8a'); R(g, x - 11, b - 32, 2, 5, '#5a6070'); R(g, x + 9, b - 32, 2, 5, '#5a6070');
+  },
+  alien(g, x, b, m, bl){ // трёхглазый пришелец
+    R(g, x - 13, b - 18, 26, 18, K); R(g, x - 12, b - 17, 24, 17, '#6a3ab0'); R(g, x - 12, b - 17, 24, 3, '#c8c8e0'); disc(g, x, b - 10, 3, '#ffd84a');
+    R(g, x - 3, b - 22, 6, 5, '#7ae86a');
+    oval(g, x, b - 31, 10, 10, K); oval(g, x, b - 31, 9, 9, '#7ae86a'); oval(g, x - 3, b - 35, 3, 2, '#b8ffa8');
+    for (const dx of [-5, 0, 5]){ disc(g, x + dx, b - 32 - (dx ? 0 : 3), 2, '#ffffff'); R(g, x + dx, b - 32 - (dx ? 0 : 3), 1, 1, K); }
+    const mo = m === 2 ? [5, 1] : m === 3 ? [5, 2] : [3, 1]; R(g, x - (mo[0] >> 1), b - 26, mo[0], mo[1], '#1a3a1a');
+    R(g, x - 7, b - 46, 1, 6, K); R(g, x + 6, b - 46, 1, 6, K); disc(g, x - 7, b - 47, 2, '#ff5ab0'); disc(g, x + 6, b - 47, 2, '#ff5ab0');
+    if (m === 2){ R(g, x - 8, b - 36, 4, 1, K); R(g, x + 4, b - 36, 4, 1, K); }
+  },
+  cat(g, x, b, m, bl){ // кот в худи
+    R(g, x - 14, b - 18, 28, 18, K); R(g, x - 13, b - 17, 26, 17, '#3aa8a0'); R(g, x - 13, b - 17, 3, 17, '#5ac8c0'); R(g, x - 4, b - 10, 8, 5, '#2a8880'); R(g, x - 3, b - 17, 1, 6, '#f4f0e8'); R(g, x + 2, b - 17, 1, 6, '#f4f0e8');
+    R(g, x - 9, b - 36, 18, 16, K); R(g, x - 8, b - 35, 16, 15, '#f0a040'); R(g, x - 8, b - 35, 16, 2, '#ffc070'); R(g, x - 4, b - 25, 8, 4, '#fff0d8');
+    R(g, x - 9, b - 41, 5, 6, K); R(g, x - 8, b - 40, 3, 5, '#f0a040'); R(g, x - 7, b - 38, 1, 2, '#ff9ab0'); R(g, x + 4, b - 41, 5, 6, K); R(g, x + 5, b - 40, 3, 5, '#f0a040'); R(g, x + 6, b - 38, 1, 2, '#ff9ab0');
+    R(g, x - 3, b - 34, 2, 1, '#c87020'); R(g, x + 1, b - 33, 2, 1, '#c87020');
+    face(g, x, b - 30, m, '#2a5a1a', bl); R(g, x - 1, b - 26, 2, 1, '#e86a8a');
+    R(g, x - 12, b - 26, 4, 1, '#ffffff'); R(g, x - 12, b - 24, 4, 1, '#ffffff'); R(g, x + 8, b - 26, 4, 1, '#ffffff'); R(g, x + 8, b - 24, 4, 1, '#ffffff');
+  },
+  ghost(g, x, b, m, bl){ // привидение в шарфе
+    const fl = Math.round(Math.sin(performance.now() / 300) * 2);
+    R(g, x - 11, b - 38 + fl, 22, 38 - fl, K); R(g, x - 10, b - 40 + fl, 20, 2, K); R(g, x - 10, b - 38 + fl, 20, 38 - fl, '#f4f4fc'); R(g, x - 8, b - 40 + fl, 16, 2, '#f4f4fc'); R(g, x - 10, b - 38 + fl, 3, 30, '#ffffff'); R(g, x + 7, b - 30 + fl, 3, 30, '#d8d8ec');
+    R(g, x - 10, b - 20 + fl, 20, 4, '#e83a6a'); R(g, x + 4, b - 18 + fl, 4, 10, '#e83a6a'); R(g, x + 4, b - 12 + fl, 4, 1, '#ffd84a');
+    face(g, x, b - 31 + fl, m, '#3a3a6a', bl); if (m !== 3){ disc(g, x, b - 25 + fl, 2, '#3a3a6a'); }
+  },
+  frog(g, x, b, m, bl){ // лягушка в галстуке
+    R(g, x - 14, b - 18, 28, 18, K); R(g, x - 13, b - 17, 26, 17, '#3a4a6a'); R(g, x - 5, b - 17, 10, 17, '#f4f0e8'); R(g, x - 2, b - 15, 4, 12, '#e83a3a'); R(g, x - 1, b - 16, 2, 2, '#a81a1a');
+    oval(g, x, b - 27, 12, 7, K); oval(g, x, b - 27, 11, 6, '#5ab84a'); oval(g, x, b - 24, 8, 3, '#b8e8a0');
+    disc(g, x - 6, b - 34, 4, K); disc(g, x - 6, b - 34, 3, '#5ab84a'); disc(g, x + 6, b - 34, 4, K); disc(g, x + 6, b - 34, 3, '#5ab84a');
+    if (bl && m !== 3){ R(g, x - 8, b - 34, 4, 1, K); R(g, x + 4, b - 34, 4, 1, K); } else { disc(g, x - 6, b - 34, 2, '#ffffff'); disc(g, x + 6, b - 34, 2, '#ffffff'); R(g, x - 6, b - 34, 1, 2, K); R(g, x + 6, b - 34, 1, 2, K); }
+    if (m === 2){ R(g, x - 9, b - 38, 4, 1, K); R(g, x + 5, b - 38, 4, 1, K); }
+    R(g, x - 6, b - 24, 12, 1, '#1a4a1a'); if (m === 3){ R(g, x - 7, b - 25, 1, 1, '#1a4a1a'); R(g, x + 6, b - 25, 1, 1, '#1a4a1a'); } if (m === 2){ R(g, x - 6, b - 23, 1, 1, '#1a4a1a'); R(g, x + 5, b - 23, 1, 1, '#1a4a1a'); }
+  },
+  astro(g, x, b, m, bl){ // космонавт
+    R(g, x - 15, b - 18, 30, 18, K); R(g, x - 14, b - 17, 28, 17, '#e8e8f0'); R(g, x - 14, b - 17, 28, 2, '#ffffff'); R(g, x - 6, b - 13, 12, 8, '#c8ccd8'); R(g, x - 5, b - 12, 3, 2, '#3a6ad8'); R(g, x + 2, b - 12, 3, 2, '#e83a3a'); R(g, x - 13, b - 10, 4, 4, '#ff8a2a');
+    disc(g, x, b - 30, 12, K); disc(g, x, b - 30, 11, '#e8e8f0'); disc(g, x, b - 29, 8, '#203048'); R(g, x - 5, b - 34, 3, 2, 'rgba(255,255,255,.6)');
+    R(g, x - 5, b - 33, 10, 10, '#f0b88a'); face(g, x, b - 30, m, null, bl); R(g, x - 5, b - 34, 2, 1, 'rgba(255,255,255,.7)');
+  },
+  knight(g, x, b, m, bl){ // рыцарь с поднятым забралом
+    R(g, x - 15, b - 18, 30, 18, K); R(g, x - 14, b - 17, 28, 17, '#8a94a8'); R(g, x - 14, b - 17, 28, 2, '#c8d0e0'); R(g, x - 3, b - 15, 6, 13, '#c83a2a'); R(g, x - 1, b - 13, 2, 9, '#ffd84a');
+    R(g, x - 9, b - 39, 18, 20, K); R(g, x - 8, b - 38, 16, 18, '#a8b0c0'); R(g, x - 8, b - 38, 16, 2, '#e0e8f8'); R(g, x - 6, b - 33, 12, 9, '#f0b88a'); face(g, x, b - 31, m, null, bl);
+    R(g, x - 8, b - 35, 16, 2, '#6a7488'); R(g, x - 1, b - 46, 3, 8, '#e83a3a'); R(g, x + 1, b - 47, 4, 3, '#ff6a5a');
+  },
+};
+const GUEST_IDS = Object.keys(GUESTS);
+
+// ================= СОСТОЯНИЕ =================
+let state = 'menu', best = 0, USER = { name: 'Вы' };
+let G = null;           // текущая смена
+// подсказки для первого гостя — по тому, что сейчас на подносе
+function tutTip(){
+  const T = G.trays[G.sel], b = T.burger;
+  if (!G.guests.some(Boolean)) return 'ЖДЁМ ПЕРВОГО ГОСТЯ...';
+  if (!b) return 'ТАПНИ «БУЛКИ» — НИЖНЯЯ БУЛКА';
+  if (!b.closed && !b.layers.includes('patty')){ if (G.grill.some(s => s && s.state === 'cooked')) return 'ТАПНИ ГОТОВУЮ КОТЛЕТУ'; if (G.grill.some(s => s && s.state === 'cooking')) return 'КОТЛЕТА ЖАРИТСЯ...'; return 'ТАПНИ «КОТЛЕТЫ» — НА ГРИЛЬ'; }
+  if (!b.closed) return 'ЕЩЁ РАЗ «БУЛКИ» — НАКРЫТЬ';
+  return 'ТАПНИ ПО ГОСТЮ — ОТДАТЬ';
+}
+let fx = [], floats = [], hoverKey = null, flashKey = null, flashT = 0, msg = null, shakeT = 0;
+function newShift(){
+  G = { t: 0, score: 0, served: 0, lost: 0, combo: 0, spawnT: 0.6, nextId: 1,
+    guests: [null, null, null, null], grill: [null, null, null, null], fryer: [null, null], soda: [null, null],
+    trays: [emptyTray(), emptyTray()], sel: 0, lastGuest: null };
+}
+const emptyTray = () => ({ burger: null, fries: false, drink: false });
+const level = () => Math.min(6, Math.floor(G.served / 3));
+function makeOrder(){
+  const L = level(), o = { burger: null, fries: false, drink: false };
+  const noBurger = L >= 2 && Math.random() < 0.15;
+  if (!noBurger) o.burger = { patties: L >= 3 && Math.random() < 0.35 ? 2 : 1, cheese: L >= 1 && Math.random() < 0.45, lettuce: L >= 2 && Math.random() < 0.4 };
+  o.drink = G.served >= 1 && Math.random() < 0.5;
+  o.fries = (L >= 1 && Math.random() < 0.5) || noBurger;
+  if (noBurger) o.drink = true;
+  if (L >= 4 && o.burger && Math.random() < 0.3){ o.fries = true; o.drink = true; }   // большое комбо
+  return o;
+}
+function orderSize(o){ return (o.burger ? 2 + o.burger.patties + (o.burger.cheese ? 1 : 0) + (o.burger.lettuce ? 1 : 0) : 0) + (o.fries ? 2 : 0) + (o.drink ? 1 : 0); }
+function spawnGuest(){
+  const free = G.guests.map((g, i) => g ? -1 : i).filter(i => i >= 0); if (!free.length) return false;
+  const slot = pick(free), o = makeOrder(), L = level();
+  let type; do { type = pick(GUEST_IDS); } while (type === G.lastGuest); G.lastGuest = type;
+  const heat = Math.max(0.65, 1 - G.t / 1500);   // со временем смена ускоряется
+  const pat = (Math.max(16, 30 - L * 2) + orderSize(o) * 2.2) * heat;
+  G.guests[slot] = { id: G.nextId++, type, order: o, pat, left: pat, enter: 0, leave: 0, mood: 0, happy: 0, shake: 0, blinkT: rand(1, 4), from: slot < 2 ? -1 : 1 };
+  return true;
+}
+
+// ================= ВВОД =================
+const toLocal = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; };
+const inR = (p, r) => p.x >= r.x && p.x < r.x + r.w && p.y >= r.y && p.y < r.y + r.h;
+function hitTest(p){
+  for (let i = 0; i < 4; i++){ const g = G.guests[i]; if (g && !g.leave && inR(p, { x: SLOT_X[i] - 24, y: 14, w: 48, h: COUNTER_Y - 10 })) return { key: 'guest' + i, fn: () => serve(i) }; }
+  for (let i = 0; i < 2; i++) if (inR(p, TRAYS[i])) return { key: 'tray' + i, fn: () => selectTray(i) };
+  for (let i = 0; i < 4; i++) if (inR(p, GSLOTS[i])) return { key: 'grill' + i, fn: () => tapGrill(i) };
+  for (let i = 0; i < 2; i++) if (inR(p, FSLOTS[i])) return { key: 'fry' + i, fn: () => tapFryer(i) };
+  for (let i = 0; i < 2; i++) if (inR(p, SSLOTS[i])) return { key: 'soda' + i, fn: () => tapSoda(i) };
+  for (const b of BINS) if (inR(p, b)) return { key: 'bin' + b.id, fn: () => tapBin(b.id) };
+  return null;
+}
+cv.addEventListener('pointerdown', e => { if (state !== 'play') return; e.preventDefault(); const h = hitTest(toLocal(e)); if (h){ flashKey = h.key; flashT = 0.15; h.fn(); } });
+cv.addEventListener('pointermove', e => { if (state !== 'play' || e.pointerType !== 'mouse'){ hoverKey = null; return; } const h = hitTest(toLocal(e)); hoverKey = h ? h.key : null; cv.style.cursor = h ? 'pointer' : 'default'; });
+cv.addEventListener('pointerleave', () => { hoverKey = null; });
+addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeSheets();
+  if (e.key === 'Enter' && state === 'menu' && $('board').hidden) start();
+  if (state !== 'play') return;
+  const map = { '1': () => tapBin('patty'), '2': () => tapBin('bun'), '3': () => tapBin('cheese'), '4': () => tapBin('lettuce'), '5': () => tapBin('fries'), '6': () => tapBin('cup'), 'Tab': () => selectTray(1 - G.sel) };
+  if (map[e.key]){ e.preventDefault(); map[e.key](); }
+});
+
+// ================= ДЕЙСТВИЯ =================
+function say(s, col){ msg = { s, t: 1.3, col: col || '#ffffff' }; }
+function float(x, y, s, col){ floats.push({ x, y, s, col, t: 1.1 }); }
+function puff(x, y, col, n){ for (let i = 0; i < (n || 8); i++) fx.push({ x, y, vx: rand(-14, 14), vy: rand(-30, -8), life: rand(0.5, 1), col: col || 'rgba(200,200,210,.7)', s: ri(2, 3) }); }
+const tray = () => G.trays[G.sel];
+function selectTray(i){ G.sel = i; }
+function tapBin(id){
+  const T = tray(), tx = TRAYS[G.sel].x + 24, ty = TRAYS[G.sel].y + 20;
+  if (id === 'patty'){ const i = G.grill.findIndex(s => !s); if (i < 0) return say('ГРИЛЬ ЗАНЯТ'); G.grill[i] = { t: 0, state: 'cooking' }; puff(GSLOTS[i].x + 22, GSLOTS[i].y + 14, null, 4); return; }
+  if (id === 'fries'){ const i = G.fryer.findIndex(s => !s); if (i < 0) return say('ФРИТЮР ЗАНЯТ'); G.fryer[i] = { t: 0, state: 'cooking' }; splash(i); return; }
+  if (id === 'cup'){ const i = G.soda.findIndex(s => !s); if (i < 0) return say('АВТОМАТ ЗАНЯТ'); G.soda[i] = { t: 0, state: 'filling' }; return; }
+  if (id === 'trash'){ if (!T.burger && !T.fries && !T.drink) return say('ПОДНОС ПУСТ'); G.trays[G.sel] = emptyTray(); puff(BINS[6].x + 14, BINS[6].y + 20, null, 10); say('ПОДНОС ОЧИЩЕН', '#c8c8d0'); return; }
+  if (id === 'bun'){
+    if (!T.burger){ T.burger = { layers: ['bunB'], closed: false }; return; }
+    if (T.burger.closed) return say('БУРГЕР УЖЕ СОБРАН');
+    if (!T.burger.layers.includes('patty')) return say('СНАЧАЛА КОТЛЕТА', '#ffd84a');
+    T.burger.layers.push('bunT'); T.burger.closed = true; float(tx, ty - 10, 'ГОТОВО!', '#7affb0'); return;
+  }
+  if (id === 'cheese' || id === 'lettuce'){
+    if (!T.burger) return say('СНАЧАЛА БУЛКА', '#ffd84a');
+    if (T.burger.closed) return say('БУРГЕР УЖЕ СОБРАН');
+    if (T.burger.layers.includes(id)) return say(id === 'cheese' ? 'СЫР УЖЕ ЕСТЬ' : 'САЛАТ УЖЕ ЕСТЬ');
+    T.burger.layers.push(id); return;
+  }
+}
+function splash(i){ for (let k = 0; k < 8; k++) fx.push({ x: FSLOTS[i].x + 21 + rand(-10, 10), y: FSLOTS[i].y + 14, vx: rand(-20, 20), vy: rand(-40, -15), life: 0.4, col: '#ffe08a', s: 1, g: 120 }); }
+function tapGrill(i){
+  const s = G.grill[i]; if (!s) return tapBin('patty');
+  if (s.state === 'burnt'){ G.grill[i] = null; puff(GSLOTS[i].x + 22, GSLOTS[i].y + 14, 'rgba(60,60,60,.8)', 10); say('УГОЛЁК — В МУСОР', '#ff8a5a'); return; }
+  if (s.state !== 'cooked') return say('ЕЩЁ ЖАРИТСЯ');
+  const T = tray();
+  if (!T.burger) return say('СНАЧАЛА БУЛКА', '#ffd84a');
+  if (T.burger.closed) return say('БУРГЕР УЖЕ СОБРАН');
+  if (T.burger.layers.filter(l => l === 'patty').length >= 2) return say('МАКСИМУМ 2 КОТЛЕТЫ');
+  T.burger.layers.push('patty'); G.grill[i] = null;
+}
+function tapFryer(i){
+  const s = G.fryer[i]; if (!s) return tapBin('fries');
+  if (s.state === 'burnt'){ G.fryer[i] = null; puff(FSLOTS[i].x + 21, FSLOTS[i].y + 10, 'rgba(60,60,60,.8)', 10); say('ПЕРЕЖАРЕНО — В МУСОР', '#ff8a5a'); return; }
+  if (s.state !== 'done') return say('ЕЩЁ ЖАРИТСЯ');
+  const T = tray(); if (T.fries) return say('ФРИ УЖЕ НА ПОДНОСЕ');
+  T.fries = true; G.fryer[i] = null;
+}
+function tapSoda(i){
+  const s = G.soda[i]; if (!s) return tapBin('cup');
+  if (s.state !== 'full') return say('НАЛИВАЕТСЯ...');
+  const T = tray(); if (T.drink) return say('КОЛА УЖЕ НА ПОДНОСЕ');
+  T.drink = true; G.soda[i] = null;
+}
+function burgerSpec(b){ if (!b) return null; return { closed: b.closed, patties: b.layers.filter(l => l === 'patty').length, cheese: b.layers.includes('cheese'), lettuce: b.layers.includes('lettuce') }; }
+function matches(T, o){
+  const b = burgerSpec(T.burger);
+  if (!!o.burger !== !!b) return false;
+  if (b && (!b.closed || b.patties !== o.burger.patties || b.cheese !== o.burger.cheese || b.lettuce !== o.burger.lettuce)) return false;
+  return T.fries === o.fries && T.drink === o.drink;
+}
+function serve(i){
+  const g = G.guests[i], T = tray(); if (!g || g.leave || g.enter < 1) return;
+  if (!T.burger && !T.fries && !T.drink) return say('ПОДНОС ПУСТ — СОБЕРИ ЗАКАЗ', '#ffd84a');
+  if (T.burger && !T.burger.closed) return say('НАКРОЙ БУРГЕР БУЛКОЙ', '#ffd84a');
+  if (!matches(T, g.order)){ g.shake = 0.4; g.left = Math.max(0.5, g.left - g.pat * 0.15); G.combo = 0; say('НЕ ТОТ ЗАКАЗ!', '#ff5a5a'); return; }
+  const k = g.left / g.pat, base = 40 + orderSize(g.order) * 12, tip = Math.round(k * 60), mult = 1 + Math.min(10, G.combo) * 0.1;
+  const pts = Math.round((base + tip) * mult); G.score += pts; G.served++; G.combo++;
+  float(SLOT_X[i], 40, '+' + pts, '#ffd84a'); if (tip > 35) float(SLOT_X[i], 52, 'ЧАЕВЫЕ!', '#7affb0'); if (G.combo > 2) float(SLOT_X[i], 64, 'КОМБО x' + mult.toFixed(1), '#ff8ad0');
+  for (let n = 0; n < 12; n++) fx.push({ x: SLOT_X[i], y: 70, vx: rand(-40, 40), vy: rand(-50, -10), life: 0.8, col: pick(['#ffd84a', '#ff8ad0', '#7affb0', '#8ab0ff']), s: 2, g: 90 });
+  G.trays[G.sel] = emptyTray(); g.leave = 0.001; g.mood = 3; g.happy = 1;
+  if (G.trays[1 - G.sel].burger || G.trays[1 - G.sel].fries || G.trays[1 - G.sel].drink) G.sel = 1 - G.sel;
+}
+
+// ================= ОБНОВЛЕНИЕ =================
+function update(dt){
+  for (const p of fx){ p.x += p.vx * dt; p.y += p.vy * dt; if (p.g) p.vy += p.g * dt; p.life -= dt; } fx = fx.filter(p => p.life > 0);
+  for (const f of floats){ f.t -= dt; f.y -= 14 * dt; } floats = floats.filter(f => f.t > 0);
+  if (msg){ msg.t -= dt; if (msg.t <= 0) msg = null; } flashT = Math.max(0, flashT - dt); shakeT = Math.max(0, shakeT - dt);
+  if (state !== 'play') return;
+  G.t += dt;
+  if (G.endAt && G.t >= G.endAt){ finish(); return; }
+  // кухня
+  G.grill.forEach((s, i) => { if (!s) return; s.t += dt;
+    if (s.state === 'cooking' && s.t >= COOK.patty){ s.state = 'cooked'; s.t = 0; }
+    else if (s.state === 'cooked' && s.t >= COOK.pattyBurn){ s.state = 'burnt'; puff(GSLOTS[i].x + 22, GSLOTS[i].y + 10, 'rgba(50,50,50,.8)', 10); say('КОТЛЕТА СГОРЕЛА!', '#ff5a3a'); }
+    if (Math.random() < dt * (s.state === 'burnt' ? 8 : 4)) fx.push({ x: GSLOTS[i].x + 22 + rand(-8, 8), y: GSLOTS[i].y + 12, vx: rand(-3, 3), vy: rand(-22, -12), life: rand(.6, 1.1), col: s.state === 'burnt' ? 'rgba(40,40,44,.7)' : 'rgba(230,230,240,.45)', s: 2 }); });
+  G.fryer.forEach((s, i) => { if (!s) return; s.t += dt;
+    if (s.state === 'cooking' && s.t >= COOK.fries){ s.state = 'done'; s.t = 0; }
+    else if (s.state === 'done' && s.t >= COOK.friesBurn){ s.state = 'burnt'; puff(FSLOTS[i].x + 21, FSLOTS[i].y + 10, 'rgba(50,50,50,.8)', 10); say('КАРТОШКА СГОРЕЛА!', '#ff5a3a'); } });
+  G.soda.forEach(s => { if (!s) return; s.t += dt; if (s.state === 'filling' && s.t >= COOK.soda){ s.state = 'full'; s.t = 0; } });
+  // гости
+  G.spawnT -= dt;
+  const count = G.guests.filter(Boolean).length, interval = Math.max(3.4, 11 - level() * 1.1 - G.t / 300);
+  if ((G.spawnT <= 0 && count < 4) || count === 0 && G.spawnT < interval - 2){ if (spawnGuest()) G.spawnT = interval * rand(0.8, 1.2); }
+  G.guests.forEach((g, i) => { if (!g) return;
+    g.blinkT -= dt; if (g.blinkT < -0.12) g.blinkT = rand(2, 5); g.shake = Math.max(0, g.shake - dt);
+    if (g.enter < 1){ g.enter = Math.min(1, g.enter + dt * 1.8); return; }
+    if (g.leave){ g.leave += dt * 1.4; if (g.leave >= 1) G.guests[i] = null; return; }
+    g.left -= dt; const k = g.left / g.pat; g.mood = k < 0.25 ? 2 : k < 0.5 ? 1 : 0;
+    if (g.left <= 0){ g.leave = 0.001; g.mood = 2; G.lost++; G.combo = 0; shakeT = 0.35; float(SLOT_X[i], 50, 'УШЁЛ!', '#ff5a5a'); say(`ГОСТЬ УШЁЛ ГОЛОДНЫМ (${G.lost}/3)`, '#ff5a5a');
+      if (G.lost >= 3 && !G.endAt) G.endAt = G.t + 1; }
+  });
+}
+
+// ================= ФОН: закусочная (рисуется один раз) =================
+let BG = null;
+function buildBG(){
+  const [c, g] = mk(W, H);
+  // ---- зал: стена, плитка, окна, вывески
+  R(g, 0, 0, W, 14, '#140c10');
+  for (let y = 14; y < 92; y++) R(g, 0, y, W, 1, y % 2 ? '#e8d4aa' : '#ecd8b0');
+  for (let x = 0; x < W; x += 8) R(g, x, 14, 1, 78, 'rgba(160,120,70,.12)');
+  // потолочный бордюр
+  R(g, 0, 14, W, 4, '#8a2a2a'); R(g, 0, 14, W, 1, '#c84a4a'); R(g, 0, 18, W, 1, '#5a1414');
+  // два окна с улицей (содержимое анимируется отдельно)
+  for (const wx of [6, 148]){ R(g, wx - 2, 30, 66, 46, '#5a3a22'); R(g, wx - 1, 31, 64, 44, '#8a5a32'); R(g, wx, 32, 62, 42, '#3a2414'); }
+  // табличка-меню между окнами
+  R(g, 74, 40, 68, 30, '#2a2a2e'); R(g, 75, 41, 66, 28, '#1e2a24'); R(g, 74, 40, 68, 2, '#6a4a2a'); R(g, 74, 68, 68, 2, '#6a4a2a');
+  // нижняя плитка-«шахматка» под стойкой
+  for (let x = 0; x < W; x += 6) for (let y = 92; y < COUNTER_Y; y += 6) R(g, x, y, 6, 6, ((x + y) / 6) % 2 ? '#f4f0e8' : '#2a2a34');
+  R(g, 0, 91, W, 2, '#c84a4a');
+  // постеры и мелочи
+  R(g, 2, 22, 10, 7, '#3a6ad8'); R(g, 3, 23, 8, 5, '#ffd84a'); R(g, 204, 22, 10, 7, '#e83a6a'); R(g, 205, 23, 8, 5, '#ffffff'); R(g, 207, 24, 4, 3, '#e83a6a');
+  // ---- стойка (раздача): хромированный кант, красная столешница, рейка для чеков
+  R(g, 0, COUNTER_Y, W, 22, '#a8282a'); R(g, 0, COUNTER_Y, W, 3, '#d8dce8'); R(g, 0, COUNTER_Y, W, 1, '#ffffff'); R(g, 0, COUNTER_Y + 3, W, 1, '#7a7e8c');
+  for (let x = 2; x < W; x += 7) R(g, x, COUNTER_Y + 6, 3, 1, '#c84040'); R(g, 0, COUNTER_Y + 19, W, 3, '#6a1416');
+  R(g, 0, COUNTER_Y + 22, W, 2, '#3a3e4a');
+  // ---- кухня: стальные столы с рисками
+  R(g, 0, 126, W, H - 126, '#8a909e');
+  for (let y = 127; y < H; y += 2) R(g, 0, y, W, 1, y % 4 ? '#9298a6' : '#848a98');
+  for (let i = 0; i < 40; i++) R(g, ri(0, W), ri(128, H), ri(4, 14), 1, 'rgba(255,255,255,.12)');
+  // зона подносов — тёмный коврик
+  R(g, 4, 127, W - 8, 47, '#5a606e'); R(g, 4, 127, W - 8, 1, '#3a3e4a'); for (let x = 6; x < W - 6; x += 4) R(g, x, 172, 2, 1, '#4a4e5a');
+  // кафельный фартук за техникой
+  for (let x = 0; x < W; x += 9) for (let y = 175; y < 178; y += 3) R(g, x, y, 8, 2, '#d8dce4');
+  // ---- гриль
+  const gr = GRILL; R(g, gr.x - 1, gr.y - 1, gr.w + 2, gr.h + 2, K); R(g, gr.x, gr.y, gr.w, gr.h, '#3a3a44'); R(g, gr.x, gr.y, gr.w, 3, '#6a6a78'); R(g, gr.x, gr.y + gr.h - 10, gr.w, 10, '#2a2a32');
+  R(g, gr.x + 4, gr.y + 6, gr.w - 8, gr.h - 18, '#1a1a20'); for (let y = gr.y + 8; y < gr.y + gr.h - 13; y += 4) R(g, gr.x + 5, y, gr.w - 10, 1, '#4a4a56');
+  for (let i = 0; i < 4; i++){ disc(g, gr.x + 14 + i * 24, gr.y + gr.h - 5, 3, K); disc(g, gr.x + 14 + i * 24, gr.y + gr.h - 5, 2, '#c8ccd8'); R(g, gr.x + 14 + i * 24, gr.y + gr.h - 7, 1, 2, '#e83a3a'); }
+  txt(g, 'ГРИЛЬ', gr.x + gr.w / 2, gr.y - 9, '#2a2a34', 5, 'center', false);
+  // ---- фритюр
+  const fr = FRYER; R(g, fr.x - 1, fr.y - 1, fr.w + 2, fr.h + 2, K); R(g, fr.x, fr.y, fr.w, fr.h, '#b8bcc8'); R(g, fr.x, fr.y, fr.w, 2, '#e8ecf4'); R(g, fr.x + fr.w - 3, fr.y, 3, fr.h, '#8a8e9a');
+  for (const s of FSLOTS){ R(g, s.x - 1, s.y - 1, s.w + 2, s.h + 2, '#4a4a56'); R(g, s.x, s.y, s.w, s.h, '#c88a20'); }
+  R(g, fr.x + 4, fr.y + fr.h - 6, fr.w - 8, 4, '#6a6e7a'); disc(g, fr.x + 10, fr.y + fr.h - 4, 1, '#ff3a3a'); disc(g, fr.x + 16, fr.y + fr.h - 4, 1, '#4ad86a');
+  txt(g, 'ФРИТЮР', fr.x + fr.w / 2, fr.y - 9, '#2a2a34', 5, 'center', false);
+  // ---- автомат газировки
+  const sd = SODA; R(g, sd.x - 1, sd.y - 1, sd.w + 2, sd.h + 2, K); R(g, sd.x, sd.y, sd.w, sd.h, '#c82a2a'); R(g, sd.x, sd.y, sd.w, 3, '#ff6a5a'); R(g, sd.x + sd.w - 4, sd.y, 4, sd.h, '#8a1414');
+  R(g, sd.x + 4, sd.y + 6, sd.w - 8, 18, '#f4f0e8'); R(g, sd.x + 5, sd.y + 7, sd.w - 10, 16, '#3a1a10'); txt(g, 'FIZZ', sd.x + sd.w / 2, sd.y + 12, '#ffd84a', 6, 'center');
+  R(g, sd.x + 4, sd.y + 27, sd.w - 8, 12, '#2a2a34'); for (let i = 0; i < 2; i++){ R(g, sd.x + 10 + i * 21, sd.y + 39, 5, 6, '#4a4a56'); R(g, sd.x + 11 + i * 21, sd.y + 44, 3, 3, '#2a2a34'); }
+  R(g, sd.x + 3, sd.y + 50, sd.w - 6, 40, '#2a2a34'); R(g, sd.x + 3, sd.y + 88, sd.w - 6, 4, '#6a6e7a'); for (let x = sd.x + 4; x < sd.x + sd.w - 4; x += 3) R(g, x, sd.y + 89, 2, 2, '#3a3e4a');
+  // ---- лотки с продуктами
+  for (const b of BINS){ R(g, b.x - 1, b.y - 1, b.w + 2, b.h + 2, K); R(g, b.x, b.y, b.w, b.h, b.id === 'trash' ? '#4a5a4a' : '#c8ccd8'); R(g, b.x, b.y, b.w, 2, '#f4f8ff');
+    R(g, b.x + 2, b.y + 4, b.w - 4, 48, b.id === 'trash' ? '#2a3a2a' : '#6a707e');
+    R(g, b.x + 1, b.y + b.h - 22, b.w - 2, 20, '#2a2a34'); txt(g, BIN_LABEL[b.id], b.x + b.w / 2 + 0.5, b.y + b.h - 18, '#ffffff', 4, 'center', false);
+    txt(g, b.id === 'trash' ? 'Tab' : String(BINS.indexOf(b) + 1), b.x + b.w / 2 + 0.5, b.y + b.h - 10, '#8a8aa0', 4, 'center', false); }
+  // содержимое лотков
+  const bx = id => BINS.find(b => b.id === id);
+  { const b = bx('patty'); R(g, b.x + 3, b.y + 6, b.w - 6, 44, '#f4f0e8'); for (let i = 0; i < 4; i++){ const cy = b.y + 14 + i * 10; oval(g, b.x + 14, cy + 1, 10, 4, '#a84a5a'); oval(g, b.x + 14, cy, 9, 3, '#e87a8a'); R(g, b.x + 9, cy - 1, 4, 1, '#f8a8b0'); } }
+  { const b = bx('bun'); R(g, b.x + 3, b.y + 8, b.w - 6, 42, '#a8743a'); for (let x = b.x + 3; x < b.x + b.w - 3; x += 3) R(g, x, b.y + 8, 1, 42, '#7a4a22'); for (let i = 0; i < 3; i++){ const cy = b.y + 18 + i * 11; oval(g, b.x + 14, cy, 9, 5, K); oval(g, b.x + 14, cy, 8, 4, '#d8903e'); oval(g, b.x + 12, cy - 2, 4, 1, '#f8c870'); R(g, b.x + 10, cy - 1, 1, 1, '#fff4d0'); R(g, b.x + 16, cy - 2, 1, 1, '#fff4d0'); } }
+  { const b = bx('cheese'); for (let i = 0; i < 6; i++){ R(g, b.x + 5 + (i % 2), b.y + 12 + i * 6, 18, 5, K); R(g, b.x + 6 + (i % 2), b.y + 13 + i * 6, 16, 4, '#ffd84a'); R(g, b.x + 6 + (i % 2), b.y + 13 + i * 6, 16, 1, '#fff08a'); R(g, b.x + 10, b.y + 14 + i * 6, 2, 1, '#e8b830'); } }
+  { const b = bx('lettuce'); oval(g, b.x + 14, b.y + 32, 12, 16, '#e8e4dc'); for (let i = 0; i < 7; i++){ const cx = b.x + 8 + (i % 3) * 6, cy = b.y + 18 + Math.floor(i / 3) * 10; oval(g, cx, cy, 5, 4, '#3a9a2a'); oval(g, cx, cy - 1, 4, 3, i % 2 ? '#5ac83a' : '#8ae85a'); } }
+  { const b = bx('fries'); R(g, b.x + 5, b.y + 10, 19, 40, '#c8a46a'); R(g, b.x + 5, b.y + 10, 19, 3, '#a8844a'); R(g, b.x + 7, b.y + 22, 15, 12, '#f4ecd8'); txt(g, 'FRY', b.x + 14.5, b.y + 25, '#c83a2a', 4, 'center', false);
+    for (let i = 0; i < 6; i++) R(g, b.x + 7 + i * 3, b.y + 4 + (i % 2) * 2, 2, 7, '#ffe08a'); }
+  { const b = bx('cup'); for (let i = 0; i < 4; i++){ const cy = b.y + 14 + i * 9; R(g, b.x + 7, cy, 15, 9, K); R(g, b.x + 8, cy + 1, 13, 7, '#f4f0e8'); R(g, b.x + 8, cy + 3, 13, 2, '#d8302a'); } }
+  { const b = bx('trash'); R(g, b.x + 4, b.y + 14, b.w - 8, 36, '#3a5a3a'); R(g, b.x + 3, b.y + 10, b.w - 6, 5, '#5a7a5a'); R(g, b.x + 11, b.y + 7, 7, 3, '#5a7a5a'); for (let x = b.x + 7; x < b.x + b.w - 6; x += 4) R(g, x, b.y + 18, 1, 28, '#2a4a2a');
+    R(g, b.x + 7, b.y + 9, 3, 2, '#e8e4d8'); R(g, b.x + 18, b.y + 8, 3, 3, '#ffd84a'); }
+  BG = c;
+}
+
+// ================= ОТРИСОВКА =================
+function highlight(key, r, t){
+  const on = hoverKey === key, fl = flashKey === key && flashT > 0;
+  if (!on && !fl) return;
+  ctx.globalAlpha = fl ? 0.5 : 0.25 + 0.15 * Math.sin(t * 8); ctx.fillStyle = '#fff4a0'; ctx.fillRect(r.x, r.y, r.w, r.h); ctx.globalAlpha = 1;
+  ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 1; ctx.strokeRect(r.x + .5, r.y + .5, r.w - 1, r.h - 1);
+}
+function drawStreet(t){
+  for (const wx of [6, 148]){ ctx.save(); ctx.beginPath(); ctx.rect(wx, 32, 62, 42); ctx.clip();
+    for (let y = 32; y < 74; y++) R(ctx, wx, y, 62, 1, lerpC('#6ab8f0', '#f8d8a8', (y - 32) / 42));
+    // облака
+    for (let i = 0; i < 3; i++){ const cx = wx + ((t * 4 + i * 40 + wx) % 100) - 20, cy = 38 + i * 5; oval(ctx, cx, cy, 6, 2, '#ffffff'); oval(ctx, cx + 4, cy - 1, 4, 2, '#ffffff'); }
+    // дома
+    for (let i = 0; i < 6; i++){ const bx = wx + i * 11 - 2, bh = 12 + ((i * 7 + wx) % 11); R(ctx, bx, 62 - bh, 10, bh, ['#6a5a8a','#8a6a7a','#5a6a8a'][i % 3]); for (let yy = 64 - bh; yy < 60; yy += 4) for (let xx = bx + 2; xx < bx + 9; xx += 3) R(ctx, xx, yy, 1, 2, Math.sin(i * 3 + yy) > 0 ? '#ffe08a' : '#3a3a5a'); }
+    R(ctx, wx, 62, 62, 12, '#4a4a56'); for (let x = wx; x < wx + 62; x += 8) R(ctx, x + ((t * 20) % 8), 67, 4, 1, '#d8d8a0');
+    // машинки едут слева направо и обратно
+    const cx = wx + ((t * 22 + (wx > 100 ? 40 : 0)) % 110) - 25; R(ctx, cx, 63, 16, 5, '#e83a3a'); R(ctx, cx + 3, 60, 9, 3, '#e83a3a'); R(ctx, cx + 4, 61, 3, 2, '#a8e0ff'); R(ctx, cx + 8, 61, 3, 2, '#a8e0ff'); disc(ctx, cx + 3, 68, 2, K); disc(ctx, cx + 12, 68, 2, K);
+    const cx2 = wx + 85 - ((t * 15 + (wx > 100 ? 10 : 60)) % 110); R(ctx, cx2, 65, 14, 4, '#3a8ad8'); R(ctx, cx2 + 2, 62, 8, 3, '#3a8ad8'); R(ctx, cx2 + 3, 63, 6, 2, '#a8e0ff'); disc(ctx, cx2 + 3, 69, 2, K); disc(ctx, cx2 + 11, 69, 2, K);
+    ctx.restore();
+    // переплёт и подоконник
+    R(ctx, wx + 30, 32, 2, 42, '#5a3a22'); R(ctx, wx, 52, 62, 1, '#5a3a22'); R(ctx, wx - 3, 74, 68, 3, '#c8a070'); R(ctx, wx - 3, 74, 68, 1, '#e8c898');
+    // горшок с растением на подоконнике
+    const px = wx + (wx > 100 ? 50 : 8); R(ctx, px, 68, 7, 6, '#c86a3a'); R(ctx, px - 1, 67, 9, 2, '#e88a5a'); for (let k = 0; k < 4; k++) oval(ctx, px + 1 + k * 2, 64 - (k % 2) * 3, 2, 3, k % 2 ? '#3a9a3a' : '#5ac85a'); }
+}
+function drawWallDyn(t){
+  // неоновая вывеска
+  const on = Math.sin(t * 2.3) > -0.9 || Math.sin(t * 17) > 0;
+  R(ctx, 64, 20, 88, 17, '#2a1a24'); R(ctx, 64, 20, 88, 1, '#5a3a4a');
+  if (on){ ctx.globalAlpha = .25; R(ctx, 60, 17, 96, 23, '#ff5ab0'); ctx.globalAlpha = 1; }
+  txt(ctx, 'GRILL RUSH', 108, 25, on ? '#ff8ad0' : '#6a3a5a', 7, 'center');
+  // меню на доске
+  txt(ctx, 'МЕНЮ', 108, 43, '#f4f0e8', 4, 'center', false);
+  const items = [['БУРГЕР', '5'], ['ДВОЙНОЙ', '8'], ['ФРИ', '3'], ['КОЛА', '2']];
+  items.forEach(([n, p], i) => { txt(ctx, n, 78, 50 + i * 4.6, '#c8e8d0', 3, 'left', false); txt(ctx, p + '$', 138, 50 + i * 4.6, '#ffd84a', 3, 'right', false); });
+  // лампы под потолком
+  for (const lx of [40, 108, 176]){ R(ctx, lx, 18, 1, 4, '#3a3a44'); R(ctx, lx - 5, 22, 11, 3, '#2a5a5a'); R(ctx, lx - 6, 24, 13, 1, '#3a7a7a'); R(ctx, lx - 2, 25, 5, 2, '#fff8c0');
+    ctx.globalAlpha = 0.08 + 0.02 * Math.sin(t * 3 + lx); ctx.fillStyle = '#fff4b0'; ctx.beginPath(); ctx.moveTo(lx - 5, 25); ctx.lineTo(lx + 6, 25); ctx.lineTo(lx + 22, 92); ctx.lineTo(lx - 21, 92); ctx.fill(); ctx.globalAlpha = 1; }
+}
+function drawCounterProps(t){
+  // салфетница, кетчуп, горчица, колокольчик и банка для чаевых — на стойке, между местами гостей
+  const y = COUNTER_Y;
+  R(ctx, 52, y - 6, 8, 7, K); R(ctx, 53, y - 5, 6, 6, '#c8ccd8'); R(ctx, 54, y - 8, 4, 3, '#ffffff');
+  R(ctx, 104, y - 10, 4, 11, K); R(ctx, 105, y - 9, 2, 10, '#e83a2a'); R(ctx, 105, y - 12, 2, 2, '#ffffff'); R(ctx, 110, y - 10, 4, 11, K); R(ctx, 111, y - 9, 2, 10, '#ffd84a'); R(ctx, 111, y - 12, 2, 2, '#ffffff');
+  R(ctx, 155, y - 8, 9, 9, K); R(ctx, 156, y - 7, 7, 8, 'rgba(200,230,255,.5)'); R(ctx, 157, y - 3, 5, 3, '#ffd84a'); R(ctx, 156, y - 7, 1, 8, '#ffffff');
+}
+function drawGuest(i, g, t){
+  const base = COUNTER_Y + 4, ent = g.enter < 1 ? 1 - g.enter : g.leave ? g.leave : 0;
+  let x = SLOT_X[i] + ent * g.from * 60 + (g.shake > 0 ? Math.round(Math.sin(t * 60) * 2) : 0);
+  const bob = Math.round(Math.sin(t * 3 + g.id) * 0.6) + (g.mood === 3 ? -Math.abs(Math.round(Math.sin(t * 16) * 2)) : 0);
+  ctx.globalAlpha = g.leave ? Math.max(0, 1 - g.leave) : 1;
+  GUESTS[g.type](ctx, Math.round(x), base + bob, g.mood, g.blinkT < 0);
+  // злость: пар над головой
+  if (g.mood === 2 && !g.leave && Math.random() < 0.3) fx.push({ x: x + rand(-8, 8), y: base - 44, vx: rand(-5, 5), vy: -20, life: .5, col: 'rgba(255,255,255,.6)', s: 2 });
+  ctx.globalAlpha = 1;
+}
+function drawOrderBubble(i, g, t){
+  if (g.enter < 1 || g.leave) return;
+  const o = g.order, k = g.left / g.pat, x = SLOT_X[i], y = 36;
+  const panic = k < 0.3, pulse = panic ? 0.5 + 0.5 * Math.sin(t * (6 + (0.3 - k) * 30)) : 0;
+  const parts = []; if (o.burger) parts.push('b'); if (o.fries) parts.push('f'); if (o.drink) parts.push('d');
+  const w = Math.max(26, parts.length * 15 + 6), bx = x - w / 2;
+  // облачко
+  const fill = panic ? lerpC('#ffffff', '#ff8a8a', pulse) : '#ffffff';
+  oval(ctx, x, y + 1, w / 2 + 2, 11, K); oval(ctx, x, y, w / 2 + 1, 10, fill); oval(ctx, x - w / 4, y - 5, w / 4, 5, fill); oval(ctx, x + w / 5, y - 6, w / 5, 4, fill);
+  R(ctx, x - 2, y + 9, 4, 3, K); R(ctx, x - 1, y + 9, 2, 2, fill); R(ctx, x - 1, y + 13, 2, 2, K);
+  // кольцо терпения
+  const segs = 24; for (let s = 0; s < segs; s++){ if (s / segs > k) break; const a = -Math.PI / 2 + s / segs * Math.PI * 2;
+    R(ctx, Math.round(x + Math.cos(a) * (w / 2 + 4)), Math.round(y + Math.sin(a) * 13), 2, 2, k > 0.5 ? '#4ad86a' : k > 0.25 ? '#ffb03a' : '#ff3a3a'); }
+  // содержимое
+  let px = bx + 3 + (w - parts.length * 15) / 2;
+  for (const p of parts){ const cx = px + 7;
+    if (p === 'b') drawStack(ctx, orderLayers(o.burger), cx, y + 7);
+    if (p === 'f') drawFries(ctx, cx, y + 7, false);
+    if (p === 'd') drawCup(ctx, cx, y + 7, 1);
+    px += 15; }
+  if (panic){ ctx.globalAlpha = pulse * 0.5; oval(ctx, x, y, w / 2 + 1, 10, '#ff2a2a'); ctx.globalAlpha = 1; txt(ctx, '!', x + w / 2 + 2, y - 14, '#ff3a3a', 7); }
+}
+function drawTray(i, t){
+  const T = G.trays[i], r = TRAYS[i], sel = G.sel === i;
+  R(ctx, r.x - 1, r.y - 1, r.w + 2, r.h + 2, sel ? '#ffd84a' : K); if (sel){ R(ctx, r.x - 2, r.y - 2, r.w + 4, 1, '#ffd84a'); R(ctx, r.x - 2, r.y + r.h + 1, r.w + 4, 1, '#ffd84a'); }
+  R(ctx, r.x, r.y, r.w, r.h, '#c84a3a'); R(ctx, r.x + 2, r.y + 2, r.w - 4, r.h - 4, '#e86a4a'); R(ctx, r.x + 2, r.y + 2, r.w - 4, 1, '#ff9a7a');
+  oval(ctx, r.x + 26, r.y + 24, 18, 9, '#d8d8e0'); oval(ctx, r.x + 26, r.y + 23, 17, 8, '#ffffff'); oval(ctx, r.x + 26, r.y + 23, 12, 5, '#eeeef4');
+  R(ctx, r.x + 4, r.y + 4, 14, 3, '#f4f0e8'); R(ctx, r.x + 5, r.y + 5, 12, 1, '#c8c8d0');
+  if (T.burger) drawStack(ctx, T.burger.layers, r.x + 26, r.y + 28);
+  if (T.fries) drawFries(ctx, r.x + 58, r.y + 32, false); else { ctx.globalAlpha = .25; R(ctx, r.x + 53, r.y + 24, 11, 8, '#ffffff'); ctx.globalAlpha = 1; }
+  if (T.drink) drawCup(ctx, r.x + 80, r.y + 33, 1); else { ctx.globalAlpha = .25; R(ctx, r.x + 76, r.y + 21, 9, 12, '#ffffff'); ctx.globalAlpha = 1; }
+  txt(ctx, sel ? '> ПОДНОС ' + (i + 1) : 'ПОДНОС ' + (i + 1), r.x + r.w - 3, r.y + 3, sel ? '#ffffff' : '#ffd8c8', 4, 'right');
+  highlight('tray' + i, r, t);
+}
+function tick(x, y){ x = Math.round(x); y = Math.round(y); R(ctx, x - 1, y + 2, 4, 4, K); R(ctx, x + 2, y - 1, 4, 6, K); R(ctx, x, y + 3, 1, 1, '#4ad86a'); R(ctx, x + 1, y + 4, 1, 1, '#4ad86a'); R(ctx, x + 2, y + 3, 1, 1, '#4ad86a'); R(ctx, x + 3, y + 2, 1, 1, '#4ad86a'); R(ctx, x + 4, y + 1, 1, 1, '#4ad86a'); R(ctx, x + 4, y, 1, 1, '#4ad86a'); }
+function bar(x, y, w, k, col, bg){ R(ctx, x - 1, y - 1, w + 2, 4, K); R(ctx, x, y, w, 2, bg || '#3a3a44'); R(ctx, x, y, Math.round(w * clamp(k, 0, 1)), 2, col); }
+function drawKitchen(t){
+  // гриль: пламя под решёткой
+  for (let i = 0; i < 10; i++){ const fx_ = GRILL.x + 8 + i * 10, h = 2 + Math.round(Math.abs(Math.sin(t * 9 + i)) * 2); R(ctx, fx_, GRILL.y + GRILL.h - 13 - h, 3, h, i % 2 ? '#ff8a2a' : '#ffd84a'); }
+  G.grill.forEach((s, i) => { const r = GSLOTS[i], cx = r.x + 22, cy = r.y + 15;
+    ctx.globalAlpha = .18; R(ctx, r.x + 1, r.y + 1, r.w - 2, r.h - 2, '#ff8a2a'); ctx.globalAlpha = 1;
+    if (s){ const sz = s.state === 'cooking' ? Math.round(Math.sin(t * 20 + i) * 0.5) : 0; drawRawPatty(ctx, cx, cy + sz, t, s.state === 'cooking' ? s.t / COOK.patty : 1, s.state);
+      if (s.state === 'cooking') bar(r.x + 6, r.y + r.h - 6, r.w - 12, s.t / COOK.patty, '#ffb03a');
+      if (s.state === 'cooked'){ const k = s.t / COOK.pattyBurn; bar(r.x + 6, r.y + r.h - 6, r.w - 12, 1 - k, k > 0.6 ? '#ff3a3a' : '#4ad86a'); if (k > 0.6 && Math.sin(t * 14) > 0) txt(ctx, '!', r.x + r.w - 6, r.y + 2, '#ff3a3a', 6); else tick(r.x + r.w - 7, r.y + 2); }
+      if (s.state === 'burnt') txt(ctx, 'X', r.x + r.w - 7, r.y + 2, '#ff3a3a', 6); }
+    highlight('grill' + i, r, t); });
+  // фритюр: масло пузырится
+  G.fryer.forEach((s, i) => { const r = FSLOTS[i];
+    for (let k = 0; k < (s ? 10 : 3); k++){ const bx = r.x + 3 + ((k * 13 + Math.floor(t * (s ? 8 : 2)) * 7) % (r.w - 6)), by = r.y + 4 + ((k * 7 + Math.floor(t * 5)) % (r.h - 8)); R(ctx, bx, by, 2, 2, '#f0c060'); R(ctx, bx, by, 1, 1, '#fff0a0'); }
+    // корзина
+    const up = s && s.state !== 'cooking' ? -4 : 0;
+    R(ctx, r.x + 6, r.y + 6 + up, r.w - 12, r.h - 12, s ? 'rgba(40,40,50,.55)' : 'rgba(40,40,50,.3)'); for (let x = r.x + 7; x < r.x + r.w - 7; x += 3) R(ctx, x, r.y + 6 + up, 1, r.h - 12, 'rgba(200,200,210,.5)');
+    R(ctx, r.x + r.w / 2 - 1, r.y - 6 + up, 2, 7, '#3a3a44'); R(ctx, r.x + r.w / 2 - 4, r.y - 8 + up, 8, 3, '#2a2a34');
+    if (s){ const k = s.state === 'cooking' ? s.t / COOK.fries : 1, col = s.state === 'burnt' ? '#2a1e10' : lerpC('#f4ecc0', '#ffc840', k);
+      for (let n = 0; n < 9; n++) R(ctx, r.x + 9 + (n % 5) * 5, r.y + 10 + Math.floor(n / 5) * 7 + up + (n % 2), 3, 9, n % 3 ? col : lerpC(col, '#000000', .2));
+      if (s.state === 'cooking') bar(r.x + 4, r.y + r.h - 4, r.w - 8, k, '#ffb03a');
+      if (s.state === 'done'){ const kb = s.t / COOK.friesBurn; bar(r.x + 4, r.y + r.h - 4, r.w - 8, 1 - kb, kb > 0.6 ? '#ff3a3a' : '#4ad86a'); if (kb > 0.6 && Math.sin(t * 14) > 0) txt(ctx, '!', r.x + r.w - 7, r.y + 2, '#ff3a3a', 6); else if (kb <= 0.6) tick(r.x + r.w - 7, r.y + 2); }
+      if (s.state === 'burnt') txt(ctx, 'X', r.x + r.w - 7, r.y + 2, '#ff3a3a', 6); }
+    highlight('fry' + i, r, t); });
+  // автомат: пузырьки в окошке, струя колы
+  for (let k = 0; k < 6; k++){ const bx = SODA.x + 8 + (k * 7) % 30, by = SODA.y + 22 - ((t * 10 + k * 5) % 14); R(ctx, bx, by, 1, 1, '#ffd8a0'); }
+  G.soda.forEach((s, i) => { const r = SSLOTS[i], cx = r.x + 9, by = r.y + 34;
+    if (s){ const k = s.state === 'filling' ? s.t / COOK.soda : 1; drawCup(ctx, cx, by, k); if (s.state === 'filling'){ R(ctx, cx, SODA.y + 46, 1, by - 12 - (SODA.y + 46) + Math.round((1 - k) * 0), '#5a2a14'); bar(r.x + 1, r.y + 2, r.w - 2, k, '#4ad8ff'); } else tick(r.x + r.w - 7, r.y + 1); }
+    highlight('soda' + i, r, t); });
+  for (const b of BINS) highlight('bin' + b.id, b, t);
+}
+function drawHUD(t){
+  R(ctx, 0, 0, W, 14, '#140c10');
+  txt(ctx, String(G.score), 4, 4, '#ffd84a', 6);
+  for (let i = 0; i < 3; i++){ const x = 170 + i * 15, y = 3, lost = i >= 3 - G.lost, c = lost ? '#4a2a30' : '#ff4a5a';
+    R(ctx, x, y, 11, 9, K); R(ctx, x + 1, y + 1, 4, 3, c); R(ctx, x + 6, y + 1, 4, 3, c); R(ctx, x + 1, y + 3, 9, 2, c); R(ctx, x + 2, y + 5, 7, 1, c); R(ctx, x + 3, y + 6, 5, 1, c); R(ctx, x + 4, y + 7, 3, 1, c); if (!lost) R(ctx, x + 2, y + 2, 1, 1, '#ffb0b8'); }
+  txt(ctx, 'ГОСТЕЙ ' + G.served, 108, 4, '#e8e4d8', 5, 'center');
+  if (G.combo > 1) txt(ctx, 'x' + (1 + Math.min(10, G.combo) * 0.1).toFixed(1), 86, 4, '#ff8ad0', 5, 'right');
+}
+function draw(t){
+  if (!BG) buildBG();
+  const sh = shakeT > 0 ? Math.round(Math.sin(t * 50) * 2) : 0;
+  ctx.save(); ctx.translate(sh, 0);
+  ctx.drawImage(BG, 0, 0);
+  drawStreet(t); drawWallDyn(t);
+  if (G){ G.guests.forEach((g, i) => g && drawGuest(i, g, t)); }
+  // стойка поверх гостей (они стоят за ней)
+  ctx.drawImage(BG, 0, COUNTER_Y, W, 22, 0, COUNTER_Y, W, 22);
+  drawCounterProps(t);
+  if (G){ G.guests.forEach((g, i) => { if (g){ drawOrderBubble(i, g, t); highlight('guest' + i, { x: SLOT_X[i] - 24, y: 14, w: 48, h: COUNTER_Y - 10 }, t); } });
+    for (let i = 0; i < 2; i++) drawTray(i, t); drawKitchen(t); }
+  for (const p of fx){ ctx.globalAlpha = clamp(p.life * 2, 0, 1); ctx.fillStyle = p.col; ctx.fillRect(Math.round(p.x), Math.round(p.y), p.s, p.s); } ctx.globalAlpha = 1;
+  for (const f of floats){ ctx.globalAlpha = Math.min(1, f.t * 2); txt(ctx, f.s, f.x, f.y, f.col, 6, 'center'); } ctx.globalAlpha = 1;
+  ctx.restore();
+  if (G && state === 'play') drawHUD(t);
+  const tip = state === 'play' && G.served === 0 && !msg ? tutTip() : null;
+  if (msg || tip){ const m = msg || { s: tip, t: 1, col: '#ffe8b0' }; ctx.globalAlpha = Math.min(1, m.t * 3); R(ctx, 0, COUNTER_Y + 7, W, 11, 'rgba(20,12,16,.75)'); txt(ctx, m.s, 108, COUNTER_Y + 10, m.col, 5, 'center'); ctx.globalAlpha = 1; }
+}
+
+// ================= МАСШТАБ, МЕНЮ, РЕЙТИНГ =================
+function fit(){
+  const big = innerWidth >= 700 && innerHeight >= 700; document.body.classList.toggle('framed', big);
+  const aw = innerWidth - (big ? 32 : 0), ah = innerHeight - (big ? 24 : 0);
+  let s = Math.min(aw / W, ah / H); if (big && s >= 2) s = Math.floor(s);
+  wrap.style.width = W*s + 'px'; wrap.style.height = H*s + 'px'; document.documentElement.style.setProperty('--u', (s * 0.85) + 'px');
+  document.body.style.background = big ? '' : '#140c10';
+}
+addEventListener('resize', fit); fit();
+let FRIENDS = [], BOARD = [];
+const esc = s => String(s).replace(/[<>&"]/g, '');
+function avatar(f){ return f.photo ? `<span class="av"><img src="${esc(f.photo)}" alt=""></span>` : `<span class="av" style="background:${esc(f.c || '#4a3a5a')}">${esc((f.n || '?')[0])}</span>`; }
+function renderFriends(){
+  $('friends').innerHTML = FRIENDS.slice(0, 4).map(f => `<button class="fr" type="button" title="${esc(f.n)}">${avatar(f)}<span class="fs">${f.s}</span></button>`).join('')
+    + `<button class="fr" type="button" id="addFriend" aria-label="Пригласить друга"><span class="av add">+</span><span class="fs">ЗВАТЬ</span></button>`;
+  $('friends').querySelectorAll('.fr').forEach(b => b.onclick = b.id === 'addFriend' ? invite : openBoard);
+}
+function renderBoard(){
+  $('rows').innerHTML = BOARD.map((r, i) => `<div class="lr${r.me ? ' me' : ''}"><span>${i + 1}</span>${avatar(r)}<span class="nm">${esc(r.n)}</span><span>${r.s}</span></div>`).join('')
+    + (BOARD.filter(r => !r.me).length ? '' : `<div class="note" style="padding:calc(var(--u)*3) 0">Друзей пока нет.<br>Нажми «Позвать друзей»</div>`);
+}
+async function loadSocial(){ FRIENDS = await Hub.friends(); BOARD = await Hub.leaderboard(); renderFriends(); renderBoard(); }
+function openBoard(){ $('board').hidden = false; renderBoard(); }
+function closeSheets(){ $('board').hidden = true; }
+function invite(){ Hub.invite(); }
+$('boardBtn').onclick = openBoard; $('boardClose').onclick = closeSheets; $('inviteBtn').onclick = invite; $('invite').onclick = invite;
+function setHome(show){ $('boardBtn').hidden = !show; $('inviteBtn').hidden = !show; $('friends').hidden = !show; }
+function refreshMenu(){ $('mBest').textContent = `РЕКОРД ${best}`; }
+
+let last = 0;
+function frame(ms){ const t = ms / 1000, dt = last ? Math.min((ms - last) / 1000, 0.05) : 1/60; last = ms; update(dt); draw(t); requestAnimationFrame(frame); }
+function start(){ closeSheets(); newShift(); fx = []; floats = []; msg = null; state = 'play'; $('menu').hidden = true; $('over').hidden = true; setHome(false); last = 0; }
+function finish(){
+  if (state !== 'play') return; state = 'over';
+  const rec = G.score > best; if (rec) best = G.score;
+  Hub.submitRun({ score: G.score, duration: Math.round(G.t) }).then(() => loadSocial());
+  $('overTitle').textContent = rec && G.score > 0 ? 'НОВЫЙ РЕКОРД!' : 'СМЕНА ОКОНЧЕНА';
+  $('res').innerHTML = `СЧЁТ ${G.score}<br>НАКОРМЛЕНО ${G.served}<br>СМЕНА ${Math.floor(G.t / 60)}:${String(Math.floor(G.t % 60)).padStart(2, '0')}<br>ЛУЧШЕЕ ${best}`;
+  $('over').hidden = false; setHome(true); refreshMenu();
+}
+function toMenu(){ state = 'menu'; G = null; $('over').hidden = true; $('menu').hidden = false; setHome(true); }
+$('startBtn').onclick = start; $('againBtn').onclick = start; $('menuBtn').onclick = toMenu;
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { BG = null; });
+
+refreshMenu(); requestAnimationFrame(frame);
+Hub.init(GAME_ID).then(r => { USER = r.user || USER; best = r.best || 0; refreshMenu(); loadSocial(); });
+</script>
+</body>
+</html>
