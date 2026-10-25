@@ -71,6 +71,7 @@ h2{font-size:calc(var(--u)*8)}
       <h1>LAST<br>SHELL</h1>
       <div class="sub">Запомни патроны: красные — боевые,<br>синие — холостые. Стреляй в крупье<br>или в себя — холостой оставит ход.</div>
       <div class="score" id="mBest">РЕКОРД 0</div>
+      <button class="go alt" id="contBtn" type="button" hidden>ПРОДОЛЖИТЬ</button>
       <button class="go" id="startBtn" type="button">СЕСТЬ ЗА СТОЛ</button>
       <div class="sub">3 раунда в партии. Со 2-го — предметы:<br>лупа, пила, сигареты, пиво, наручники</div>
     </div>
@@ -533,18 +534,25 @@ function frame(ms){ const t = ms / 1000, dt = last ? Math.min((ms - last) / 1000
 let startT = 0;
 function start(){ closeSheets(); state = 'play'; msgs = []; $('menu').hidden = true; $('over').hidden = true; setHome(false); startT = performance.now(); newGame(); }
 function gameOver(){
-  state = 'over'; busy = false;
+  state = 'over'; busy = false; SAVED = null; Hub.clearRun();
   const rec = G.score > best; if (rec) best = G.score;
   Hub.submitRun({ score: G.score, duration: Math.round((performance.now() - startT) / 1000) }).then(() => loadSocial());
   $('overTitle').textContent = rec && G.score > 0 ? 'НОВЫЙ РЕКОРД!' : 'ИГРА ОКОНЧЕНА';
   $('res').innerHTML = `СЧЁТ ${G.score}<br>РАУНДОВ ${G.roundsWon}<br>ПАРТИЙ ${G.matchesWon}<br>ЛУЧШЕЕ ${best}`;
   $('over').hidden = false; setHome(true); refreshMenu();
 }
-function toMenu(){ state = 'menu'; G = null; $('over').hidden = true; $('menu').hidden = false; setHome(true); }
-$('startBtn').onclick = start; $('againBtn').onclick = start; $('menuBtn').onclick = toMenu;
+function toMenu(){ state = 'menu'; G = null; showCont(); $('over').hidden = true; $('menu').hidden = false; setHome(true); }
+// ---- продолжение вечера после выхода: с начала текущего раунда
+let SAVED = null;
+Hub.autosave(() => state === 'play' && G ? { match: G.match, round: G.round, score: G.score, roundsWon: G.roundsWon, matchesWon: G.matchesWon } : null);
+function resume(){ const s = SAVED; if (!s) return start(); SAVED = null; closeSheets(); state = 'play'; msgs = []; $('menu').hidden = true; $('over').hidden = true; setHome(false); startT = performance.now();
+  G = { match: s.match, round: s.round, score: s.score, roundsWon: s.roundsWon, matchesWon: s.matchesWon }; startRound(s.round); }
+function showCont(){ $('contBtn').hidden = !SAVED; if (SAVED) $('contBtn').textContent = `ПРОДОЛЖИТЬ · ${SAVED.score}`; }
+$('contBtn').onclick = resume;
+$('startBtn').onclick = () => { SAVED = null; showCont(); start(); }; $('againBtn').onclick = start; $('menuBtn').onclick = toMenu;
 
 refreshMenu(); requestAnimationFrame(frame);
-Hub.init(GAME_ID).then(r => { USER = r.user || USER; best = r.best || 0; refreshMenu(); loadSocial(); });
+Hub.init(GAME_ID).then(r => { USER = r.user || USER; best = r.best || 0; SAVED = (r.data && r.data.run) || null; showCont(); refreshMenu(); loadSocial(); });
 </script>
 </body>
 </html>

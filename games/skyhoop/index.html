@@ -1013,6 +1013,9 @@ function toMenu(){ state = 'menu'; reset(); $('over').hidden = true; $('menu').h
 $('startBtn').onclick = start; $('againBtn').onclick = start; $('menuBtn').onclick = toMenu;
 
 refreshUI(); reset(); requestAnimationFrame(frame);
+// свернули или закрыли приложение посреди забега — рекорд не должен пропасть (монеты и так уходят сразу)
+document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'hidden' || state !== 'play') return;
+  const s = Math.floor(score/5); if (s > P.best){ P.best = s; Hub.submitRun({ score: s, duration: Math.round(sessionT) }); refreshUI(); } });
 Hub.init(GAME_ID).then(r => {
   USER = r.user || USER; applyProfile(r);
   if (r.env === 'telegram') $('cheat').hidden = true;   // тестовые монеты только вне Telegram

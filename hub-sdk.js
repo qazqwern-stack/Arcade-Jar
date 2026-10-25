@@ -130,6 +130,16 @@
   function flush(){ timer = null; if (!coinBuf) return Promise.resolve(); const n = coinBuf; coinBuf = 0; return call('earn', [n]); }
   addEventListener('pagehide', flush);
 
+  // Автосохранение забега: игра отдаёт снимок (или null, если сейчас не играют).
+  // Снимок уходит каждые 4 с и сразу, когда приложение сворачивают или закрывают,
+  // поэтому после выхода из Telegram можно продолжить с того же места.
+  let snapFn = null, lastSnap = '';
+  function checkpoint(){ if (!snapFn) return; let v; try { v = snapFn(); } catch(e){ return; } if (!v) return;
+    const j = JSON.stringify(v); if (j === lastSnap) return; lastSnap = j; call('save', [{ run: v }]); }
+  setInterval(checkpoint, 4000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden'){ flush(); checkpoint(); } });
+  addEventListener('pagehide', checkpoint);
+
   window.Hub = {
     init: gameId => call('init', [gameId]),
     save: data => call('save', [data]),
@@ -142,5 +152,8 @@
     invite: () => call('invite'),
     exit: () => flush().then(() => call('exit')),
     on: (name, fn) => { (listeners[name] = listeners[name] || []).push(fn); },
+    autosave: fn => { snapFn = fn; },
+    checkpoint,
+    clearRun: () => { lastSnap = ''; return call('save', [{ run: null }]); },
   };
 })();

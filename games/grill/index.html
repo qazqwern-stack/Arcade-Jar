@@ -11,7 +11,7 @@
 /* Layout: one 9:16 pixel screen 216×384. Top — diner hall with guests behind the counter and order bubbles,
    middle — two trays, grill, fryer and soda machine, bottom — ingredient bins and trash. Menu and rating reuse the Arcade Jar shell. */
 :root{
-  --ink:#fff0d8; --paper:#2a1418; --accent:#ff5ab0; --frame:#140c10;
+  --ink:#fff4ec; --paper:#2a2f6a; --accent:#f07a2a; --frame:#3a5f8f;
   --s-ink:#1d1a2b; --s-paper:#e9e7f2; --s-card:#f7f6fb; --s-accent:#6b5fd6; --s-muted:#6e6a82;
   --u:2px;
   --pixel:'Press Start 2P', 'Courier New', monospace;
@@ -70,6 +70,7 @@ h2{font-size:calc(var(--u)*8)}
       <h1>GRILL<br>RUSH</h1>
       <div class="sub">Жарь котлеты, картошку, наливай колу.<br>Собери заказ на подносе<br>и тапни по гостю.</div>
       <div class="score" id="mBest">РЕКОРД 0</div>
+      <button class="go alt" id="contBtn" type="button" hidden>ПРОДОЛЖИТЬ</button>
       <button class="go" id="startBtn" type="button">ОТКРЫТЬ СМЕНУ</button>
       <div class="sub">Не передержи на гриле!<br>3 голодных гостя — конец смены</div>
     </div>
@@ -113,7 +114,7 @@ const COOK = { patty: 4.2, pattyBurn: 5.5, fries: 3.6, friesBurn: 6.5, soda: 2.2
 const cv = document.getElementById('c'), ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
 const $ = id => document.getElementById(id);
 const wrap = $('wrap');
-const K = '#140c10';
+const K = '#1a1838';
 const rand = (a, b) => a + Math.random() * (b - a);
 const ri = (a, b) => Math.floor(rand(a, b + 1));
 const pick = a => a[Math.floor(Math.random() * a.length)];
@@ -429,54 +430,65 @@ function update(dt){
 
 // ================= ФОН: закусочная (рисуется один раз) =================
 let BG = null;
+const hs = (x, y) => { let h = (x * 374761393 + y * 668265263) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
 function buildBG(){
   const [c, g] = mk(W, H);
-  // ---- зал: стена, плитка, окна, вывески
-  R(g, 0, 0, W, 14, '#140c10');
-  for (let y = 14; y < 92; y++) R(g, 0, y, W, 1, y % 2 ? '#e8d4aa' : '#ecd8b0');
-  for (let x = 0; x < W; x += 8) R(g, x, 14, 1, 78, 'rgba(160,120,70,.12)');
-  // потолочный бордюр
-  R(g, 0, 14, W, 4, '#8a2a2a'); R(g, 0, 14, W, 1, '#c84a4a'); R(g, 0, 18, W, 1, '#5a1414');
-  // два окна с улицей (содержимое анимируется отдельно)
-  for (const wx of [6, 148]){ R(g, wx - 2, 30, 66, 46, '#5a3a22'); R(g, wx - 1, 31, 64, 44, '#8a5a32'); R(g, wx, 32, 62, 42, '#3a2414'); }
-  // табличка-меню между окнами
-  R(g, 74, 40, 68, 30, '#2a2a2e'); R(g, 75, 41, 66, 28, '#1e2a24'); R(g, 74, 40, 68, 2, '#6a4a2a'); R(g, 74, 68, 68, 2, '#6a4a2a');
-  // нижняя плитка-«шахматка» под стойкой
-  for (let x = 0; x < W; x += 6) for (let y = 92; y < COUNTER_Y; y += 6) R(g, x, y, 6, 6, ((x + y) / 6) % 2 ? '#f4f0e8' : '#2a2a34');
-  R(g, 0, 91, W, 2, '#c84a4a');
-  // постеры и мелочи
-  R(g, 2, 22, 10, 7, '#3a6ad8'); R(g, 3, 23, 8, 5, '#ffd84a'); R(g, 204, 22, 10, 7, '#e83a6a'); R(g, 205, 23, 8, 5, '#ffffff'); R(g, 207, 24, 4, 3, '#e83a6a');
-  // ---- стойка (раздача): хромированный кант, красная столешница, рейка для чеков
-  R(g, 0, COUNTER_Y, W, 22, '#a8282a'); R(g, 0, COUNTER_Y, W, 3, '#d8dce8'); R(g, 0, COUNTER_Y, W, 1, '#ffffff'); R(g, 0, COUNTER_Y + 3, W, 1, '#7a7e8c');
-  for (let x = 2; x < W; x += 7) R(g, x, COUNTER_Y + 6, 3, 1, '#c84040'); R(g, 0, COUNTER_Y + 19, W, 3, '#6a1416');
-  R(g, 0, COUNTER_Y + 22, W, 2, '#3a3e4a');
-  // ---- кухня: стальные столы с рисками
-  R(g, 0, 126, W, H - 126, '#8a909e');
-  for (let y = 127; y < H; y += 2) R(g, 0, y, W, 1, y % 4 ? '#9298a6' : '#848a98');
-  for (let i = 0; i < 40; i++) R(g, ri(0, W), ri(128, H), ri(4, 14), 1, 'rgba(255,255,255,.12)');
-  // зона подносов — тёмный коврик
-  R(g, 4, 127, W - 8, 47, '#5a606e'); R(g, 4, 127, W - 8, 1, '#3a3e4a'); for (let x = 6; x < W - 6; x += 4) R(g, x, 172, 2, 1, '#4a4e5a');
-  // кафельный фартук за техникой
-  for (let x = 0; x < W; x += 9) for (let y = 175; y < 178; y += 3) R(g, x, y, 8, 2, '#d8dce4');
+  // ---- зал: сиреневая плитка, розовый свет, оранжевая лепнина
+  R(g, 0, 0, W, 14, '#2a2f6a');
+  for (let y = 14; y < 92; y++) R(g, 0, y, W, 1, '#8e96e6');
+  for (let x = 0; x < W; x += 10) R(g, x, 14, 1, 78, '#a9b0f4');
+  for (let y = 19; y < 92; y += 10) R(g, 0, y, W, 1, '#a9b0f4');
+  for (let x = 0; x < W; x += 10) for (let y = 19; y < 92; y += 10){ R(g, x + 1, y + 1, 2, 1, '#b8befa'); if (hs(x, y) > .8) R(g, x + 3, y + 4, 4, 3, '#99a1ee'); }
+  { const gr = g.createRadialGradient(20, 30, 4, 20, 30, 90); gr.addColorStop(0, 'rgba(255,190,225,.55)'); gr.addColorStop(1, 'rgba(255,190,225,0)'); g.fillStyle = gr; g.fillRect(0, 14, W, 78); }
+  R(g, 0, 14, W, 4, '#f07a2a'); R(g, 0, 14, W, 1, '#ffa860'); R(g, 0, 18, W, 1, '#b8501a');
+  // слева — рейка с поварёшками и сковородками
+  R(g, 6, 28, 60, 4, K); R(g, 7, 29, 58, 2, '#e87a8a'); R(g, 7, 29, 58, 1, '#ffaab8'); for (const x of [10, 62]){ R(g, x, 27, 2, 6, '#c85a6a'); }
+  // половник
+  R(g, 13, 31, 2, 3, K); R(g, 13, 34, 1, 18, '#c8a0c0'); R(g, 14, 34, 1, 18, '#a07898'); disc(g, 14, 55, 4, K); disc(g, 14, 55, 3, '#d8b0d0'); R(g, 12, 53, 4, 2, '#8a6080');
+  // лопатка
+  R(g, 22, 31, 2, 3, K); R(g, 22, 34, 2, 14, '#c8a0c0'); R(g, 20, 48, 6, 9, K); R(g, 21, 49, 4, 7, '#d8b0d0'); R(g, 22, 50, 1, 5, '#a07898');
+  // сковородка
+  R(g, 37, 31, 2, 10, K); R(g, 37, 31, 2, 9, '#6a5a6a'); disc(g, 38, 50, 10, K); disc(g, 38, 50, 9, '#6a5a6a'); disc(g, 37, 49, 7, '#7e6e80'); disc(g, 36, 47, 2, '#9a8aa0'); R(g, 31, 56, 6, 1, '#5a4a5a');
+  // кастрюля-ковш
+  R(g, 55, 31, 2, 3, K); R(g, 55, 34, 2, 12, '#7a6a7a'); R(g, 49, 46, 15, 12, K); R(g, 50, 47, 13, 10, '#8a7a8c'); R(g, 50, 47, 3, 10, '#a898aa'); R(g, 50, 47, 13, 1, '#b8a8ba');
+  // полка с банками
+  R(g, 4, 84, 64, 3, K); R(g, 5, 84, 62, 2, '#f07a2a'); R(g, 5, 84, 62, 1, '#ffa860');
+  [[8, '#ff6a8a'], [18, '#ffd84a'], [28, '#7ae86a'], [40, '#ff9a4a'], [52, '#8ad8ff']].forEach(([x, c]) => { R(g, x, 76, 8, 8, K); R(g, x + 1, 77, 6, 7, c); R(g, x + 1, 77, 2, 7, 'rgba(255,255,255,.4)'); R(g, x + 1, 75, 6, 2, '#f4f4fa'); });
+  // справа — окно на улицу (содержимое анимируется отдельно)
+  R(g, 146, 30, 66, 46, K); R(g, 147, 31, 64, 44, '#f4f4fa'); R(g, 148, 32, 62, 42, '#3a3a6a');
+  // табличка-меню
+  R(g, 74, 40, 68, 30, K); R(g, 75, 41, 66, 28, '#2a2f6a'); R(g, 74, 40, 68, 2, '#f07a2a'); R(g, 74, 68, 68, 2, '#f07a2a');
+  // плитка под стойкой
+  for (let x = 0; x < W; x += 6) for (let y = 92; y < COUNTER_Y; y += 6) R(g, x, y, 6, 6, ((x + y) / 6) % 2 ? '#f4f4fa' : '#c8ccf4');
+  R(g, 0, 91, W, 2, '#f07a2a');
+  // ---- стойка: белый мрамор с оранжевым кантом
+  R(g, 0, COUNTER_Y, W, 22, '#eef0f8'); R(g, 0, COUNTER_Y, W, 2, '#ffffff'); for (let i = 0; i < 30; i++) R(g, ri(0, W), ri(COUNTER_Y + 3, COUNTER_Y + 16), ri(3, 9), 1, '#d8dcef');
+  R(g, 0, COUNTER_Y + 17, W, 4, '#f07a2a'); R(g, 0, COUNTER_Y + 17, W, 1, '#ffa860'); R(g, 0, COUNTER_Y + 21, W, 1, '#b8501a');
+  R(g, 0, COUNTER_Y + 22, W, 2, '#2a2f6a');
+  // ---- кухня: сиреневый кафель за техникой, белые столешницы
+  R(g, 0, 126, W, H - 126, '#8e96e6');
+  for (let x = 0; x < W; x += 12) R(g, x, 126, 1, H - 126, '#a9b0f4'); for (let y = 128; y < H; y += 12) R(g, 0, y, W, 1, '#a9b0f4');
+  // столешница под подносами
+  R(g, 0, 126, W, 50, '#f4f4fa'); R(g, 0, 126, W, 2, '#ffffff'); R(g, 0, 173, W, 3, '#d0d4ec'); R(g, 0, 176, W, 1, '#2a2f6a');
+  // столешница под лотками и пол
+  R(g, 0, 282, W, 92, '#f4f4fa'); R(g, 0, 282, W, 2, '#ffffff'); R(g, 0, 368, W, 3, '#d0d4ec'); R(g, 0, 371, W, H - 371, '#3a5f8f'); for (let x = 0; x < W; x += 16) R(g, x, 371, 1, H - 371, '#4a72a4');
   // ---- гриль
-  const gr = GRILL; R(g, gr.x - 1, gr.y - 1, gr.w + 2, gr.h + 2, K); R(g, gr.x, gr.y, gr.w, gr.h, '#3a3a44'); R(g, gr.x, gr.y, gr.w, 3, '#6a6a78'); R(g, gr.x, gr.y + gr.h - 10, gr.w, 10, '#2a2a32');
+  const gr = GRILL; R(g, gr.x - 1, gr.y - 1, gr.w + 2, gr.h + 2, K); R(g, gr.x, gr.y, gr.w, gr.h, '#3a3c60'); R(g, gr.x, gr.y, gr.w, 3, '#6a6e9a'); R(g, gr.x, gr.y + gr.h - 10, gr.w, 10, '#2e3050');
   R(g, gr.x + 4, gr.y + 6, gr.w - 8, gr.h - 18, '#1a1a20'); for (let y = gr.y + 8; y < gr.y + gr.h - 13; y += 4) R(g, gr.x + 5, y, gr.w - 10, 1, '#4a4a56');
   for (let i = 0; i < 4; i++){ disc(g, gr.x + 14 + i * 24, gr.y + gr.h - 5, 3, K); disc(g, gr.x + 14 + i * 24, gr.y + gr.h - 5, 2, '#c8ccd8'); R(g, gr.x + 14 + i * 24, gr.y + gr.h - 7, 1, 2, '#e83a3a'); }
-  txt(g, 'ГРИЛЬ', gr.x + gr.w / 2, gr.y - 9, '#2a2a34', 5, 'center', false);
   // ---- фритюр
-  const fr = FRYER; R(g, fr.x - 1, fr.y - 1, fr.w + 2, fr.h + 2, K); R(g, fr.x, fr.y, fr.w, fr.h, '#b8bcc8'); R(g, fr.x, fr.y, fr.w, 2, '#e8ecf4'); R(g, fr.x + fr.w - 3, fr.y, 3, fr.h, '#8a8e9a');
+  const fr = FRYER; R(g, fr.x - 1, fr.y - 1, fr.w + 2, fr.h + 2, K); R(g, fr.x, fr.y, fr.w, fr.h, '#e8eaf6'); R(g, fr.x, fr.y, fr.w, 2, '#ffffff'); R(g, fr.x + fr.w - 3, fr.y, 3, fr.h, '#c0c4e0');
   for (const s of FSLOTS){ R(g, s.x - 1, s.y - 1, s.w + 2, s.h + 2, '#4a4a56'); R(g, s.x, s.y, s.w, s.h, '#c88a20'); }
   R(g, fr.x + 4, fr.y + fr.h - 6, fr.w - 8, 4, '#6a6e7a'); disc(g, fr.x + 10, fr.y + fr.h - 4, 1, '#ff3a3a'); disc(g, fr.x + 16, fr.y + fr.h - 4, 1, '#4ad86a');
-  txt(g, 'ФРИТЮР', fr.x + fr.w / 2, fr.y - 9, '#2a2a34', 5, 'center', false);
   // ---- автомат газировки
-  const sd = SODA; R(g, sd.x - 1, sd.y - 1, sd.w + 2, sd.h + 2, K); R(g, sd.x, sd.y, sd.w, sd.h, '#c82a2a'); R(g, sd.x, sd.y, sd.w, 3, '#ff6a5a'); R(g, sd.x + sd.w - 4, sd.y, 4, sd.h, '#8a1414');
+  const sd = SODA; R(g, sd.x - 1, sd.y - 1, sd.w + 2, sd.h + 2, K); R(g, sd.x, sd.y, sd.w, sd.h, '#f07a2a'); R(g, sd.x, sd.y, sd.w, 3, '#ffa860'); R(g, sd.x + sd.w - 4, sd.y, 4, sd.h, '#b8501a');
   R(g, sd.x + 4, sd.y + 6, sd.w - 8, 18, '#f4f0e8'); R(g, sd.x + 5, sd.y + 7, sd.w - 10, 16, '#3a1a10'); txt(g, 'FIZZ', sd.x + sd.w / 2, sd.y + 12, '#ffd84a', 6, 'center');
   R(g, sd.x + 4, sd.y + 27, sd.w - 8, 12, '#2a2a34'); for (let i = 0; i < 2; i++){ R(g, sd.x + 10 + i * 21, sd.y + 39, 5, 6, '#4a4a56'); R(g, sd.x + 11 + i * 21, sd.y + 44, 3, 3, '#2a2a34'); }
   R(g, sd.x + 3, sd.y + 50, sd.w - 6, 40, '#2a2a34'); R(g, sd.x + 3, sd.y + 88, sd.w - 6, 4, '#6a6e7a'); for (let x = sd.x + 4; x < sd.x + sd.w - 4; x += 3) R(g, x, sd.y + 89, 2, 2, '#3a3e4a');
   // ---- лотки с продуктами
-  for (const b of BINS){ R(g, b.x - 1, b.y - 1, b.w + 2, b.h + 2, K); R(g, b.x, b.y, b.w, b.h, b.id === 'trash' ? '#4a5a4a' : '#c8ccd8'); R(g, b.x, b.y, b.w, 2, '#f4f8ff');
-    R(g, b.x + 2, b.y + 4, b.w - 4, 48, b.id === 'trash' ? '#2a3a2a' : '#6a707e');
-    R(g, b.x + 1, b.y + b.h - 22, b.w - 2, 20, '#2a2a34'); txt(g, BIN_LABEL[b.id], b.x + b.w / 2 + 0.5, b.y + b.h - 18, '#ffffff', 4, 'center', false);
+  for (const b of BINS){ R(g, b.x - 1, b.y - 1, b.w + 2, b.h + 2, K); R(g, b.x, b.y, b.w, b.h, b.id === 'trash' ? '#5a8a6a' : '#ffffff'); R(g, b.x, b.y + b.h - 24, b.w, 2, '#f07a2a'); R(g, b.x, b.y, b.w, 2, '#f4f8ff');
+    R(g, b.x + 2, b.y + 4, b.w - 4, 48, b.id === 'trash' ? '#2a4a3a' : '#c8ccf0');
+    R(g, b.x + 1, b.y + b.h - 22, b.w - 2, 20, '#2a2f6a'); txt(g, BIN_LABEL[b.id], b.x + b.w / 2 + 0.5, b.y + b.h - 18, '#ffffff', 4, 'center', false);
     txt(g, b.id === 'trash' ? 'Tab' : String(BINS.indexOf(b) + 1), b.x + b.w / 2 + 0.5, b.y + b.h - 10, '#8a8aa0', 4, 'center', false); }
   // содержимое лотков
   const bx = id => BINS.find(b => b.id === id);
@@ -500,7 +512,7 @@ function highlight(key, r, t){
   ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 1; ctx.strokeRect(r.x + .5, r.y + .5, r.w - 1, r.h - 1);
 }
 function drawStreet(t){
-  for (const wx of [6, 148]){ ctx.save(); ctx.beginPath(); ctx.rect(wx, 32, 62, 42); ctx.clip();
+  for (const wx of [148]){ ctx.save(); ctx.beginPath(); ctx.rect(wx, 32, 62, 42); ctx.clip();
     for (let y = 32; y < 74; y++) R(ctx, wx, y, 62, 1, lerpC('#6ab8f0', '#f8d8a8', (y - 32) / 42));
     // облака
     for (let i = 0; i < 3; i++){ const cx = wx + ((t * 4 + i * 40 + wx) % 100) - 20, cy = 38 + i * 5; oval(ctx, cx, cy, 6, 2, '#ffffff'); oval(ctx, cx + 4, cy - 1, 4, 2, '#ffffff'); }
@@ -512,7 +524,7 @@ function drawStreet(t){
     const cx2 = wx + 85 - ((t * 15 + (wx > 100 ? 10 : 60)) % 110); R(ctx, cx2, 65, 14, 4, '#3a8ad8'); R(ctx, cx2 + 2, 62, 8, 3, '#3a8ad8'); R(ctx, cx2 + 3, 63, 6, 2, '#a8e0ff'); disc(ctx, cx2 + 3, 69, 2, K); disc(ctx, cx2 + 11, 69, 2, K);
     ctx.restore();
     // переплёт и подоконник
-    R(ctx, wx + 30, 32, 2, 42, '#5a3a22'); R(ctx, wx, 52, 62, 1, '#5a3a22'); R(ctx, wx - 3, 74, 68, 3, '#c8a070'); R(ctx, wx - 3, 74, 68, 1, '#e8c898');
+    R(ctx, wx + 30, 32, 2, 42, '#f4f4fa'); R(ctx, wx, 52, 62, 1, '#f4f4fa'); R(ctx, wx - 3, 74, 68, 3, '#f07a2a'); R(ctx, wx - 3, 74, 68, 1, '#ffa860');
     // горшок с растением на подоконнике
     const px = wx + (wx > 100 ? 50 : 8); R(ctx, px, 68, 7, 6, '#c86a3a'); R(ctx, px - 1, 67, 9, 2, '#e88a5a'); for (let k = 0; k < 4; k++) oval(ctx, px + 1 + k * 2, 64 - (k % 2) * 3, 2, 3, k % 2 ? '#3a9a3a' : '#5ac85a'); }
 }
@@ -572,7 +584,7 @@ function drawOrderBubble(i, g, t){
 function drawTray(i, t){
   const T = G.trays[i], r = TRAYS[i], sel = G.sel === i;
   R(ctx, r.x - 1, r.y - 1, r.w + 2, r.h + 2, sel ? '#ffd84a' : K); if (sel){ R(ctx, r.x - 2, r.y - 2, r.w + 4, 1, '#ffd84a'); R(ctx, r.x - 2, r.y + r.h + 1, r.w + 4, 1, '#ffd84a'); }
-  R(ctx, r.x, r.y, r.w, r.h, '#c84a3a'); R(ctx, r.x + 2, r.y + 2, r.w - 4, r.h - 4, '#e86a4a'); R(ctx, r.x + 2, r.y + 2, r.w - 4, 1, '#ff9a7a');
+  R(ctx, r.x, r.y, r.w, r.h, '#f07a2a'); R(ctx, r.x, r.y, r.w, 1, '#ffa860'); R(ctx, r.x, r.y + r.h - 1, r.w, 1, '#b8501a'); R(ctx, r.x + 3, r.y + 3, r.w - 6, r.h - 6, K); R(ctx, r.x + 4, r.y + 4, r.w - 8, r.h - 8, '#ffe0cc'); R(ctx, r.x + 4, r.y + 4, r.w - 8, 1, '#fff4ec');
   oval(ctx, r.x + 26, r.y + 24, 18, 9, '#d8d8e0'); oval(ctx, r.x + 26, r.y + 23, 17, 8, '#ffffff'); oval(ctx, r.x + 26, r.y + 23, 12, 5, '#eeeef4');
   R(ctx, r.x + 4, r.y + 4, 14, 3, '#f4f0e8'); R(ctx, r.x + 5, r.y + 5, 12, 1, '#c8c8d0');
   if (T.burger) drawStack(ctx, T.burger.layers, r.x + 26, r.y + 28);
@@ -614,7 +626,7 @@ function drawKitchen(t){
   for (const b of BINS) highlight('bin' + b.id, b, t);
 }
 function drawHUD(t){
-  R(ctx, 0, 0, W, 14, '#140c10');
+  R(ctx, 0, 0, W, 14, '#2a2f6a');
   txt(ctx, String(G.score), 4, 4, '#ffd84a', 6);
   for (let i = 0; i < 3; i++){ const x = 170 + i * 15, y = 3, lost = i >= 3 - G.lost, c = lost ? '#4a2a30' : '#ff4a5a';
     R(ctx, x, y, 11, 9, K); R(ctx, x + 1, y + 1, 4, 3, c); R(ctx, x + 6, y + 1, 4, 3, c); R(ctx, x + 1, y + 3, 9, 2, c); R(ctx, x + 2, y + 5, 7, 1, c); R(ctx, x + 3, y + 6, 5, 1, c); R(ctx, x + 4, y + 7, 3, 1, c); if (!lost) R(ctx, x + 2, y + 2, 1, 1, '#ffb0b8'); }
@@ -647,7 +659,7 @@ function fit(){
   const aw = innerWidth - (big ? 32 : 0), ah = innerHeight - (big ? 24 : 0);
   let s = Math.min(aw / W, ah / H); if (big && s >= 2) s = Math.floor(s);
   wrap.style.width = W*s + 'px'; wrap.style.height = H*s + 'px'; document.documentElement.style.setProperty('--u', (s * 0.85) + 'px');
-  document.body.style.background = big ? '' : '#140c10';
+  document.body.style.background = big ? '' : '#2a2f6a';
 }
 addEventListener('resize', fit); fit();
 let FRIENDS = [], BOARD = [];
@@ -674,19 +686,25 @@ let last = 0;
 function frame(ms){ const t = ms / 1000, dt = last ? Math.min((ms - last) / 1000, 0.05) : 1/60; last = ms; update(dt); draw(t); requestAnimationFrame(frame); }
 function start(){ closeSheets(); newShift(); fx = []; floats = []; msg = null; state = 'play'; $('menu').hidden = true; $('over').hidden = true; setHome(false); last = 0; }
 function finish(){
-  if (state !== 'play') return; state = 'over';
+  if (state !== 'play') return; state = 'over'; SAVED = null; Hub.clearRun();
   const rec = G.score > best; if (rec) best = G.score;
   Hub.submitRun({ score: G.score, duration: Math.round(G.t) }).then(() => loadSocial());
   $('overTitle').textContent = rec && G.score > 0 ? 'НОВЫЙ РЕКОРД!' : 'СМЕНА ОКОНЧЕНА';
   $('res').innerHTML = `СЧЁТ ${G.score}<br>НАКОРМЛЕНО ${G.served}<br>СМЕНА ${Math.floor(G.t / 60)}:${String(Math.floor(G.t % 60)).padStart(2, '0')}<br>ЛУЧШЕЕ ${best}`;
   $('over').hidden = false; setHome(true); refreshMenu();
 }
-function toMenu(){ state = 'menu'; G = null; $('over').hidden = true; $('menu').hidden = false; setHome(true); }
-$('startBtn').onclick = start; $('againBtn').onclick = start; $('menuBtn').onclick = toMenu;
+function toMenu(){ state = 'menu'; G = null; showCont(); $('over').hidden = true; $('menu').hidden = false; setHome(true); }
+// ---- продолжение смены после выхода из приложения (кухня начинается с чистого листа)
+let SAVED = null;
+Hub.autosave(() => state === 'play' && G && !G.endAt ? { score: G.score, served: G.served, lost: G.lost, combo: G.combo, t: Math.round(G.t) } : null);
+function resume(){ const s = SAVED; if (!s) return start(); SAVED = null; start(); Object.assign(G, { score: s.score, served: s.served, lost: s.lost, combo: s.combo, t: s.t, spawnT: 1 }); say('ПРОДОЛЖАЕМ СМЕНУ!', '#7affb0'); }
+function showCont(){ $('contBtn').hidden = !SAVED; if (SAVED) $('contBtn').textContent = `ПРОДОЛЖИТЬ · ${SAVED.score}`; }
+$('contBtn').onclick = resume;
+$('startBtn').onclick = () => { SAVED = null; showCont(); start(); }; $('againBtn').onclick = start; $('menuBtn').onclick = toMenu;
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { BG = null; });
 
 refreshMenu(); requestAnimationFrame(frame);
-Hub.init(GAME_ID).then(r => { USER = r.user || USER; best = r.best || 0; refreshMenu(); loadSocial(); });
+Hub.init(GAME_ID).then(r => { USER = r.user || USER; best = r.best || 0; SAVED = (r.data && r.data.run) || null; showCont(); refreshMenu(); loadSocial(); });
 </script>
 </body>
 </html>
