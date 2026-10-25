@@ -130,80 +130,66 @@ function txt(g, s, x, y, col, size, align, shadow){ g.font = `${size || 6}px 'Pr
 const FRUITS = [
   { name:'МАЛЁК',       r: 7,  c:['#a8e8ff','#78c8f0','#ffffff','#3a7aa8','#78c8f0'], pts: 2 },
   { name:'ГУППИ',       r: 9,  c:['#ffb060','#f08a3a','#fff0d8','#a8501a','#b47aff'], pts: 4 },
-  { name:'КЛОУН',       r: 12, c:['#ff8a3a','#e06a1a','#ffd0a0','#7a3010','#ff7a2a'], pts: 8 },
+  { name:'КЛОУН',       r: 12, c:['#ff8a3a','#e06a1a','#ffd0a0','#7a3010','#ff8a3a'], pts: 8 },
   { name:'НЕОНКА',      r: 15, c:['#5a8ae8','#3a64c8','#c8dcff','#1a3478','#8ab8ff'], pts: 14 },
   { name:'РЫБА-ШАР',    r: 18, c:['#ffe070','#f0c040','#fffce0','#a87a1a','#ffd040'], pts: 22 },
-  { name:'КОИ',         r: 22, c:['#fff8f0','#e8dcd0','#ffffff','#8a6a5a','#ffe8d8'], pts: 32 },
+  { name:'КОИ',         r: 22, c:['#fff8f0','#e8dcd0','#ffffff','#8a6a5a','#fff0e0'], pts: 32 },
   { name:'ЗОЛОТАЯ',     r: 26, c:['#ffc83a','#f0a020','#fff4c0','#a8641a','#ffe08a'], pts: 44 },
   { name:'РЫБА-ЛУНА',   r: 30, c:['#a8c0d8','#88a0c0','#e8f0ff','#4a6080','#b8cce0'], pts: 58 },
   { name:'АКУЛЁНОК',    r: 34, c:['#8ab0d0','#6a90b8','#d8ecff','#2a4a6a','#7aa0c4'], pts: 74 },
-  { name:'КИТ',         r: 38, c:['#5a9ae8','#3a78d0','#c8e0ff','#1a3a7a','#4a88d8'], pts: 92 },
+  { name:'КИТ',         r: 39, c:['#5a9ae8','#3a78d0','#c8e0ff','#1a3a7a','#4a88d8'], pts: 92 },
 ];
 const MAX = FRUITS.length - 1, BOOM_BONUS = 300;
 function blob(g, cx, cy, rx, ry, col, grow){
   rx += grow || 0; ry += grow || 0; g.fillStyle = col;
   for (let dy = -ry; dy <= ry; dy++){ const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy / (ry + .5)) ** 2))); g.fillRect(Math.round(cx - hw), Math.round(cy + dy), hw * 2 + 1, 1); }
 }
-const BODY = i => { const r = FRUITS[i].r; return i === 7 ? [Math.round(r * 1.02), Math.round(r)] : [Math.round(r * 1.12), Math.round(r * 0.86)]; };
-// рисует многоугольник с контуром (контур — тот же многоугольник, раздутый на 1 px)
-function finShape(g, pts, col, line, rays){
-  const cxp = pts.reduce((a, p) => a + p[0], 0) / pts.length, cyp = pts.reduce((a, p) => a + p[1], 0) / pts.length;
-  const grow = pts.map(([x, y]) => { const dx = x - cxp, dy = y - cyp, l = Math.hypot(dx, dy) || 1; return [x + dx / l * 1.4, y + dy / l * 1.4]; });
-  for (const [P, c] of [[grow, line], [pts, col]]){ g.fillStyle = c; g.beginPath(); P.forEach(([x, y], k) => k ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill(); }
-  if (rays){ g.strokeStyle = rays; g.lineWidth = 1; for (let k = 1; k < pts.length - 1; k++){ g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); g.lineTo(pts[0][0] + (pts[k][0] - pts[0][0]) * .85, pts[0][1] + (pts[k][1] - pts[0][1]) * .85); g.stroke(); } }
-}
-// хвост отдельным спрайтом: точка крепления (ax, ay) — у тела, чтобы хвост вилял
-function tailSprite(i){
-  const S = FRUITS[i], r = S.r, [rx] = BODY(i), [, , , line, fin] = S.c, L = Math.round(r * (i === 1 || i === 6 ? 1.0 : i === 9 ? .75 : .7)), H = Math.round(r * (i === 1 || i === 6 ? 1.0 : .72));
-  const size = Math.max(L, H) * 2 + 8, [c, g] = mk(size, size), ax = size / 2 + L / 2, ay = size / 2;
-  if (i === 7){ finShape(g, [[ax, ay - H * .55], [ax - L * .5, ay - H * .3], [ax - L * .5, ay + H * .3], [ax, ay + H * .55]], fin, line); }
-  else if (i === 9){ finShape(g, [[ax, ay - 2], [ax - L, ay - H * .8], [ax - L * .7, ay], [ax - L, ay + H * .5], [ax, ay + 3]], fin, line, 'rgba(26,58,122,.4)'); }
-  else { finShape(g, [[ax, ay], [ax - L, ay - H], [ax - L * .72, ay], [ax - L, ay + H]], fin, line, 'rgba(0,0,0,.18)');
-    if (i === 1){ finShape(g, [[ax - 2, ay], [ax - L * .85, ay - H * .7], [ax - L * .62, ay], [ax - L * .85, ay + H * .7]], '#ff8ad0', '#c84a9a'); }
-    if (i === 6){ finShape(g, [[ax - 2, ay], [ax - L * .9, ay - H * .65], [ax - L * .6, ay], [ax - L * .9, ay + H * .65]], '#fff4c0', '#e8b050'); } }
-  return { img: c, ax, ay, attach: rx * .9 };
-}
+// рыбка смотрит вправо; хвост слева
 function fishSprite(i){
-  const S = FRUITS[i], r = S.r, [rx, ry] = BODY(i), pad = Math.max(12, Math.round(r * 0.75)), size = r * 2 + pad * 2 + 8, [c, g] = mk(size, size), cx = size / 2, cy = size / 2, [base, dark, hi, line, fin] = S.c;
-  const P = pts => pts.map(([x, y]) => [cx + x, cy + y]);
-  // спинной и брюшной плавники (позади тела)
-  if (i === 7){ finShape(g, P([[-r * .2, -ry * .8], [r * .1, -ry * 1.5], [r * .4, -ry * .75]]), fin, line, 'rgba(0,0,0,.15)'); finShape(g, P([[-r * .2, ry * .8], [r * .1, ry * 1.5], [r * .4, ry * .75]]), fin, line, 'rgba(0,0,0,.15)'); }
-  else if (i === 8) finShape(g, P([[-r * .3, -ry * .8], [0, -ry * 1.6], [r * .25, -ry * .82]]), fin, line);
-  else if (i !== 9 && i !== 4){ finShape(g, P([[-rx * .55, -ry * .7], [-rx * .2, -ry * 1.35], [rx * .25, -ry * .82]]), fin, line, 'rgba(0,0,0,.15)'); finShape(g, P([[-rx * .2, ry * .8], [-rx * .35, ry * 1.2], [rx * .05, ry * .85]]), fin, line); }
-  // тело: контур, тень, основа, блик
-  blob(g, cx, cy, rx, ry, line, 1); blob(g, cx, cy, rx, ry, dark); blob(g, cx - r * .05, cy - ry * .1, Math.round(rx * .93), Math.round(ry * .88), base);
-  if (i === 8 || i === 9) blob(g, cx + rx * .12, cy + ry * .48, Math.round(rx * .72), Math.round(ry * .38), '#f4f8ff');
-  if (i === 4) blob(g, cx + rx * .1, cy + ry * .45, Math.round(rx * .62), Math.round(ry * .36), '#fffce0');
+  const S = FRUITS[i], r = S.r, pad = Math.max(12, Math.round(r * 0.7)), size = r * 2 + pad * 2, [c, g] = mk(size, size), cx = size / 2, cy = size / 2, [base, dark, hi, line, fin] = S.c;
+  const rx = r, ry = Math.round(r * (i === 7 ? 1 : 0.9));
+  const poly = (pts, col) => { g.fillStyle = col; g.beginPath(); pts.forEach(([x, y], k) => k ? g.lineTo(cx + x, cy + y) : g.moveTo(cx + x, cy + y)); g.closePath(); g.fill(); };
+  const finPair = (pts, col) => { const grow = pts.map(([x, y]) => [x * 1.08 + (x < 0 ? -1 : 1), y * 1.08 + (y < 0 ? -1 : 1)]); poly(grow, line); poly(pts, col); };
+  // хвост
+  if (i === 7){ finPair([[-r * .1, -r * .9], [r * .2, -r * 1.45], [r * .45, -r * .8]], fin); finPair([[-r * .1, r * .9], [r * .2, r * 1.45], [r * .45, r * .8]], fin); finPair([[-r * .9, -r * .5], [-r * 1.25, -r * .3], [-r * 1.25, r * .3], [-r * .9, r * .5]], fin); }
+  else if (i === 9){ finPair([[-r * .85, -r * .1], [-r * 1.35, -r * .65], [-r * 1.2, 0], [-r * 1.35, r * .25], [-r * .85, r * .2]], fin); }
+  else if (i === 1 || i === 6){ const L = i === 6 ? 1.6 : 1.55; finPair([[-r * .8, 0], [-r * L, -r * .9], [-r * (L - .25), 0], [-r * L, r * .9]], fin); if (i === 1){ poly([[-r * .9, 0], [-r * 1.4, -r * .6], [-r * 1.3, 0], [-r * 1.4, r * .6]], '#ff8ad0'); } else poly([[-r * .9, 0], [-r * 1.45, -r * .6], [-r * 1.3, 0], [-r * 1.45, r * .6]], '#fff4c0'); }
+  else finPair([[-r * .8, 0], [-r * 1.4, -r * .65], [-r * 1.25, 0], [-r * 1.4, r * .65]], fin);
+  // спинной плавник
+  if (i === 8) finPair([[-r * .25, -ry * .85], [r * .05, -ry * 1.55], [r * .3, -ry * .85]], fin);
+  else if (i !== 7 && i !== 9 && i !== 4) finPair([[-r * .45, -ry * .8], [-r * .1, -ry * 1.3], [r * .3, -ry * .85]], fin);
+  // тело
+  blob(g, cx, cy, rx, ry, line, 1); blob(g, cx, cy, rx, ry, dark); blob(g, cx - r * .04, cy - r * .07, Math.round(rx * .93), Math.round(ry * .92), base);
+  // брюшко
+  if (i === 8 || i === 9) blob(g, cx + r * .15, cy + ry * .45, Math.round(rx * .7), Math.round(ry * .4), '#f4f8ff');
+  if (i === 4) blob(g, cx + r * .1, cy + ry * .45, Math.round(rx * .6), Math.round(ry * .35), '#fffce0');
+  if (i === 9){ g.fillStyle = '#c8d8f0'; for (let k = 0; k < 4; k++) g.fillRect(Math.round(cx - r * .25 + k * r * .18), Math.round(cy + ry * .25), 1, Math.round(ry * .4)); }
   // узоры
-  const inBody = (x, y) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 0.9;
-  if (i === 2) for (const bx of [-rx * .45, rx * .22]) for (let y = cy - ry; y <= cy + ry; y++){ for (let x = Math.round(cx + bx); x < cx + bx + r * .22; x++) if (inBody(x, y)){ R(g, x, y, 1, 1, '#ffffff'); } if (inBody(cx + bx - 1, y)) R(g, cx + bx - 1, y, 1, 1, line); if (inBody(cx + bx + r * .22, y)) R(g, cx + bx + r * .22, y, 1, 1, line); }
-  if (i === 3){ for (let x = cx - rx * .9; x < cx + rx * .7; x++){ const y = cy - ry * .08; if (inBody(x, y)){ R(g, x, y, 1, Math.max(2, r * .16), '#5affff'); R(g, x, y, 1, 1, '#d8ffff'); } } blob(g, cx - rx * .15, cy + ry * .48, Math.round(rx * .6), Math.round(ry * .28), '#ff5a6a'); }
-  if (i === 4) for (let k = 0; k < 18; k++){ const a = k / 18 * 6.283, x = cx + Math.cos(a) * (rx + 2), y = cy + Math.sin(a) * (ry + 2); R(g, x - 1, y - 1, 2, 2, line); R(g, x - 1, y - 1, 1, 1, '#fff0a0'); }
-  if (i === 5) for (const [dx, dy, s, col] of [[-.45, -.35, .3, '#ff6a3a'], [.2, -.55, .22, '#e83a2a'], [-.15, .35, .25, '#ff8a3a'], [.35, .3, .1, '#ffb070']]) blob(g, cx + dx * rx, cy + dy * ry, Math.round(r * s), Math.round(r * s * .8), col);
-  if (i === 7) for (let k = 0; k < 8; k++) R(g, cx - rx * .55 + k * rx * .15, cy + ry * .05 + (k % 2) * 3, 2, 2, '#d8e8f8');
-  if (i === 9) for (let k = 0; k < 5; k++) R(g, Math.round(cx - rx * .2 + k * rx * .16), Math.round(cy + ry * .22), 1, Math.round(ry * .42), '#c0d4f0');
-  // чешуя: ряды дужек
-  if (r >= 13 && i !== 8 && i !== 9 && i !== 4){ g.fillStyle = 'rgba(0,0,0,.12)'; const st = Math.max(4, Math.round(r / 4));
-    for (let y = cy - ry + st; y < cy + ry * .5; y += st) for (let x = cx - rx * .7 + ((y / st) % 2) * st / 2; x < cx + rx * .25; x += st){ if (inBody(x, y) && inBody(x + st, y)){ g.fillRect(Math.round(x), Math.round(y), 1, 1); g.fillRect(Math.round(x + 1), Math.round(y + 1), st - 2, 1); g.fillRect(Math.round(x + st - 1), Math.round(y), 1, 1); } } }
-  // жабры
-  g.strokeStyle = 'rgba(0,0,0,.22)'; g.lineWidth = 1; g.beginPath(); g.arc(cx + rx * .05, cy, ry * .5, -1.1, 1.1); g.stroke();
-  if (i === 8) for (let k = 0; k < 3; k++) R(g, cx - rx * .1 + k * 3, cy - ry * .2, 1, Math.round(ry * .32), dark);
-  // объём: светлая верхняя половина и блик
-  g.globalAlpha = .4; blob(g, cx - rx * .15, cy - ry * .45, Math.max(1, Math.round(rx * .55)), Math.max(1, Math.round(ry * .25)), hi); g.globalAlpha = 1;
-  g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.ellipse(cx - rx * .3, cy - ry * .58, Math.max(1, rx * .2), Math.max(1, ry * .09), -0.25, 0, 6.283); g.fill();
-  R(g, cx + rx * .05, cy - ry * .66, Math.max(1, r * .07), Math.max(1, r * .07), '#ffffff');
-  return { img: c, off: size / 2, tail: tailSprite(i) };
+  if (i === 2) for (const bx of [-r * .45, r * .25]){ for (let dy = -ry; dy <= ry; dy++){ const hw = Math.sqrt(Math.max(0, 1 - (dy / (ry + .5)) ** 2)) * rx; if (Math.abs(bx) < hw - 1){ g.fillStyle = line; g.fillRect(Math.round(cx + bx - 1), cy + dy, 1, 1); g.fillRect(Math.round(cx + bx + r * .2), cy + dy, 1, 1); g.fillStyle = '#ffffff'; g.fillRect(Math.round(cx + bx), cy + dy, Math.round(r * .2), 1); } } }
+  if (i === 3){ R(g, cx - r * .85, cy - r * .1, r * 1.6, Math.max(2, r * .16), '#5affff'); R(g, cx - r * .85, cy - r * .1, r * 1.6, 1, '#c8ffff'); blob(g, cx - r * .1, cy + ry * .45, Math.round(rx * .62), Math.round(ry * .3), '#ff5a6a'); }
+  if (i === 4) for (let k = 0; k < 14; k++){ const a = k / 14 * 6.283, x = cx + Math.cos(a) * (rx + 2), y = cy + Math.sin(a) * (ry + 2); R(g, x - 1, y - 1, 2, 2, line); }
+  if (i === 5) for (const [dx, dy, s, col] of [[-.4, -.35, .32, '#ff6a3a'], [.25, -.5, .22, '#e83a2a'], [-.1, .3, .26, '#ff8a3a'], [.5, .15, .14, '#2a2a34']]) blob(g, cx + dx * r, cy + dy * ry, Math.round(r * s), Math.round(r * s * .8), col);
+  if (i === 7) for (let k = 0; k < 6; k++) R(g, cx - r * .5 + k * r * .18, cy + ry * .1 + (k % 2) * 3, 2, 2, '#c8dcf0');
+  if (i === 8){ for (let k = 0; k < 3; k++) R(g, cx - r * .3 + k * 3, cy - ry * .15, 1, Math.round(ry * .3), dark); }
+  // блик чешуи
+  g.globalAlpha = .45; blob(g, cx - r * .2, cy - ry * .45, Math.max(1, Math.round(rx * .42)), Math.max(1, Math.round(ry * .22)), hi); g.globalAlpha = 1;
+  g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.ellipse(cx - r * .3, cy - ry * .55, Math.max(1, r * .18), Math.max(1, r * .08), -0.3, 0, 6.283); g.fill();
+  // грудной плавничок — маленький и полупрозрачный
+  g.globalAlpha = .55; poly([[-r * .05, ry * .1], [-r * .32, ry * .32], [-r * .12, ry * .38]], fin); g.globalAlpha = 1;
+  // фонтанчик кита — нарисован позже, в анимации
+  return { img: c, off: size / 2 };
 }
 const SPR = FRUITS.map((_, i) => fishSprite(i));
+// мордочка: глазки-бусинки ближе к носу, румянец и ротик; dir — куда смотрит рыбка
 function slimeFace(g, f, x, y, sx, sy, t, lookX, lookY, sc, dir){
-  sc = sc || 1; dir = dir || 1; const S = FRUITS[f.t], r = S.r * sc, [rx0, ry0] = BODY(f.t), rx = rx0 * sc, ry = ry0 * sc; sx /= sc; sy /= sc;
-  const ink = '#1a2a4a', big = r >= 18, ew = Math.max(1, Math.round(r * (big ? .14 : .12))), eh = Math.max(2, Math.round(r * (big ? .2 : .17))), ey = Math.round(y - ry * .14 * sy);
+  sc = sc || 1; dir = dir || 1; const S = FRUITS[f.t], r = S.r * sc, ry = r * (f.t === 7 ? 1 : 0.9); sx /= sc; sy /= sc;
+  const ink = '#1a2a4a', ew = Math.max(1, Math.round(r * .12)), eh = Math.max(2, Math.round(r * .17)), ey = Math.round(y - ry * .12 * sy);
   const blink = Math.sin(t * 1.3 + f.id * 2.7) > 0.985, happy = f.pop > 0 || f.boom > 0;
-  for (const ox of [.2, .55]){ const ex = Math.round(x + dir * ox * rx * sx);
+  for (const ox of [.12, .5]){ const ex = Math.round(x + dir * ox * r * sx);
     if (blink || happy){ R(g, ex - ew, ey, 1, 1, ink); R(g, ex - ew + 1, ey - 1, ew * 2 - 1, 1, ink); R(g, ex + ew, ey, 1, 1, ink); }
-    else { R(g, ex - ew / 2, ey - eh / 2, ew + 1, eh, ink); if (r >= 10) R(g, ex - ew / 2, ey - eh / 2, Math.max(1, ew / 2), Math.max(1, ew / 2), '#ffffff'); if (big) R(g, ex + ew / 2, ey + eh / 2 - 1, 1, 1, '#8ab0ff'); } }
-  g.globalAlpha = .5; for (const ox of [.1, .68]) R(g, x + dir * ox * rx - (dir < 0 ? r * .2 : 0), ey + eh * .75, Math.max(2, r * .2), Math.max(1, r * .08), '#ff7aa0'); g.globalAlpha = 1;
-  const mx = Math.round(x + dir * rx * .86 * sx), my = Math.round(y + ry * .18 * sy), mw = Math.max(1, Math.round(r * .08));
+    else { R(g, ex - ew / 2, ey - eh / 2, ew + 1, eh, ink); if (r >= 9) R(g, ex - ew / 2, ey - eh / 2, 1, 1, '#ffffff'); } }
+  g.globalAlpha = .5; R(g, x + dir * r * .62 - (dir < 0 ? r * .2 : 0), ey + eh * .8, Math.max(2, r * .2), Math.max(1, r * .08), '#ff7aa0'); R(g, x + dir * r * .02 - (dir < 0 ? r * .2 : 0), ey + eh * .8, Math.max(2, r * .2), Math.max(1, r * .08), '#ff7aa0'); g.globalAlpha = 1;
+  const mx = Math.round(x + dir * r * .78 * sx), my = Math.round(y + ry * .2 * sy), mw = Math.max(1, Math.round(r * .08));
   if (f.sq > 0.1 || happy){ disc(g, mx, my, mw + 1, ink); disc(g, mx, my, mw, '#ff8aa8'); }
   else { R(g, mx - dir * mw, my, 1, 1, ink); R(g, mx, my + 1, 1, 1, ink); R(g, mx + dir * mw, my, 1, 1, ink); }
 }
@@ -326,16 +312,6 @@ function buildBG(){
   // замок в углу
   const cxl = 186; R(g, cxl - 10, BOX.bottom - 34, 20, 24, '#c8a8d8'); R(g, cxl - 10, BOX.bottom - 34, 20, 2, '#e8d0f0'); for (let k = 0; k < 4; k++) R(g, cxl - 10 + k * 6, BOX.bottom - 38, 3, 4, '#c8a8d8');
   R(g, cxl - 3, BOX.bottom - 20, 6, 10, '#5a3a6a'); disc(g, cxl, BOX.bottom - 20, 3, '#5a3a6a'); R(g, cxl - 7, BOX.bottom - 30, 3, 3, '#5a3a6a'); R(g, cxl + 4, BOX.bottom - 30, 3, 3, '#5a3a6a');
-  // камни и кораллы
-  for (const [x, rr, col] of [[BOX.l + 10, 9, '#7a8aa0'], [BOX.l + 22, 6, '#8a9ab0'], [BOX.r - 38, 7, '#7a8aa0']]){ disc(g, x, BOX.bottom - 10, rr, '#4a5a70'); disc(g, x, BOX.bottom - 11, rr - 1, col); disc(g, x - rr * .3, BOX.bottom - 13, Math.max(1, rr * .35), '#b0c0d4'); }
-  const branch = (x, y, len, a, w, col, depth) => { if (depth <= 0 || len < 2) return; const x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len; g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke();
-    branch(x2, y2, len * .72, a - .5, Math.max(1, w - 1), col, depth - 1); branch(x2, y2, len * .72, a + .45, Math.max(1, w - 1), col, depth - 1); };
-  branch(BOX.l + 46, BOX.bottom - 10, 12, -Math.PI / 2, 4, '#ff7aa8', 4); branch(BOX.l + 46, BOX.bottom - 10, 9, -Math.PI / 2 - .6, 3, '#ff9ac0', 3);
-  { const fx = BOX.r - 58, fy = BOX.bottom - 10; for (let k = 0; k < 9; k++){ const a = -Math.PI + .25 + k * .33; g.strokeStyle = k % 2 ? '#ffa860' : '#ff8a3a'; g.lineWidth = 2; g.beginPath(); g.moveTo(fx, fy); g.lineTo(fx + Math.cos(a) * 18, fy + Math.sin(a) * 18); g.stroke(); }
-    g.fillStyle = 'rgba(255,200,140,.35)'; g.beginPath(); g.moveTo(fx, fy); g.arc(fx, fy, 17, -Math.PI + .2, -.2); g.fill(); }
-  // сундук с сокровищами
-  { const x = 120, y = BOX.bottom - 22; R(g, x - 1, y - 1, 22, 14, '#3a2414'); R(g, x, y + 3, 20, 10, '#8a5a2a'); R(g, x, y, 20, 4, '#a87440'); R(g, x, y + 5, 20, 1, '#c8a040'); R(g, x + 8, y + 3, 4, 5, '#ffd84a'); R(g, x + 9, y + 5, 2, 1, '#3a2414');
-    R(g, x + 2, y - 3, 16, 3, '#a87440'); R(g, x + 3, y - 4, 4, 1, '#ffd84a'); R(g, x + 12, y - 4, 5, 1, '#ffd84a'); disc(g, x + 6, y - 2, 1, '#7affb0'); disc(g, x + 14, y - 2, 1, '#ff5a8a'); }
   // тумба под аквариумом
   R(g, 0, BOX.bottom, W, H - BOX.bottom, '#6ab0c0'); R(g, 0, BOX.bottom, W, 3, '#3a8090'); R(g, 0, BOX.bottom + 3, W, 1, '#c8f0f8');
   for (let x = 0; x < W; x += 36) R(g, x, BOX.bottom + 6, 1, H, '#5aa0b0');
@@ -350,14 +326,12 @@ function buildFront(){
   return c;
 }
 function drawSlime(g, f, t, lookX, lookY, scale){
-  const S = SPR[f.t], r = FRUITS[f.t].r, swim = Math.min(1, Math.hypot(f.vx || 0, f.vy || 0) / 120), wag = Math.sin(t * (5 + swim * 8) + f.id) * (0.22 + swim * 0.2);
-  const sq = clamp(f.sq || 0, -0.3, 0.3), sc = scale || 1, sx = (1 + sq) * sc, sy = (1 - sq) * sc, dir = f.dir || 1;
-  const x = Math.round(f.x), base = f.y + r * sc, y = base - r * sy, T = S.tail;
-  g.save(); g.translate(x - dir * T.attach * sx, y); g.scale(sx * dir, sy); g.rotate(wag); g.drawImage(T.img, -T.ax, -T.ay); g.restore();
+  const S = SPR[f.t], r = FRUITS[f.t].r, wag = Math.sin(t * 6 + f.id) * 0.03;
+  const sq = clamp(f.sq || 0, -0.3, 0.3), sc = scale || 1, sx = (1 + sq + wag) * sc, sy = (1 - sq) * sc, dir = f.dir || 1;
+  const x = Math.round(f.x), base = f.y + r * sc, y = base - r * sy;
   g.save(); g.translate(x, base); g.scale(sx * dir, sy); g.drawImage(S.img, -S.off, -S.off - r); g.restore();
   slimeFace(g, f, x, y, sx, sy, t, lookX, lookY, sc, dir);
   if (f.t === MAX && f.boom > 0){ for (let k = 0; k < 3; k++) parts.push({ x: x + rand(-3, 3), y: y - r * sy, vx: rand(-25, 25), vy: rand(-140, -90), life: .5, col: pick(['#c8f0ff', '#ffffff']), s: 2, g: 300 }); }
-  if (f.id && Math.random() < 0.004) bubbles.push({ x: x + dir * r * 1.05, y: y, r: 1, v: rand(16, 26) });
 }
 function panel(g, x, y, w, h){ R(g, x, y + 2, w, h, 'rgba(26,74,106,.25)'); R(g, x - 1, y - 1, w + 2, h + 2, '#4a98aa'); R(g, x, y, w, h, '#f4fcff'); R(g, x, y, w, 1, '#ffffff'); R(g, x, y + h - 1, w, 1, '#d8eef4'); }
 function draw(t){
@@ -365,14 +339,6 @@ function draw(t){
   const shx = shake > 0 ? Math.round(Math.sin(t * 60) * shake * 6) : 0;
   ctx.save(); ctx.translate(shx, 0);
   ctx.drawImage(BG, 0, 0);
-  // блики-каустика на воде
-  ctx.globalAlpha = .08; for (let k = 0; k < 14; k++){ const cx = BOX.l + ((k * 47 + t * 6) % (BOX.r - BOX.l)), cy = BOX.top + 20 + (k * 71) % (BOX.bottom - BOX.top - 40), w = 10 + (k % 3) * 4;
-    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.ellipse(cx, cy + Math.sin(t * 1.5 + k) * 3, w, 2 + Math.sin(t * 2 + k) * 1, Math.sin(t * .7 + k) * .6, 0, 6.283); ctx.fill(); } ctx.globalAlpha = 1;
-  // стайки маленьких рыбок вдалеке
-  for (let s = 0; s < 2; s++){ const dirS = s ? -1 : 1, bx = s ? BOX.r + 40 - ((t * 9) % (BOX.r - BOX.l + 80)) : BOX.l - 40 + ((t * 7 + 60) % (BOX.r - BOX.l + 80)), by = s ? 150 : 210;
-    ctx.globalAlpha = .28; for (let k = 0; k < 6; k++){ const fx = bx + (k % 3) * 7 * -dirS, fy = by + Math.floor(k / 3) * 6 + Math.sin(t * 3 + k) * 1.5; if (fx < BOX.l || fx > BOX.r) continue; R(ctx, fx, fy, 4, 2, '#1a4a7a'); R(ctx, fx - dirS * 2, fy - 1, 2, 4, '#1a4a7a'); } ctx.globalAlpha = 1; }
-  // сундук время от времени пускает пузыри
-  if (Math.sin(t * 0.9) > 0.92 && Math.random() < 0.5) bubbles.push({ x: 130 + rand(-4, 4), y: BOX.bottom - 26, r: ri(1, 3), v: rand(20, 34) });
   // водоросли качаются
   for (const [x0, h, col] of [[22, 60, '#3ab86a'], [30, 42, '#5ad88a'], [124, 50, '#3ab86a'], [134, 34, '#7ae8a0'], [166, 46, '#2aa05a']]){ for (let k = 0; k < h; k += 2){ const sw = Math.sin(t * 1.6 + k / 9 + x0) * (k / h) * 5; R(ctx, x0 + sw, BOX.bottom - 10 - k, 3, 2, col); if (k % 8 === 0) R(ctx, x0 + sw + 3, BOX.bottom - 10 - k, 3, 2, col); } }
   // поверхность воды
@@ -399,8 +365,6 @@ function draw(t){
     drawSlime(ctx, f, t, lookX, lookY, sc);
     if (f.boom > 0 && Math.sin(t * 24) > 0){ ctx.globalAlpha = .3; disc(ctx, f.x, f.y, f.r * sc, '#ffffff'); ctx.globalAlpha = 1; } }
   ctx.restore();
-  // передние водоросли — поверх рыб, для глубины
-  for (const [x0, h, col] of [[BOX.l + 2, 34, '#2a9a5a'], [BOX.r - 8, 40, '#3ab86a'], [BOX.r - 2, 24, '#2a9a5a']]){ for (let k = 0; k < h; k += 2){ const sw = Math.sin(t * 1.4 + k / 8 + x0) * (k / h) * 4; R(ctx, x0 + sw, BOX.bottom - 4 - k, 4, 2, col); if (k % 6 === 0) R(ctx, x0 + sw + (k % 12 ? 4 : -3), BOX.bottom - 4 - k, 3, 2, col); } }
   ctx.drawImage(FRONT, 0, 0);
   for (const r of rings){ const k = 1 - r.t / (r.big ? 0.5 : 0.3), rad = r.r + k * (r.big ? 70 : 14); ctx.globalAlpha = r.t * 2.5; ctx.strokeStyle = r.col; ctx.lineWidth = r.big ? 3 : 1; ctx.beginPath(); ctx.arc(r.x, r.y, rad, 0, 6.283); ctx.stroke(); ctx.globalAlpha = 1; }
   for (const p of parts){ ctx.globalAlpha = clamp(p.life * 2, 0, 1); if (p.s >= 3){ disc(ctx, p.x, p.y, Math.round(p.s / 2), p.col); R(ctx, p.x - 1, p.y - 1, 1, 1, 'rgba(255,255,255,.8)'); } else R(ctx, p.x, p.y, p.s, p.s, p.col); } ctx.globalAlpha = 1;
