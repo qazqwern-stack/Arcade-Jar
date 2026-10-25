@@ -297,8 +297,8 @@ const GAMES = [
     blurb:'Подземелье из 3 этажей: 16 пушек из сундуков, перекаты сквозь пули и босс на каждом этаже.' },
   { id:'grill', title:'GRILL RUSH', genre:'arcade', status:'live', src:'games/grill/index.html',
     blurb:'Закусочная в час пик: жарь котлеты и картошку, наливай колу и успей накормить всех гостей.' },
-  { id:'fruit', title:'FRUIT POP', genre:'puzzle', status:'live', src:'games/fruit/index.html',
-    blurb:'Бросай фрукты в банку: одинаковые сливаются в новый. Собери арбуз — и он взорвётся!' },
+  { id:'slime', title:'SLIME POP', genre:'puzzle', status:'live', src:'games/slime/index.html',
+    blurb:'Роняй слаймов в колбу: одинаковые сливаются в нового. Вырасти Короля — и он лопнет!' },
   { id:'words', title:'Слова из слова', genre:'puzzle', status:'live', src:'games/words/index.html',
     blurb:'Собирай слова из букв длинного слова. 166 уровней и подсказки.' },
   { id:'gems', title:'Пиксельные самоцветы', genre:'puzzle', status:'soon', blurb:'Три в ряд с ежедневными испытаниями.' },
@@ -320,22 +320,28 @@ const cR = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Ma
 const cDisc = (g, cx, cy, r, c) => { g.fillStyle = c; r = Math.max(1, Math.round(r)); cx = Math.round(cx); cy = Math.round(cy); for (let dy = -r; dy <= r; dy++){ const hw = Math.floor(Math.sqrt(r * r - dy * dy + r * 0.5)); g.fillRect(cx - hw, cy + dy, hw * 2 + 1, 1); } };
 const cOval = (g, cx, cy, rx, ry, c) => { g.fillStyle = c; ry = Math.max(1, Math.round(ry)); for (let dy = -ry; dy <= ry; dy++){ const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy / (ry + .5)) ** 2))); g.fillRect(Math.round(cx - hw), Math.round(cy + dy), hw * 2 + 1, 1); } };
 function cSparkle(g, x, y, s, c){ cR(g, x - s, y, s * 2 + 1, 1, c); cR(g, x, y - s, 1, s * 2 + 1, c); }
-function coverFruit(g, w, h){
-  cR(g, 0, 0, w, h, '#8a96d8'); for (let y = 4; y < h; y += 10) for (let x = (y / 10 % 2) * 5; x < w; x += 10) cR(g, x, y, 1, 1, '#a0aae6');
-  cR(g, 0, h * .84, w, h, '#c49a6a'); cR(g, 0, h * .84, w, 1, '#e0b888');
-  cR(g, w * .06, h * .2, w * .88, h * .64, 'rgba(255,248,220,.35)'); cR(g, w * .06, h * .2, 1, h * .64, '#fff8e0'); cR(g, w * .94 - 1, h * .2, 1, h * .64, '#fff8e0'); cR(g, w * .06, h * .2, w * .88, 1, '#fff8e0');
-  const K = '#3a2220', u = Math.min(w, h) / 64;
-  const fruit = (x, y, r, base, dark, hi, extra) => { cDisc(g, x, y, r + 1, K); cDisc(g, x, y, r, base); cDisc(g, x + r * .2, y + r * .2, r * .78, dark); cDisc(g, x - r * .04, y - r * .04, r * .8, base);
-    if (extra) extra(x, y, r); cDisc(g, x - r * .38, y - r * .38, Math.max(1, r * .24), hi);
-    const e = Math.max(1, Math.round(r / 8)); cR(g, x - r * .34 - e / 2, y - e, e * 1.5, e * 2, K); cR(g, x + r * .34 - e / 2, y - e, e * 1.5, e * 2, K);
-    cR(g, x - r * .5, y + e * 1.5, e * 2, e, 'rgba(255,90,120,.6)'); cR(g, x + r * .32, y + e * 1.5, e * 2, e, 'rgba(255,90,120,.6)'); cR(g, x - r * .1, y + r * .28, r * .22, e, K); };
-  const stripes = (x, y, r) => { g.fillStyle = '#1a7a2a'; for (let k = -3; k <= 3; k++) for (let dy = -r; dy <= r; dy++){ const hw = Math.sqrt(Math.max(0, r * r - dy * dy)); const xx = x + k * r * .27 * (hw / r); if (Math.abs(xx - x) < hw - 1) g.fillRect(Math.round(xx), Math.round(y + dy), Math.max(1, Math.round(u * 1.4)), 1); } };
-  fruit(w * .62, h * .6, 17 * u, '#3ab84a', '#2a9a3a', '#9ae88a', stripes);
-  fruit(w * .28, h * .66, 12 * u, '#ffa0b8', '#e8789a', '#ffd8e4');
-  fruit(w * .2, h * .38, 7 * u, '#ff9a2a', '#d86a14', '#ffd08a');
-  fruit(w * .4, h * .36, 5 * u, '#e8303a', '#a81a2a', '#ff8a8a'); cR(g, w * .4, h * .36 - 9 * u, Math.max(1, u), 5 * u, '#8a5a2a');
-  fruit(w * .84, h * .28, 4.5 * u, '#5a7ae8', '#3a4ab0', '#a8c0ff');
-  cSparkle(g, w * .62, h * .2, Math.max(2, Math.round(u * 3)), '#ffffff'); cSparkle(g, w * .9, h * .55, Math.max(1, Math.round(u * 2)), '#fff4b0');
+function coverSlime(g, w, h){
+  cR(g, 0, 0, w, h, '#241e48'); const bh = Math.max(4, Math.round(h / 12));
+  for (let y = 0; y < h; y += bh) for (let x = -((y / bh) % 2) * bh; x < w; x += bh * 2){ cR(g, x + 1, y + 1, bh * 2 - 2, bh - 2, '#2e2658'); }
+  cR(g, 0, h * .86, w, h, '#4a2e22'); cR(g, 0, h * .86, w, 1, '#8a5a3a');
+  const gl = g.createLinearGradient(0, h * .2, 0, h * .86); gl.addColorStop(0, 'rgba(90,200,170,.1)'); gl.addColorStop(1, 'rgba(120,160,200,.35)'); g.fillStyle = gl; g.fillRect(w * .06, h * .2, w * .88, h * .66);
+  cR(g, w * .06 - 2, h * .18, 3, h * .7, '#c8963a'); cR(g, w * .94 - 1, h * .18, 3, h * .7, '#c8963a'); cR(g, w * .06 - 2, h * .86 - 2, w * .88 + 4, 3, '#c8963a');
+  const u = Math.min(w, h) / 64;
+  const slime = (x, y, r, base, dark, hi, line, deco) => {
+    const bl = (rr, col) => { g.fillStyle = col; for (let dy = -rr; dy <= rr; dy++){ const k = Math.abs(dy) / (rr + .5), p = dy < 0 ? 2 : 3.2, hw = Math.round((rr + 1) * Math.pow(Math.max(0, 1 - Math.pow(k, p)), 1 / p)); g.fillRect(Math.round(x - hw), Math.round(y + dy), hw * 2 + 1, 1); } };
+    if (deco) deco(x, y, r, line);
+    bl(Math.round(r + 1), line); bl(Math.round(r), dark); g.save(); g.translate(-r * .06, -r * .1); bl(Math.round(r * .9), base); g.restore();
+    g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.ellipse(x - r * .45, y - r * .5, Math.max(1, r * .2), Math.max(1, r * .11), -0.6, 0, 6.283); g.fill();
+    const e = Math.max(1, Math.round(r * .2)); for (const s of [-1, 1]){ cDisc(g, x + s * r * .36, y - r * .08, e + 1, line); cDisc(g, x + s * r * .36, y - r * .08, e, '#ffffff'); cDisc(g, x + s * r * .36 + e * .3, y - r * .02, Math.max(1, e * .55), '#1a1430'); }
+    cR(g, x - r * .12, y + r * .34, r * .24, Math.max(1, u), line); };
+  const crown = (x, y, r, line) => { const s = r / 10; cR(g, x - 5 * s, y - r - 4 * s, 10 * s, 3 * s, '#ffd84a'); for (let k = -1; k <= 1; k++) cR(g, x + k * 3.5 * s - s, y - r - 7 * s, 2 * s, 4 * s, '#ffd84a'); cR(g, x - s * .5, y - r - 3.5 * s, s, s, '#ff3a6a'); };
+  slime(w * .6, h * .62, 16 * u, '#c86aff', '#9038e0', '#f0d8ff', '#4a1480', crown);
+  slime(w * .26, h * .7, 10 * u, '#3ad8b0', '#1aa080', '#b8fff0', '#0a5a48');
+  slime(w * .22, h * .42, 6 * u, '#ff7ab8', '#d84a8a', '#ffd0e8', '#7a1a4a');
+  slime(w * .86, h * .74, 6 * u, '#ffe04a', '#d8b020', '#fff8b8', '#7a5a0a');
+  slime(w * .42, h * .32, 4 * u, '#5ad8ff', '#2a98d8', '#c8f4ff', '#14507a');
+  for (let k = 0; k < 7; k++){ g.globalAlpha = .5; cDisc(g, w * (.15 + k * .12), h * (.3 + (k * 37 % 50) / 100), Math.max(1, u), '#c8fff0'); } g.globalAlpha = 1;
+  cSparkle(g, w * .6, h * .14, Math.max(2, Math.round(u * 3)), '#ffd84a');
 }
 function coverGrill(g, w, h){
   cR(g, 0, 0, w, h, '#8e96e6'); const t = Math.max(6, Math.round(Math.min(w, h) / 8));
@@ -489,7 +495,7 @@ const COVERS = {
     for (const [x,y] of pts.slice(1)){ let guard = 200; while ((Math.abs(x-px) >= 3 || Math.abs(y-py) >= 3) && guard--){ g.fillRect(px, py, 3, 3); if (Math.abs(x-px) >= 3) px += Math.sign(x-px)*3; else if (Math.abs(y-py) >= 3) py += Math.sign(y-py)*3; } px = x; py = y; }
     g.fillRect(w-20, 44, 3, 3); },
 };
-Object.assign(COVERS, { fruit: coverFruit, grill: coverGrill, shell: coverShell, crypt: coverCrypt, nova: coverNova });
+Object.assign(COVERS, { slime: coverSlime, grill: coverGrill, shell: coverShell, crypt: coverCrypt, nova: coverNova });
 function cover(id, w, h, cls){ const c = document.createElement('canvas'); c.width = w; c.height = h; c.className = 'cover' + (cls ? ' ' + cls : '');
   (COVERS[id] || COVERS.gems)(c.getContext('2d'), w, h); return c; }
 
