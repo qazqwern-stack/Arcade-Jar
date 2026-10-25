@@ -298,7 +298,7 @@ const GAMES = [
   { id:'grill', title:'GRILL RUSH', genre:'arcade', status:'live', src:'games/grill/index.html',
     blurb:'Закусочная в час пик: жарь котлеты и картошку, наливай колу и успей накормить всех гостей.' },
   { id:'slime', title:'SLIME POP', genre:'puzzle', status:'live', src:'games/slime/index.html',
-    blurb:'Роняй слаймов в колбу: одинаковые сливаются в нового. Вырасти Короля — и он лопнет!' },
+    blurb:'Роняй милых слаймиков в банку: одинаковые сливаются в нового. Вырасти Короля — и он лопнет!' },
   { id:'words', title:'Слова из слова', genre:'puzzle', status:'live', src:'games/words/index.html',
     blurb:'Собирай слова из букв длинного слова. 166 уровней и подсказки.' },
   { id:'gems', title:'Пиксельные самоцветы', genre:'puzzle', status:'soon', blurb:'Три в ряд с ежедневными испытаниями.' },
@@ -321,27 +321,27 @@ const cDisc = (g, cx, cy, r, c) => { g.fillStyle = c; r = Math.max(1, Math.round
 const cOval = (g, cx, cy, rx, ry, c) => { g.fillStyle = c; ry = Math.max(1, Math.round(ry)); for (let dy = -ry; dy <= ry; dy++){ const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy / (ry + .5)) ** 2))); g.fillRect(Math.round(cx - hw), Math.round(cy + dy), hw * 2 + 1, 1); } };
 function cSparkle(g, x, y, s, c){ cR(g, x - s, y, s * 2 + 1, 1, c); cR(g, x, y - s, 1, s * 2 + 1, c); }
 function coverSlime(g, w, h){
-  cR(g, 0, 0, w, h, '#241e48'); const bh = Math.max(4, Math.round(h / 12));
-  for (let y = 0; y < h; y += bh) for (let x = -((y / bh) % 2) * bh; x < w; x += bh * 2){ cR(g, x + 1, y + 1, bh * 2 - 2, bh - 2, '#2e2658'); }
-  cR(g, 0, h * .86, w, h, '#4a2e22'); cR(g, 0, h * .86, w, 1, '#8a5a3a');
-  const gl = g.createLinearGradient(0, h * .2, 0, h * .86); gl.addColorStop(0, 'rgba(90,200,170,.1)'); gl.addColorStop(1, 'rgba(120,160,200,.35)'); g.fillStyle = gl; g.fillRect(w * .06, h * .2, w * .88, h * .66);
-  cR(g, w * .06 - 2, h * .18, 3, h * .7, '#c8963a'); cR(g, w * .94 - 1, h * .18, 3, h * .7, '#c8963a'); cR(g, w * .06 - 2, h * .86 - 2, w * .88 + 4, 3, '#c8963a');
+  const st = Math.max(4, Math.round(w / 16)); for (let x = 0; x < w; x += st * 2){ cR(g, x, 0, st, h, '#f6d8ec'); cR(g, x + st, 0, st, h, '#f0cce6'); }
+  for (let y = 4; y < h * .8; y += 12) for (let x = ((y / 12) % 2) * 8 + 3; x < w; x += 16){ cR(g, x, y, 2, 2, '#ffb8d8'); cR(g, x + 3, y, 2, 2, '#ffb8d8'); cR(g, x, y + 1, 5, 2, '#ffb8d8'); cR(g, x + 1, y + 3, 3, 1, '#ffb8d8'); }
+  cR(g, 0, h * .86, w, h, '#f0c890'); cR(g, 0, h * .86, w, 1, '#fff0d0');
+  cR(g, w * .06, h * .2, w * .88, h * .66, 'rgba(200,236,255,.4)'); cR(g, w * .06 - 2, h * .18, 3, h * .7, '#ffffff'); cR(g, w * .94 - 1, h * .18, 3, h * .7, '#ffffff'); cR(g, w * .06 - 3, h * .17, w * .88 + 6, 3, '#ff9ac0');
   const u = Math.min(w, h) / 64;
   const slime = (x, y, r, base, dark, hi, line, deco) => {
-    const bl = (rr, col) => { g.fillStyle = col; for (let dy = -rr; dy <= rr; dy++){ const k = Math.abs(dy) / (rr + .5), p = dy < 0 ? 2 : 3.2, hw = Math.round((rr + 1) * Math.pow(Math.max(0, 1 - Math.pow(k, p)), 1 / p)); g.fillRect(Math.round(x - hw), Math.round(y + dy), hw * 2 + 1, 1); } };
-    if (deco) deco(x, y, r, line);
-    bl(Math.round(r + 1), line); bl(Math.round(r), dark); g.save(); g.translate(-r * .06, -r * .1); bl(Math.round(r * .9), base); g.restore();
-    g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.ellipse(x - r * .45, y - r * .5, Math.max(1, r * .2), Math.max(1, r * .11), -0.6, 0, 6.283); g.fill();
-    const e = Math.max(1, Math.round(r * .2)); for (const s of [-1, 1]){ cDisc(g, x + s * r * .36, y - r * .08, e + 1, line); cDisc(g, x + s * r * .36, y - r * .08, e, '#ffffff'); cDisc(g, x + s * r * .36 + e * .3, y - r * .02, Math.max(1, e * .55), '#1a1430'); }
-    cR(g, x - r * .12, y + r * .34, r * .24, Math.max(1, u), line); };
-  const crown = (x, y, r, line) => { const s = r / 10; cR(g, x - 5 * s, y - r - 4 * s, 10 * s, 3 * s, '#ffd84a'); for (let k = -1; k <= 1; k++) cR(g, x + k * 3.5 * s - s, y - r - 7 * s, 2 * s, 4 * s, '#ffd84a'); cR(g, x - s * .5, y - r - 3.5 * s, s, s, '#ff3a6a'); };
-  slime(w * .6, h * .62, 16 * u, '#c86aff', '#9038e0', '#f0d8ff', '#4a1480', crown);
-  slime(w * .26, h * .7, 10 * u, '#3ad8b0', '#1aa080', '#b8fff0', '#0a5a48');
-  slime(w * .22, h * .42, 6 * u, '#ff7ab8', '#d84a8a', '#ffd0e8', '#7a1a4a');
-  slime(w * .86, h * .74, 6 * u, '#ffe04a', '#d8b020', '#fff8b8', '#7a5a0a');
-  slime(w * .42, h * .32, 4 * u, '#5ad8ff', '#2a98d8', '#c8f4ff', '#14507a');
-  for (let k = 0; k < 7; k++){ g.globalAlpha = .5; cDisc(g, w * (.15 + k * .12), h * (.3 + (k * 37 % 50) / 100), Math.max(1, u), '#c8fff0'); } g.globalAlpha = 1;
-  cSparkle(g, w * .6, h * .14, Math.max(2, Math.round(u * 3)), '#ffd84a');
+    const bl = (rr, col, ox, oy) => { g.fillStyle = col; for (let dy = -rr; dy <= rr; dy++){ const k = Math.abs(dy) / (rr + .5), p = dy < 0 ? 2 : 3, hw = Math.round((rr + 1) * Math.pow(Math.max(0, 1 - Math.pow(k, p)), 1 / p)); g.fillRect(Math.round(x + (ox || 0) - hw), Math.round(y + (oy || 0) + dy), hw * 2 + 1, 1); } };
+    bl(Math.round(r + 1), line); bl(Math.round(r), dark); bl(Math.round(r * .92), base, -r * .05, -r * .08);
+    g.globalAlpha = .5; bl(Math.max(1, Math.round(r * .42)), hi, -r * .22, -r * .4); g.globalAlpha = 1;
+    g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.ellipse(x - r * .45, y - r * .48, Math.max(1, r * .18), Math.max(1, r * .1), -0.6, 0, 6.283); g.fill();
+    const ew = Math.max(1, Math.round(r * .12)), eh = Math.max(2, Math.round(r * .17)); for (const s of [-1, 1]){ cR(g, x + s * r * .33 - ew / 2, y - eh / 2, ew + 1, eh, '#4a2a3a'); cR(g, x + s * r * .33 - ew / 2, y - eh / 2, 1, 1, '#ffffff');
+      g.globalAlpha = .55; cR(g, x + s * r * .33 - r * .1, y + eh * .8, r * .22, Math.max(1, r * .09), '#ff7aa0'); g.globalAlpha = 1; }
+    const mw = Math.max(2, Math.round(r * .14)), my = Math.round(y + r * .24); cR(g, x - mw, my, 1, 1, '#4a2a3a'); cR(g, x - mw + 1, my + 1, mw - 1, 1, '#4a2a3a'); cR(g, x, my, 1, 1, '#4a2a3a'); cR(g, x + 1, my + 1, mw - 1, 1, '#4a2a3a'); cR(g, x + mw, my, 1, 1, '#4a2a3a');
+    if (deco) deco(x, y, r); };
+  const crown = (x, y, r) => { const s = r / 10; cR(g, x - 5 * s, y - r - 3 * s, 10 * s, 3 * s, '#ffd84a'); for (let k = -1; k <= 1; k++){ cR(g, x + k * 3.5 * s - s, y - r - 6 * s, 2 * s, 4 * s, '#ffd84a'); cDisc(g, x + k * 3.5 * s, y - r - 6.5 * s, Math.max(1, s * .7), k ? '#ff8ab8' : '#8ae4ff'); } };
+  slime(w * .6, h * .62, 16 * u, '#e0a8ff', '#c080f0', '#faf0ff', '#8a4ab8', crown);
+  slime(w * .26, h * .7, 10 * u, '#90f0d0', '#60d0b0', '#e0fff6', '#2a9a7a');
+  slime(w * .22, h * .42, 6 * u, '#ffb0d0', '#f088b0', '#fff0f6', '#b84a7a');
+  slime(w * .86, h * .74, 6 * u, '#fff08a', '#f0d050', '#fffce0', '#b8962a');
+  slime(w * .42, h * .32, 4 * u, '#8ae4ff', '#5ac0f0', '#e0f8ff', '#3a7aa8');
+  cSparkle(g, w * .82, h * .3, Math.max(2, Math.round(u * 2.5)), '#ffffff'); cSparkle(g, w * .12, h * .62, Math.max(1, Math.round(u * 1.5)), '#fff4b0');
 }
 function coverGrill(g, w, h){
   cR(g, 0, 0, w, h, '#8e96e6'); const t = Math.max(6, Math.round(Math.min(w, h) / 8));

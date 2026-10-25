@@ -11,7 +11,7 @@
 /* Layout: one 9:16 pixel screen 216×384. Top — next fruit, score and pops; middle — the glass jar with fruits and
    the overflow line; bottom — wooden table with the 10-step fruit chain. Menu and rating reuse the Arcade Jar shell. */
 :root{
-  --ink:#efe4ff; --paper:#1e1838; --accent:#7affb0; --frame:#14102a;
+  --ink:#8a3a6a; --paper:#fffaf4; --accent:#ff9ac0; --frame:#f0cce6;
   --s-ink:#1d1a2b; --s-paper:#e9e7f2; --s-card:#f7f6fb; --s-accent:#6b5fd6; --s-muted:#6e6a82;
   --u:2px;
   --pixel:'Press Start 2P', 'Courier New', monospace;
@@ -64,11 +64,11 @@ h2{font-size:calc(var(--u)*8)}
 </head>
 <body>
 <div id="wrap">
-  <canvas id="c" width="216" height="384" aria-label="Колба алхимика со слаймами. Веди пальцем по экрану и отпусти, чтобы уронить слайма"></canvas>
+  <canvas id="c" width="216" height="384" aria-label="Банка с милыми слаймиками. Веди пальцем по экрану и отпусти, чтобы уронить слайма"></canvas>
   <div id="ui">
     <div class="panel" id="menu">
       <h1>SLIME<br>POP</h1>
-      <div class="sub">Роняй слаймов в колбу.<br>Два одинаковых сливаются<br>в следующего по цепочке.</div>
+      <div class="sub">Роняй слаймиков в банку.<br>Два одинаковых сливаются<br>в следующего по цепочке.</div>
       <div class="score" id="mBest">РЕКОРД 0</div>
       <button class="go alt" id="contBtn" type="button" hidden>ПРОДОЛЖИТЬ</button>
       <button class="go" id="startBtn" type="button">ИГРАТЬ</button>
@@ -90,7 +90,7 @@ h2{font-size:calc(var(--u)*8)}
       <div class="board" id="rows"></div>
       <div class="board-f">
         <button class="go" id="invite" type="button">ПОЗВАТЬ ДРУЗЕЙ</button>
-        <div class="note">Друзья именно в SLIME POP.<br>Рекорд — лучшая колба</div>
+        <div class="note">Друзья именно в SLIME POP.<br>Рекорд — лучшая банка</div>
       </div>
     </div>
     <div id="toast" hidden></div>
@@ -99,11 +99,11 @@ h2{font-size:calc(var(--u)*8)}
 
 <script>
 /* =====================================================================
-   SLIME POP — слияние слаймов в колбе алхимика, пакет Arcade Jar.
+   SLIME POP — слияние слаймов в банке, пакет Arcade Jar.
    Пипетка роняет слайма; два одинаковых при касании сливаются в
    следующего по цепочке из 10. Десятый — Король — лопается брызгами
    желе и освобождает место. Если слаймы долго торчат над линией —
-   колба переполнена, игра окончена.
+   банка переполнена, игра окончена.
    ===================================================================== */
 const GAME_ID = 'slime';
 const W = 216, H = 384;
@@ -128,71 +128,67 @@ function txt(g, s, x, y, col, size, align, shadow){ g.font = `${size || 6}px 'Pr
 // 10 ступеней: капелька → слизнячок → глазастик → рогатик → пятнистик → колючка → трёхглазик → крылатик → принц → король.
 // c: [основной, тень, блик, контур]; eyes: сколько глаз
 const FRUITS = [
-  { name:'КАПЕЛЬКА',   r: 7,  c:['#5ad8ff','#2a98d8','#c8f4ff','#14507a'], eyes: 2, pts: 2 },
-  { name:'СЛИЗНЯЧОК',  r: 9,  c:['#7ae86a','#3aa84a','#d0ffb8','#1a5a24'], eyes: 2, pts: 4 },
-  { name:'ГЛАЗАСТИК',  r: 12, c:['#ff7ab8','#d84a8a','#ffd0e8','#7a1a4a'], eyes: 1, pts: 8 },
-  { name:'РОГАТИК',    r: 15, c:['#ffa040','#d8701a','#ffe0a8','#7a3a0a'], eyes: 2, pts: 14 },
-  { name:'ПЯТНИСТИК',  r: 18, c:['#ffe04a','#d8b020','#fff8b8','#7a5a0a'], eyes: 2, pts: 22 },
-  { name:'КОЛЮЧКА',    r: 22, c:['#a070ff','#7040d8','#dcc8ff','#3a1a7a'], eyes: 2, pts: 32 },
-  { name:'ТРЁХГЛАЗИК', r: 26, c:['#3ad8b0','#1aa080','#b8fff0','#0a5a48'], eyes: 3, pts: 44 },
-  { name:'КРЫЛАТИК',   r: 30, c:['#7ab0ff','#4a7ae0','#d8e8ff','#1a3a8a'], eyes: 2, pts: 58 },
-  { name:'ПРИНЦ',      r: 34, c:['#ff5a6a','#d8303e','#ffc8cc','#7a1420'], eyes: 2, pts: 74 },
-  { name:'КОРОЛЬ',     r: 39, c:['#c86aff','#9038e0','#f0d8ff','#4a1480'], eyes: 2, pts: 92 },
+  { name:'КАПЕЛЬКА', r: 7,  c:['#8ae4ff','#5ac0f0','#e0f8ff','#3a7aa8'], pts: 2 },
+  { name:'РОСТОК',   r: 9,  c:['#a8f08a','#78d068','#e8ffd8','#3a8a3a'], pts: 4 },
+  { name:'БАНТИК',   r: 12, c:['#ffb0d0','#f088b0','#fff0f6','#b84a7a'], pts: 8 },
+  { name:'КОТИК',    r: 15, c:['#ffc890','#f0a060','#fff0e0','#b86a2a'], pts: 14 },
+  { name:'ГОРОШЕК',  r: 18, c:['#fff08a','#f0d050','#fffce0','#b8962a'], pts: 22 },
+  { name:'ЗАЙКА',    r: 22, c:['#d8c0ff','#b498f0','#f6f0ff','#7a5ab8'], pts: 32 },
+  { name:'ЦВЕТОЧЕК', r: 26, c:['#90f0d0','#60d0b0','#e0fff6','#2a9a7a'], pts: 44 },
+  { name:'АНГЕЛОК',  r: 30, c:['#b0d0ff','#88b0f0','#f0f6ff','#4a74b8'], pts: 58 },
+  { name:'ПРИНЦЕССА',r: 34, c:['#ff9aa8','#f07088','#fff0f2','#b83a50'], pts: 74 },
+  { name:'КОРОЛЬ',   r: 39, c:['#e0a8ff','#c080f0','#faf0ff','#8a4ab8'], pts: 92 },
 ];
 const MAX = FRUITS.length - 1, BOOM_BONUS = 300;
-// желейное тело: сверху купол, снизу чуть приплюснутое
+// мягкое тело: сверху купол, снизу чуть приплюснутое
 function blob(g, cx, cy, r, col, grow){
   r += grow || 0; g.fillStyle = col;
-  for (let dy = -r; dy <= r; dy++){ const k = Math.abs(dy) / (r + .5), p = dy < 0 ? 2 : 3.2, hw = Math.round((r + 1) * Math.pow(Math.max(0, 1 - Math.pow(k, p)), 1 / p)); g.fillRect(Math.round(cx - hw), Math.round(cy + dy), hw * 2 + 1, 1); }
+  for (let dy = -r; dy <= r; dy++){ const k = Math.abs(dy) / (r + .5), p = dy < 0 ? 2 : 3, hw = Math.round((r + 1) * Math.pow(Math.max(0, 1 - Math.pow(k, p)), 1 / p)); g.fillRect(Math.round(cx - hw), Math.round(cy + dy), hw * 2 + 1, 1); }
 }
 function slimeSprite(i){
-  const S = FRUITS[i], r = S.r, pad = Math.max(12, Math.round(r * (i === 7 ? 0.75 : 0.45))), size = r * 2 + pad * 2, [c, g] = mk(size, size), cx = size / 2, cy = size / 2, [base, dark, hi, line] = S.c;
-  const P = (x, y, w, h, col) => R(g, cx + x, cy + y, w, h, col);
-  // украшения позади тела
-  if (i === 7){ for (const s of [-1, 1]){ const wx = cx + s * (r + 1); g.fillStyle = line; g.beginPath(); g.moveTo(wx - s * 4, cy - r * .35); g.lineTo(wx + s * r * .55, cy - r * .7); g.lineTo(wx + s * r * .45, cy - r * .2); g.lineTo(wx + s * r * .6, cy); g.lineTo(wx - s * 2, cy + r * .15); g.fill();
-      g.fillStyle = '#5a8ae8'; g.beginPath(); g.moveTo(wx - s * 3, cy - r * .3); g.lineTo(wx + s * r * .48, cy - r * .6); g.lineTo(wx + s * r * .38, cy - r * .18); g.lineTo(wx + s * r * .5, cy - r * .02); g.lineTo(wx - s * 1, cy + r * .1); g.fill(); } }
-  if (i === 5){ for (let k = -2; k <= 2; k++){ const a = -Math.PI / 2 + k * 0.42, bx = cx + Math.cos(a) * r * .86, by = cy + Math.sin(a) * r * .86, tx = cx + Math.cos(a) * (r + 7), ty = cy + Math.sin(a) * (r + 7);
-      g.fillStyle = line; g.beginPath(); g.moveTo(bx - 4, by + 1); g.lineTo(tx, ty - 1); g.lineTo(bx + 4, by + 1); g.fill(); g.fillStyle = '#e8dcff'; g.beginPath(); g.moveTo(bx - 2, by); g.lineTo(tx, ty + 1); g.lineTo(bx + 2, by); g.fill(); } }
+  const S = FRUITS[i], r = S.r, pad = Math.max(12, Math.round(r * 0.55)), size = r * 2 + pad * 2, [c, g] = mk(size, size), cx = size / 2, cy = size / 2, [base, dark, hi, line] = S.c;
+  const ear = (x, y, w, h, tilt, inner) => { g.save(); g.translate(x, y); g.rotate(tilt); g.fillStyle = line; g.beginPath(); g.ellipse(0, -h / 2, w / 2 + 1, h / 2 + 1, 0, 0, 6.283); g.fill();
+    g.fillStyle = base; g.beginPath(); g.ellipse(0, -h / 2, w / 2, h / 2, 0, 0, 6.283); g.fill(); g.fillStyle = inner; g.beginPath(); g.ellipse(0, -h / 2, w / 4, h / 2.8, 0, 0, 6.283); g.fill(); g.restore(); };
+  // ушки и крылья — позади тела
+  if (i === 3) for (const s of [-1, 1]){ const x = cx + s * r * .5, y = cy - r * .62; g.fillStyle = line; g.beginPath(); g.moveTo(x - 5, y + 3); g.lineTo(x + s * 2, y - 7); g.lineTo(x + 5, y + 3); g.fill(); g.fillStyle = base; g.beginPath(); g.moveTo(x - 4, y + 3); g.lineTo(x + s * 2, y - 5); g.lineTo(x + 4, y + 3); g.fill(); g.fillStyle = '#ffb0c0'; g.beginPath(); g.moveTo(x - 2, y + 2); g.lineTo(x + s * 1.5, y - 2); g.lineTo(x + 2, y + 2); g.fill(); }
+  if (i === 5) for (const s of [-1, 1]) ear(cx + s * r * .32, cy - r * .7, r * .34, r * .9, s * 0.18, '#ffc8e0');
+  if (i === 7) for (const s of [-1, 1]){ for (let k = 0; k < 3; k++){ const wx = cx + s * (r * .95 + k * r * .12), wy = cy - r * .15 + k * r * .12; disc(g, wx, wy, Math.round(r * (.28 - k * .05)) + 1, line); disc(g, wx, wy, Math.round(r * (.28 - k * .05)), '#ffffff'); } }
   // тело
-  blob(g, cx, cy, r, line, 1); blob(g, cx, cy, r, dark); blob(g, cx - r * .06, cy - r * .1, Math.round(r * .9), base);
-  // внутренний блеск и пузырьки желе
-  g.globalAlpha = .45; blob(g, cx - r * .25, cy - r * .42, Math.max(1, Math.round(r * .42)), hi); g.globalAlpha = 1;
-  g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.ellipse(cx - r * .45, cy - r * .5, Math.max(1, r * .2), Math.max(1, r * .11), -0.6, 0, 6.283); g.fill();
-  R(g, cx - r * .15, cy - r * .7, Math.max(1, r * .1), Math.max(1, r * .1), '#ffffff');
-  if (r >= 12){ g.globalAlpha = .35; disc(g, cx + r * .45, cy + r * .2, Math.max(1, r * .12), hi); disc(g, cx + r * .3, cy + r * .5, Math.max(1, r * .07), hi); disc(g, cx - r * .5, cy + r * .35, Math.max(1, r * .08), hi); g.globalAlpha = 1; }
-  // нижняя кромка: тёмная полоса и отражение
-  R(g, cx - r * .6, cy + r * .82, r * 1.2, 1, line);
-  // украшения поверх
+  blob(g, cx, cy, r, line, 1); blob(g, cx, cy, r, dark); blob(g, cx - r * .05, cy - r * .08, Math.round(r * .92), base);
+  g.globalAlpha = .5; blob(g, cx - r * .22, cy - r * .4, Math.max(1, Math.round(r * .42)), hi); g.globalAlpha = 1;
+  g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.ellipse(cx - r * .45, cy - r * .48, Math.max(1, r * .18), Math.max(1, r * .1), -0.6, 0, 6.283); g.fill();
+  R(g, cx - r * .16, cy - r * .7, Math.max(1, r * .09), Math.max(1, r * .09), '#ffffff');
+  // украшения сверху
   switch (i){
-    case 0: for (let k = 0; k < 5; k++){ R(g, cx - 2 + Math.floor(k / 2) * .5 - 1, cy - r - 1 - k, 4 - Math.floor(k / 2), 1, line); R(g, cx - 1 + Math.floor(k / 2) * .5, cy - r - k, Math.max(1, 2 - Math.floor(k / 2)), 1, k < 2 ? base : hi); } break;
-    case 1: for (const s of [-1, 1]){ const ax = cx + s * r * .4; R(g, ax - 1, cy - r - 4, 3, 6, line); R(g, ax, cy - r - 3, 1, 5, base); disc(g, ax, cy - r - 5, 3, line); disc(g, ax, cy - r - 5, 2, '#ffe0f0'); } break;
-    case 3: for (const s of [-1, 1]){ const hx = cx + s * r * .45; g.fillStyle = line; g.beginPath(); g.moveTo(hx - 4, cy - r * .8); g.lineTo(hx + s * 3, cy - r - 7); g.lineTo(hx + 4, cy - r * .8); g.fill(); g.fillStyle = '#fff4dc'; g.beginPath(); g.moveTo(hx - 2, cy - r * .82); g.lineTo(hx + s * 3, cy - r - 5); g.lineTo(hx + 2, cy - r * .82); g.fill(); } break;
-    case 4: for (const [dx, dy, s] of [[-.5, .35, .16], [.45, .45, .13], [.55, -.25, .1], [-.1, .65, .1], [.15, .2, .08]]){ disc(g, cx + dx * r, cy + dy * r, Math.max(1, r * s), dark); } break;
-    case 8: { const y0 = cy - r - 2; R(g, cx - 9, y0 - 6, 18, 8, line); R(g, cx - 8, y0 - 2, 16, 3, '#ffd84a'); for (let k = -1; k <= 1; k++){ R(g, cx + k * 6 - 2, y0 - 8 + (k ? 2 : 0), 4, 6 - (k ? 2 : 0), line); R(g, cx + k * 6 - 1, y0 - 7 + (k ? 2 : 0), 2, 5 - (k ? 2 : 0), '#ffd84a'); }
-      R(g, cx - 1, y0 - 1, 2, 2, '#3ad8ff'); R(g, cx - 8, y0 - 2, 16, 1, '#fff4a0'); } break;
-    case 9: { const y0 = cy - r - 1; R(g, cx - 15, y0 - 9, 30, 11, line); R(g, cx - 14, y0 - 3, 28, 4, '#ffd84a'); R(g, cx - 14, y0 - 3, 28, 1, '#fff4a0');
-      for (let k = -2; k <= 2; k++){ const hh = k % 2 ? 6 : 9; R(g, cx + k * 6 - 2, y0 - 2 - hh, 4, hh, '#ffd84a'); R(g, cx + k * 6 - 2, y0 - 2 - hh, 1, hh, '#fff4a0'); disc(g, cx + k * 6, y0 - 3 - hh, 1, k ? '#ff3a6a' : '#3ad8ff'); }
-      R(g, cx - 6, y0 - 2, 3, 2, '#ff3a6a'); R(g, cx + 3, y0 - 2, 3, 2, '#3ad8ff'); R(g, cx - 1, y0 - 2, 2, 2, '#7affb0'); } break;
+    case 0: for (let k = 0; k < 4; k++){ R(g, cx - 2 + k * .5 - 1, cy - r - 1 - k, 4 - k, 1, line); R(g, cx - 1 + k * .5, cy - r - k, Math.max(1, 2 - k), 1, base); } break;
+    case 1: R(g, cx - 1, cy - r - 4, 2, 5, '#5aa84a'); for (const s of [-1, 1]){ g.fillStyle = '#3a8a3a'; g.beginPath(); g.ellipse(cx + s * 4, cy - r - 5, 4, 2.5, s * .5, 0, 6.283); g.fill(); g.fillStyle = '#7ad85a'; g.beginPath(); g.ellipse(cx + s * 4, cy - r - 5, 3, 1.6, s * .5, 0, 6.283); g.fill(); } break;
+    case 2: { const bx = cx + r * .45, by = cy - r * .72; for (const s of [-1, 1]){ g.fillStyle = '#b8285a'; g.beginPath(); g.moveTo(bx, by); g.lineTo(bx + s * 7, by - 4); g.lineTo(bx + s * 7, by + 4); g.fill(); g.fillStyle = '#ff5a9a'; g.beginPath(); g.moveTo(bx, by); g.lineTo(bx + s * 6, by - 3); g.lineTo(bx + s * 6, by + 3); g.fill(); } disc(g, bx, by, 2, '#b8285a'); disc(g, bx, by, 1, '#ff8ab8'); } break;
+    case 4: for (const [dx, dy, s] of [[-.5, .4, .12], [.5, .45, .1], [.58, -.15, .08], [-.15, .66, .08], [-.6, -.05, .07]]) disc(g, cx + dx * r, cy + dy * r, Math.max(1, r * s), hi); break;
+    case 6: { const fx = cx - r * .4, fy = cy - r * .78; for (let k = 0; k < 5; k++){ const a = k / 5 * 6.283; disc(g, fx + Math.cos(a) * 4, fy + Math.sin(a) * 4, 3, '#ffffff'); } disc(g, fx, fy, 2, '#ffd84a'); } break;
+    case 7: { g.strokeStyle = '#ffd84a'; g.lineWidth = 2; g.beginPath(); g.ellipse(cx, cy - r - 4, r * .4, 3, 0, 0, 6.283); g.stroke(); } break;
+    case 8: { const y0 = cy - r - 1; R(g, cx - 8, y0 - 5, 16, 6, '#ffd84a'); for (let k = -1; k <= 1; k++) R(g, cx + k * 6 - 2, y0 - 9 + (k ? 2 : 0), 4, 5, '#ffd84a'); R(g, cx - 8, y0 - 5, 16, 1, '#fff4a0'); disc(g, cx, y0 - 3, 1, '#ff5a9a'); } break;
+    case 9: { const y0 = cy - r; R(g, cx - 14, y0 - 8, 28, 9, '#ffd84a'); R(g, cx - 14, y0 - 8, 28, 2, '#fff4a0');
+      for (let k = -2; k <= 2; k++){ const hh = k % 2 ? 5 : 8; R(g, cx + k * 6 - 2, y0 - 8 - hh, 4, hh, '#ffd84a'); disc(g, cx + k * 6, y0 - 9 - hh, 2, k ? '#ff8ab8' : '#8ae4ff'); }
+      disc(g, cx - 7, y0 - 4, 2, '#ff8ab8'); disc(g, cx, y0 - 4, 2, '#8ae4ff'); disc(g, cx + 7, y0 - 4, 2, '#a8f08a'); } break;
   }
   return { img: c, off: size / 2 };
 }
 const SPR = FRUITS.map((_, i) => slimeSprite(i));
-// мордочка рисуется каждый кадр: глаза следят за пипеткой и моргают
+// мордочка: глазки-бусинки с бликом, румянец, маленький ротик; моргает
 function slimeFace(g, f, x, y, sx, sy, t, lookX, lookY, sc){
-  sc = sc || 1; const S = FRUITS[f.t], r = S.r * sc, line = S.c[3], n = S.eyes; sx /= sc; sy /= sc;
-  const e = Math.max(1, Math.round(r * (n === 1 ? .34 : .2))), ey = y - r * .08 * sy, gap = n === 3 ? r * .42 : r * .36;
-  const xs = n === 1 ? [0] : n === 3 ? [-gap, 0, gap] : [-gap, gap], ys = n === 3 ? [0, -r * .28, 0] : [0, 0];
-  const blink = Math.sin(t * 1.3 + f.id * 2.7) > 0.985 || f.boom > 0 && Math.sin(t * 30) > 0;
-  const dx = lookX - x, dy = lookY - y, dl = Math.hypot(dx, dy) || 1, px = dx / dl * e * .35, py = dy / dl * e * .35;
-  xs.forEach((ox, k) => { const cx = Math.round(x + ox * sx), cy = Math.round(ey + ys[k] * sy);
-    if (blink){ R(g, cx - e, cy, e * 2 + 1, Math.max(1, e / 3), line); return; }
-    disc(g, cx, cy, e + 1, line); disc(g, cx, cy, e, '#ffffff'); disc(g, cx + px, cy + py + 1, Math.max(1, Math.round(e * .55)), '#1a1430'); R(g, cx + px - e * .3, cy + py - e * .2, Math.max(1, e * .3), Math.max(1, e * .3), '#ffffff'); });
-  // румянец и рот
-  const my = Math.round(y + r * .36 * sy), mw = Math.max(3, Math.round(r * .3));
-  if (r >= 12){ g.globalAlpha = .5; R(g, x - gap * sx - e - 1, ey + e + 2, Math.max(2, r * .16), Math.max(1, r * .07), '#ff5a8a'); R(g, x + gap * sx + e - r * .1, ey + e + 2, Math.max(2, r * .16), Math.max(1, r * .07), '#ff5a8a'); g.globalAlpha = 1; }
-  if (f.sq > 0.08 || f.pop > 0){ disc(g, x, my + 1, Math.max(1, Math.round(mw * .35)), line); disc(g, x, my + 1, Math.max(1, Math.round(mw * .22)), '#ff6a8a'); }
-  else if (f.boom > 0){ R(g, x - mw / 2, my, mw, 2, line); }
-  else { R(g, x - mw / 2, my - 1, 1, 1, line); R(g, x - mw / 2 + 1, my, mw - 2, 1, line); R(g, x + mw / 2 - 1, my - 1, 1, 1, line); if (r >= 18) R(g, x - 1, my + 1, 3, 1, '#ff6a8a'); }
+  sc = sc || 1; const S = FRUITS[f.t], r = S.r * sc; sx /= sc; sy /= sc;
+  const ink = '#4a2a3a', ew = Math.max(1, Math.round(r * .12)), eh = Math.max(2, Math.round(r * .17)), gap = r * .33, ey = Math.round(y + r * .02 * sy);
+  const blink = Math.sin(t * 1.3 + f.id * 2.7) > 0.985;
+  const happy = f.pop > 0 || f.boom > 0 || f.t % 3 === 2;
+  for (const s of [-1, 1]){ const ex = Math.round(x + s * gap * sx);
+    if (blink || happy){ R(g, ex - ew, ey, 1, 1, ink); R(g, ex - ew + 1, ey - 1, ew * 2 - 1, 1, ink); R(g, ex + ew, ey, 1, 1, ink); }
+    else { R(g, ex - ew / 2, ey - eh / 2, ew + 1, eh, ink); if (r >= 9) R(g, ex - ew / 2, ey - eh / 2, 1, 1, '#ffffff'); } }
+  // румянец
+  g.globalAlpha = .55; for (const s of [-1, 1]) R(g, x + s * gap * sx - (s < 0 ? r * .28 : -r * .06), ey + eh * .7, Math.max(2, r * .22), Math.max(1, r * .09), '#ff7aa0'); g.globalAlpha = 1;
+  // ротик
+  const my = Math.round(y + r * .24 * sy), mw = Math.max(2, Math.round(r * .14));
+  if (f.sq > 0.1){ R(g, x - mw / 2, my, mw, Math.max(1, mw * .8), ink); R(g, x - mw / 2 + 1, my + 1, Math.max(1, mw - 2), Math.max(1, mw * .5), '#ff8aa8'); }
+  else { R(g, x - mw, my, 1, 1, ink); R(g, x - mw + 1, my + 1, mw - 1, 1, ink); R(g, x, my, 1, 1, ink); R(g, x + 1, my + 1, mw - 1, 1, ink); R(g, x + mw, my, 1, 1, ink); }
 }
 
 // ================= СОСТОЯНИЕ =================
@@ -246,7 +242,7 @@ function merge(a, b){
 function explode(f){
   f.gone = true; booms++; score += BOOM_BONUS; shake = 0.5;
   for (const o of fruits){ if (o === f || o.gone) continue; const dx = o.x - f.x, dy = o.y - f.y, d = Math.hypot(dx, dy) || 1; if (d < f.r * 3){ const k = (1 - d / (f.r * 3)) * 380; o.vx += dx / d * k; o.vy += dy / d * k - 60; } }
-  juice(f.x, f.y, '#c86aff', 40, 190); juice(f.x, f.y, '#f0d8ff', 20, 160); juice(f.x, f.y, '#ffd84a', 14, 150);
+  juice(f.x, f.y, '#e0a8ff', 40, 190); juice(f.x, f.y, '#ffb0d0', 20, 160); juice(f.x, f.y, '#fff08a', 14, 150);
   for (let k = 0; k < 30; k++) parts.push({ x: f.x, y: f.y, vx: rand(-160, 160), vy: rand(-220, -40), life: rand(.8, 1.4), col: pick(['#ffd84a', '#ff8ad0', '#7affb0', '#8ab0ff', '#ffffff']), s: 2, g: 200 });
   rings.push({ x: f.x, y: f.y, r: 10, t: 0.5, col: '#fff4b0', big: true });
   floats.push({ x: f.x, y: f.y - 10, s: '+' + BOOM_BONUS, t: 1.3, col: '#ffd84a' });
@@ -281,7 +277,7 @@ function update(dt){
   for (let s = 0; s < SUB; s++) step(dt / SUB);
   for (const f of fruits){ f.sqv = (f.sqv || 0) + (-220 * (f.sq || 0) - 9 * f.sqv) * dt; f.sq = clamp((f.sq || 0) + f.sqv * dt, -0.28, 0.28); if (f.pop > 0) f.pop -= dt; if (f.boom > 0){ f.boom -= dt; if (f.boom <= 0) explode(f); } }
   fruits = fruits.filter(f => !f.gone);
-  // переполнение: слайм, который давно в колбе, торчит над линией и почти не движется
+  // переполнение: слайм, который давно в банке, торчит над линией и почти не движется
   const over = fruits.some(f => f.age > 1.2 && f.y - f.r < LINE_Y && Math.abs(f.vy) < 40);
   danger = over ? danger + dt : Math.max(0, danger - dt * 2);
   if (danger > 2.6) finish();
@@ -291,42 +287,40 @@ function update(dt){
 let BG = null, FRONT = null, bubbles = [];
 function buildBG(){
   const [c, g] = mk(W, H);
-  // каменная стена лаборатории
-  R(g, 0, 0, W, H, '#241e48');
-  for (let y = 0; y < BOX.bottom; y += 8) for (let x = -((y / 8) % 2) * 8; x < W; x += 16){ R(g, x + 1, y + 1, 14, 6, (x * 7 + y * 3) % 5 ? '#2e2658' : '#342c62'); R(g, x + 1, y + 1, 14, 1, '#3c3470'); }
-  for (let i = 0; i < 26; i++){ const x = ri(0, W), y = ri(10, BOX.bottom - 10); R(g, x, y, ri(2, 5), 1, 'rgba(120,200,120,.25)'); }
-  // арочное окно с луной
-  R(g, 10, 22, 34, 44, '#140e2a'); disc(g, 27, 22, 17, '#140e2a'); R(g, 12, 24, 30, 40, '#1e2a5a'); disc(g, 27, 24, 15, '#1e2a5a');
-  for (let i = 0; i < 12; i++) R(g, 13 + (i * 7) % 28, 14 + (i * 11) % 46, 1, 1, '#c8d8ff'); disc(g, 33, 18, 6, '#fff4c8'); disc(g, 35, 16, 5, '#1e2a5a');
-  R(g, 26, 10, 2, 54, '#140e2a'); R(g, 12, 40, 30, 2, '#140e2a'); R(g, 8, 64, 38, 3, '#5a4a7a'); R(g, 8, 64, 38, 1, '#8a7aaa');
-  // полки с зельями
-  for (const [sy, items] of [[38, [['#ff5ab0', 8], ['#7affb0', 6], ['#ffd84a', 9], ['#5ad8ff', 7]]], [62, [['#a070ff', 9], ['#ff8a3a', 6], ['#7ae86a', 8]]]]){
-    R(g, 150, sy, 60, 3, '#5a3a2a'); R(g, 150, sy, 60, 1, '#8a5a3a'); let x = 154;
-    for (const [col, hh] of items){ R(g, x, sy - hh, 9, hh, '#140e2a'); R(g, x + 1, sy - hh + 2, 7, hh - 2, col); R(g, x + 1, sy - hh + 2, 2, hh - 2, 'rgba(255,255,255,.45)'); R(g, x + 3, sy - hh - 3, 3, 4, '#c8b8a0'); R(g, x + 3, sy - hh - 3, 3, 1, '#8a5a3a'); x += 13; } }
-  // руны на стене
-  g.fillStyle = 'rgba(122,255,176,.22)'; for (const [x, y] of [[70, 30], [120, 24], [96, 60]]){ g.fillRect(x, y, 5, 1); g.fillRect(x + 2, y - 2, 1, 5); g.fillRect(x, y + 3, 1, 2); g.fillRect(x + 4, y - 2, 1, 2); }
-  // паутина
-  g.fillStyle = 'rgba(220,220,255,.25)'; for (let i = 0; i < 12; i++){ g.fillRect(i, 0, 1, 1); g.fillRect(0, i, 1, 1); g.fillRect(i, 12 - i, 1, 1); g.fillRect(W - 1 - i, 0, 1, 1); g.fillRect(W - 1, i, 1, 1); g.fillRect(W - 1 - i, 12 - i, 1, 1); }
-  // латунная труба с пипеткой поперёк верха
-  R(g, 0, 36, W, 5, '#6a4a1a'); R(g, 0, 36, W, 2, '#d8a840'); R(g, 0, 38, W, 1, '#ffd870'); for (let x = 10; x < W; x += 50){ R(g, x, 35, 4, 7, '#8a6a2a'); R(g, x + 1, 35, 2, 1, '#ffd870'); }
-  // задняя стенка колбы с зеленоватой жидкостью
-  for (let y = BOX.top; y < BOX.bottom; y++){ const k = (y - BOX.top) / (BOX.bottom - BOX.top); R(g, BOX.l, y, BOX.r - BOX.l, 1, `rgba(${Math.round(90 + 30 * k)},${Math.round(200 - 40 * k)},${Math.round(170 + 30 * k)},${(0.12 + k * 0.16).toFixed(2)})`); }
-  // лабораторный стол
-  R(g, 0, BOX.bottom, W, H - BOX.bottom, '#4a2e22'); R(g, 0, BOX.bottom, W, 3, '#2a1810'); R(g, 0, BOX.bottom + 3, W, 1, '#8a5a3a');
-  for (let y = BOX.bottom + 8; y < H; y += 6) R(g, 0, y, W, 1, '#3e261c'); for (let i = 0; i < 16; i++) R(g, ri(0, W), ri(BOX.bottom + 6, H), ri(6, 18), 1, '#5e3a2a');
+  // светлая детская: розово-сиреневые обои в полоску с сердечками и звёздочками
+  for (let x = 0; x < W; x += 12){ R(g, x, 0, 6, BOX.bottom, '#f6d8ec'); R(g, x + 6, 0, 6, BOX.bottom, '#f0cce6'); }
+  const heart = (x, y, col) => { R(g, x, y, 2, 2, col); R(g, x + 3, y, 2, 2, col); R(g, x, y + 1, 5, 2, col); R(g, x + 1, y + 3, 3, 1, col); R(g, x + 2, y + 4, 1, 1, col); };
+  for (let y = 8; y < BOX.bottom; y += 22) for (let x = ((y / 22) % 2) * 12 + 4; x < W; x += 24) (Math.floor(x / 24 + y / 22) % 2 ? heart(x, y, '#ffb8d8') : (R(g, x + 2, y, 1, 5, '#fff4b0'), R(g, x, y + 2, 5, 1, '#fff4b0')));
+  // окно с солнечным небом
+  R(g, 8, 20, 40, 42, '#ffffff'); R(g, 10, 22, 36, 38, '#9ad8ff'); for (let y = 22; y < 60; y++) R(g, 10, y, 36, 1, `rgb(${150 + y},${210 + (y >> 2)},255)`);
+  disc(g, 38, 30, 5, '#fff08a'); disc(g, 38, 30, 3, '#ffffff'); disc(g, 20, 34, 4, '#ffffff'); disc(g, 25, 33, 5, '#ffffff'); disc(g, 30, 35, 3, '#ffffff');
+  R(g, 27, 22, 2, 38, '#ffffff'); R(g, 10, 40, 36, 2, '#ffffff'); R(g, 6, 61, 44, 3, '#ffd0e4'); R(g, 6, 61, 44, 1, '#ffffff');
+  // занавески
+  for (const x of [4, 44]){ for (let y = 18; y < 62; y += 2) R(g, x + Math.round(Math.sin(y / 5)), y, 8, 2, y % 4 ? '#ff9ac0' : '#ffb0d0'); }
+  // полочка с баночками конфет и мишкой
+  R(g, 148, 60, 62, 3, '#e8a0c0'); R(g, 148, 60, 62, 1, '#ffd0e4');
+  [[152, '#8ae4ff'], [166, '#fff08a'], [180, '#a8f08a']].forEach(([x, col]) => { R(g, x, 48, 11, 12, '#ffffff'); R(g, x + 1, 50, 9, 9, col); R(g, x + 2, 50, 2, 9, 'rgba(255,255,255,.6)'); R(g, x + 1, 46, 9, 3, '#ff9ac0'); for (let k = 0; k < 3; k++) disc(g, x + 3 + k * 2.5, 55 + (k % 2), 1, '#ffffff'); });
+  disc(g, 201, 52, 6, '#d89a6a'); disc(g, 196, 46, 2, '#d89a6a'); disc(g, 206, 46, 2, '#d89a6a'); R(g, 198, 51, 1, 1, '#4a2a3a'); R(g, 203, 51, 1, 1, '#4a2a3a'); disc(g, 201, 55, 2, '#f0c8a0');
+  // гирлянда-флажки
+  for (let i = 0; i < 9; i++){ const x = 62 + i * 9, y = 12 + Math.round(Math.sin(i / 8 * Math.PI) * 6); g.fillStyle = ['#ff9ac0', '#8ae4ff', '#fff08a', '#a8f08a', '#d8c0ff'][i % 5]; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 7, y); g.lineTo(x + 3.5, y + 7); g.fill(); }
+  g.strokeStyle = '#ffffff'; g.beginPath(); g.moveTo(60, 12); g.quadraticCurveTo(102, 26, 146, 12); g.stroke();
+  // перекладина для пипетки
+  R(g, 0, 36, W, 4, '#ffb0d0'); R(g, 0, 36, W, 1, '#ffe0ee'); R(g, 0, 39, W, 1, '#e888b0');
+  // банка: светлая вода
+  for (let y = BOX.top; y < BOX.bottom; y++){ const k = (y - BOX.top) / (BOX.bottom - BOX.top); R(g, BOX.l, y, BOX.r - BOX.l, 1, `rgba(${Math.round(200 - 40 * k)},${Math.round(236 - 20 * k)},255,${(0.25 + k * 0.25).toFixed(2)})`); }
+  // светлый деревянный стол
+  R(g, 0, BOX.bottom, W, H - BOX.bottom, '#f0c890'); R(g, 0, BOX.bottom, W, 3, '#c89860'); R(g, 0, BOX.bottom + 3, W, 1, '#fff0d0');
+  for (let y = BOX.bottom + 8; y < H; y += 6) R(g, 0, y, W, 1, '#e4b880'); for (let i = 0; i < 14; i++) R(g, ri(0, W), ri(BOX.bottom + 6, H), ri(6, 16), 1, '#f8d8a8');
   return c;
 }
 function buildFront(){
   const [c, g] = mk(W, H);
-  // стекло и латунная рамка
-  g.fillStyle = 'rgba(255,255,255,.16)'; g.fillRect(BOX.l + 5, BOX.top + 8, 4, BOX.bottom - BOX.top - 16); g.fillRect(BOX.l + 12, BOX.top + 8, 1, BOX.bottom - BOX.top - 16);
-  g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(BOX.r - 16, BOX.top + 8, 6, BOX.bottom - BOX.top - 16);
-  const brass = (x, y, w, h) => { R(g, x, y, w, h, '#6a4a1a'); R(g, x + 1, y + 1, w - 2, h - 2, '#c8963a'); R(g, x + 1, y + 1, w - 2, 1, '#ffd870'); };
-  brass(BOX.l - 4, BOX.top - 4, 4, BOX.bottom - BOX.top + 6); brass(BOX.r, BOX.top - 4, 4, BOX.bottom - BOX.top + 6); brass(BOX.l - 6, BOX.top - 6, 8, 6); brass(BOX.r - 2, BOX.top - 6, 8, 6);
-  brass(BOX.l - 6, BOX.bottom - 2, BOX.r - BOX.l + 12, 6);
-  for (const y of [BOX.top + 30, (BOX.top + BOX.bottom) / 2, BOX.bottom - 30]){ for (const x of [BOX.l - 3, BOX.r + 1]){ R(g, x, y, 2, 2, '#ffd870'); R(g, x + 1, y + 1, 1, 1, '#6a4a1a'); } }
-  // шкала на стекле
-  for (let y = BOX.top + 20; y < BOX.bottom - 6; y += 20){ R(g, BOX.r - 8, y, 5, 1, 'rgba(255,255,255,.35)'); R(g, BOX.r - 6, y + 10, 3, 1, 'rgba(255,255,255,.25)'); }
+  g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(BOX.l + 5, BOX.top + 8, 4, BOX.bottom - BOX.top - 16); g.fillRect(BOX.l + 12, BOX.top + 8, 1, BOX.bottom - BOX.top - 16);
+  g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(BOX.r - 16, BOX.top + 8, 6, BOX.bottom - BOX.top - 16);
+  const rim = (x, y, w, h) => { R(g, x, y, w, h, '#ffffff'); R(g, x, y + h - 1, w, 1, '#d8c8f0'); };
+  rim(BOX.l - 3, BOX.top - 3, 3, BOX.bottom - BOX.top + 4); rim(BOX.r, BOX.top - 3, 3, BOX.bottom - BOX.top + 4); rim(BOX.l - 4, BOX.bottom - 1, BOX.r - BOX.l + 8, 4);
+  R(g, BOX.l - 5, BOX.top - 6, BOX.r - BOX.l + 10, 4, '#ff9ac0'); R(g, BOX.l - 5, BOX.top - 6, BOX.r - BOX.l + 10, 1, '#ffd0e4');
+  for (let x = BOX.l; x < BOX.r; x += 14){ disc(g, x + 7, BOX.top - 1, 2, '#ffffff'); }
   return c;
 }
 function drawSlime(g, f, t, lookX, lookY, scale){
@@ -336,28 +330,28 @@ function drawSlime(g, f, t, lookX, lookY, scale){
   g.save(); g.translate(x, base); g.scale(sx, sy); g.drawImage(S.img, -S.off, -S.off - r); g.restore();
   slimeFace(g, f, x, y, sx, sy, t, lookX, lookY, sc);
 }
-function panel(g, x, y, w, h){ R(g, x, y + 2, w, h, 'rgba(0,0,0,.35)'); R(g, x - 1, y - 1, w + 2, h + 2, '#8a6aff'); R(g, x, y, w, h, '#1e1838'); R(g, x, y, w, 1, '#3a3270'); }
+function panel(g, x, y, w, h){ R(g, x, y + 2, w, h, 'rgba(184,74,122,.25)'); R(g, x - 1, y - 1, w + 2, h + 2, '#ff9ac0'); R(g, x, y, w, h, '#fffaf4'); R(g, x, y, w, 1, '#ffffff'); R(g, x, y + h - 1, w, 1, '#f6e0ec'); }
 function draw(t){
   if (!BG){ BG = buildBG(); FRONT = buildFront(); }
   const shx = shake > 0 ? Math.round(Math.sin(t * 60) * shake * 6) : 0;
   ctx.save(); ctx.translate(shx, 0);
   ctx.drawImage(BG, 0, 0);
   // свечи и мерцание
-  for (const [x, y] of [[60, 70], [140, 72]]){ R(ctx, x, y - 8, 4, 8, '#f4ecd8'); R(ctx, x, y - 8, 1, 8, '#ffffff'); const fl = Math.sin(t * 13 + x) > 0; R(ctx, x + 1, y - 11 - (fl ? 1 : 0), 2, 3, fl ? '#ffd84a' : '#ffb03a'); ctx.globalAlpha = .12; disc(ctx, x + 2, y - 10, 12, '#ffd890'); ctx.globalAlpha = 1; }
+  for (let i = 0; i < 5; i++){ const x = 70 + i * 18, y = 54 + Math.sin(t * 2 + i) * 3; if (Math.sin(t * 1.7 + i * 1.3) > 0.2){ R(ctx, x, y, 1, 1, '#ffffff'); R(ctx, x - 1, y + 1, 3, 1, 'rgba(255,255,255,.6)'); R(ctx, x, y + 2, 1, 1, '#ffffff'); } }
   // пузырьки в жидкости
   if (Math.random() < 0.25) bubbles.push({ x: rand(BOX.l + 6, BOX.r - 6), y: BOX.bottom - 4, r: ri(1, 2), v: rand(14, 30) });
   for (const b of bubbles){ b.y -= b.v * 0.016; b.x += Math.sin(b.y / 9) * 0.15; } bubbles = bubbles.filter(b => b.y > BOX.top + 4);
-  ctx.globalAlpha = .45; for (const b of bubbles){ disc(ctx, b.x, b.y, b.r, '#c8fff0'); } ctx.globalAlpha = 1;
+  ctx.globalAlpha = .7; for (const b of bubbles){ disc(ctx, b.x, b.y, b.r, '#ffffff'); } ctx.globalAlpha = 1;
   // линия переполнения
   const dz = danger > 0.2, blink = dz && Math.sin(t * (8 + danger * 6)) > 0;
-  for (let x = BOX.l + 2; x < BOX.r - 2; x += 8) R(ctx, x, LINE_Y, 4, 1, blink ? '#ff3a6a' : 'rgba(200,255,230,.45)');
+  for (let x = BOX.l + 2; x < BOX.r - 2; x += 8) R(ctx, x, LINE_Y, 4, 1, blink ? '#ff3a6a' : 'rgba(255,154,192,.8)');
   const lookX = clamp(aimX, BOX.l, BOX.r), lookY = DROP_Y;
   // пипетка на трубе и слайм в ней
   if (state === 'play'){
     const r = FRUITS[held].r, x = clamp(aimX, BOX.l + r, BOX.r - r);
     let yb = BOX.bottom; for (const f of fruits) if (Math.abs(f.x - x) < f.r + r * .3 && f.y - f.r < yb && f.y > DROP_Y) yb = f.y - f.r;
-    for (let y = DROP_Y + r + 4; y < yb - 2; y += 9) R(ctx, x, y, 1, 5, 'rgba(200,255,230,.7)');
-    R(ctx, x - 5, 34, 10, 9, '#6a4a1a'); R(ctx, x - 4, 35, 8, 7, '#c8963a'); R(ctx, x - 4, 35, 8, 1, '#ffd870'); R(ctx, x - 2, 43, 4, 4, '#6a4a1a'); R(ctx, x - 1, 43, 2, 4, '#c8963a');
+    for (let y = DROP_Y + r + 4; y < yb - 2; y += 9) R(ctx, x, y, 1, 5, 'rgba(255,255,255,.9)');
+    R(ctx, x - 5, 34, 10, 9, '#e888b0'); R(ctx, x - 4, 35, 8, 7, '#ffffff'); R(ctx, x - 4, 38, 8, 2, '#ffb0d0'); R(ctx, x - 2, 43, 4, 4, '#e888b0'); R(ctx, x - 1, 43, 2, 4, '#ffffff');
     const sc = dropCd > 0 ? 1 - dropCd * .9 : 1; drawSlime(ctx, { t: held, x, y: DROP_Y, id: 0, sq: Math.sin(t * 4) * .04, pop: 0, boom: 0 }, t, x, BOX.bottom, sc);
   }
   for (const f of fruits){ let sc = 1; if (f.pop > 0) sc = 1 + Math.sin((0.2 - f.pop) / 0.2 * Math.PI) * 0.16; if (f.boom > 0) sc = 1 + (1.1 - f.boom) * 0.14 + Math.sin(t * 40) * 0.03;
@@ -366,18 +360,18 @@ function draw(t){
   ctx.drawImage(FRONT, 0, 0);
   for (const r of rings){ const k = 1 - r.t / (r.big ? 0.5 : 0.3), rad = r.r + k * (r.big ? 70 : 14); ctx.globalAlpha = r.t * 2.5; ctx.strokeStyle = r.col; ctx.lineWidth = r.big ? 3 : 1; ctx.beginPath(); ctx.arc(r.x, r.y, rad, 0, 6.283); ctx.stroke(); ctx.globalAlpha = 1; }
   for (const p of parts){ ctx.globalAlpha = clamp(p.life * 2, 0, 1); if (p.s >= 3){ disc(ctx, p.x, p.y, Math.round(p.s / 2), p.col); R(ctx, p.x - 1, p.y - 1, 1, 1, 'rgba(255,255,255,.8)'); } else R(ctx, p.x, p.y, p.s, p.s, p.col); } ctx.globalAlpha = 1;
-  for (const f of floats){ ctx.globalAlpha = Math.min(1, f.t * 2); txt(ctx, f.s, f.x, f.y, f.col, 6, 'center', '#1a1430'); } ctx.globalAlpha = 1;
+  for (const f of floats){ ctx.globalAlpha = Math.min(1, f.t * 2); txt(ctx, f.s, f.x, f.y, f.col, 6, 'center', '#b84a7a'); } ctx.globalAlpha = 1;
   ctx.restore();
   // HUD
-  panel(ctx, 6, 6, 52, 24); txt(ctx, 'NEXT', 10, 15, '#c8b8ff', 5); drawSlime(ctx, { t: next, x: 46, y: 18 - 0, id: 9, sq: 0, pop: 0, boom: 0 }, t, 46, 40, Math.min(1, 9 / FRUITS[next].r));
-  panel(ctx, 76, 13, 64, 22); R(ctx, 90, 3, 36, 10, '#8a6aff'); R(ctx, 91, 4, 34, 8, '#3a2a7a');
-  R(ctx, 94, 5, 5, 4, '#ffd84a'); R(ctx, 95, 9, 3, 2, '#c89a2a'); txt(ctx, String(Math.max(best, score)), 113, 5, '#ffd84a', 5, 'center');
-  txt(ctx, String(score), 108, 20, '#7affb0', 8, 'center');
-  panel(ctx, 158, 6, 52, 24); txt(ctx, 'КОРОЛИ', 184, 10, '#c8b8ff', 4, 'center'); txt(ctx, String(booms), 184, 18, '#ffd84a', 7, 'center');
+  panel(ctx, 6, 6, 52, 24); txt(ctx, 'NEXT', 10, 15, '#b84a7a', 5); drawSlime(ctx, { t: next, x: 46, y: 18 - 0, id: 9, sq: 0, pop: 0, boom: 0 }, t, 46, 40, Math.min(1, 9 / FRUITS[next].r));
+  panel(ctx, 76, 13, 64, 22); R(ctx, 90, 3, 36, 10, '#ff9ac0'); R(ctx, 91, 4, 34, 8, '#ffb8d4');
+  R(ctx, 94, 5, 5, 4, '#ffd84a'); R(ctx, 95, 9, 3, 2, '#c89a2a'); txt(ctx, String(Math.max(best, score)), 113, 5, '#ffffff', 5, 'center');
+  txt(ctx, String(score), 108, 20, '#d85a8a', 8, 'center');
+  panel(ctx, 158, 6, 52, 24); txt(ctx, 'КОРОЛИ', 184, 10, '#b84a7a', 4, 'center'); txt(ctx, String(booms), 184, 18, '#c080f0', 7, 'center');
   // цепочка эволюции
   const cy = 362; panel(ctx, 4, cy - 13, W - 8, 25);
-  for (let i = 0; i < FRUITS.length; i++){ const x = 14 + i * 20.8; drawSlime(ctx, { t: i, x, y: cy, id: i, sq: 0, pop: 0, boom: 0 }, t, x, cy - 30, Math.min(1, 8 / FRUITS[i].r)); if (i > maxType && state === 'play'){ ctx.globalAlpha = .6; disc(ctx, x, cy, 9, '#1e1838'); ctx.globalAlpha = 1; } }
-  if (danger > 0.2 && state === 'play'){ ctx.globalAlpha = Math.min(1, danger) * (0.6 + 0.4 * Math.sin(t * 12)); txt(ctx, 'КОЛБА ПЕРЕПОЛНЕНА!', 108, 66, '#ff3a6a', 6, 'center', '#ffffff'); ctx.globalAlpha = 1; }
+  for (let i = 0; i < FRUITS.length; i++){ const x = 14 + i * 20.8; drawSlime(ctx, { t: i, x, y: cy, id: i, sq: 0, pop: 0, boom: 0 }, t, x, cy - 30, Math.min(1, 8 / FRUITS[i].r)); if (i > maxType && state === 'play'){ ctx.globalAlpha = .65; disc(ctx, x, cy, 9, '#fffaf4'); ctx.globalAlpha = 1; } }
+  if (danger > 0.2 && state === 'play'){ ctx.globalAlpha = Math.min(1, danger) * (0.6 + 0.4 * Math.sin(t * 12)); txt(ctx, 'БАНКА ПЕРЕПОЛНЕНА!', 108, 66, '#ff3a6a', 6, 'center', '#ffffff'); ctx.globalAlpha = 1; }
 }
 
 // ================= МАСШТАБ, МЕНЮ, РЕЙТИНГ =================
@@ -386,7 +380,7 @@ function fit(){
   const aw = innerWidth - (big ? 32 : 0), ah = innerHeight - (big ? 24 : 0);
   let s = Math.min(aw / W, ah / H); if (big && s >= 2) s = Math.floor(s);
   wrap.style.width = W*s + 'px'; wrap.style.height = H*s + 'px'; document.documentElement.style.setProperty('--u', (s * 0.85) + 'px');
-  document.body.style.background = big ? '' : '#241e48';
+  document.body.style.background = big ? '' : '#f0cce6';
 }
 addEventListener('resize', fit); fit();
 let FRIENDS = [], BOARD = [];
@@ -417,7 +411,7 @@ function finish(){
   if (state !== 'play') return; state = 'over'; SAVED = null; Hub.clearRun();
   const rec = score > best; if (rec) best = score;
   Hub.submitRun({ score, duration: Math.round(playT) }).then(() => loadSocial());
-  $('overTitle').textContent = rec && score > 0 ? 'НОВЫЙ РЕКОРД!' : 'КОЛБА ПОЛНА';
+  $('overTitle').textContent = rec && score > 0 ? 'НОВЫЙ РЕКОРД!' : 'БАНКА ПОЛНА';
   $('res').innerHTML = `СЧЁТ ${score}<br>СЛИЯНИЙ ${merges}<br>КОРОЛЕЙ ${booms}<br>ЛУЧШИЙ: ${FRUITS[maxType].name}<br>РЕКОРД ${best}`;
   $('over').hidden = false; setHome(true); refreshMenu();
 }
@@ -432,7 +426,7 @@ function showCont(){ $('contBtn').hidden = !SAVED; if (SAVED) $('contBtn').textC
 $('contBtn').onclick = resume; $('startBtn').onclick = startNew; $('againBtn').onclick = startNew; $('menuBtn').onclick = toMenu;
 document.addEventListener('visibilitychange', () => { pointerDown = false; for (const k in keys) keys[k] = false; });
 
-// витрина в меню: несколько слаймов на дне колбы
+// витрина в меню: несколько слаймиков на дне банки
 newGame(); [[2, 40], [4, 80], [6, 130], [3, 180], [1, 196], [5, 30]].forEach(([t, x]) => addFruit(t, x, BOX.bottom - 40));
 for (let i = 0; i < 400; i++) step(1 / 120);
 refreshMenu(); requestAnimationFrame(frame);
