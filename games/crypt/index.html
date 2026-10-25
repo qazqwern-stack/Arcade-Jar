@@ -70,6 +70,7 @@ h2{font-size:calc(var(--u)*8)}
       <h1>GUN<br>CRYPT</h1>
       <div class="sub">3 этажа подземелья, босс на каждом.<br>Зачищай комнаты, открывай сундуки,<br>катайся сквозь пули.</div>
       <div class="score" id="mBest">РЕКОРД 0</div>
+      <button class="go alt" id="contBtn" type="button" hidden>ПРОДОЛЖИТЬ</button>
       <button class="go" id="startBtn" type="button">В КРИПТУ</button>
       <div class="sub">Одна жизнь: погиб — всё найденное<br>оружие пропадает</div>
     </div>
@@ -366,8 +367,12 @@ function newRun(){
   floorN = 0; score = 0; kills = 0; runT = 0; winAt = 0; startFloor();
 }
 function makeGun(id){ const w = WEAPONS[id]; return { id, mag: w.clip, ammo: w.ammo === Infinity ? Infinity : Math.round(w.ammo * (P ? P.ammoMul : 1)) }; }
+// контрольная точка в начале каждого этажа — с неё продолжаем после выхода из приложения
+let CK = null;
+function makeCheckpoint(){ CK = { floorN, score, kills, runT: Math.round(runT), hp: P.hp, maxHp: P.maxHp, gi: P.gi, items: P.items.slice(),
+  guns: P.guns.map(g => ({ id: g.id, mag: g.mag, ammo: g.ammo === Infinity ? -1 : g.ammo })), mul: [P.dmgMul, P.speedMul, P.reloadMul, P.ammoMul, P.magnet ? 1 : 0] }; }
 function startFloor(){
-  map = genFloor(floorN); hatch = null;
+  map = genFloor(floorN); hatch = null; makeCheckpoint();
   enterRoom(map.rooms.get(map.key(2, 2)), null);
   banner = { text: `ЭТАЖ ${floorN + 1}: ${THEMES[floorN].name}`, sub: 'Найди босса этажа', t: 2.6 };
 }
@@ -907,6 +912,7 @@ function frame(ms){ const t = ms / 1000, dt = last ? Math.min((ms - last) / 1000
 function resetInput(){ ptrs.clear(); input.mx = input.my = 0; input.fire = false; input.auto = false; input.mouseDown = false; for (const k in input.keys) input.keys[k] = false; }
 function start(){ closeSheets(); roomCache.clear(); newRun(); state = 'play'; $('menu').hidden = true; $('over').hidden = true; setHome(false); resetInput(); last = 0; }
 function finish(won){
+  SAVED = null; CK = null; Hub.clearRun();
   state = 'over'; resetInput();
   const rec = score > best; if (rec) best = score;
   Hub.submitRun({ score, duration: Math.round(runT) }).then(() => loadSocial());
@@ -916,15 +922,24 @@ function finish(won){
 }
 function die(){ if (state !== 'play') return; for (let i = 0; i < 30; i++) parts.push({ x: P.x, y: P.y, vx: rand(-80, 80), vy: rand(-80, 80), life: 0.8, col: pick(['#ff8a2a','#2a5a8a','#f2c29a']) }); finish(false); }
 function win(){ if (state !== 'play') return; score += 2000; finish(true); }
-function toMenu(){ state = 'menu'; $('over').hidden = true; $('menu').hidden = false; setHome(true); }
-$('startBtn').onclick = start; $('againBtn').onclick = start; $('menuBtn').onclick = toMenu;
+function toMenu(){ state = 'menu'; showCont(); $('over').hidden = true; $('menu').hidden = false; setHome(true); }
+let SAVED = null;
+Hub.autosave(() => state === 'play' ? CK : null);
+function resume(){ const s = SAVED; if (!s) return start(); SAVED = null; closeSheets(); roomCache.clear(); newRun();
+  Object.assign(P, { hp: s.hp, maxHp: s.maxHp, items: s.items || [], guns: s.guns.map(g => ({ id: g.id, mag: g.mag, ammo: g.ammo < 0 ? Infinity : g.ammo })), gi: Math.min(s.gi || 0, s.guns.length - 1),
+    dmgMul: s.mul[0], speedMul: s.mul[1], reloadMul: s.mul[2], ammoMul: s.mul[3], magnet: !!s.mul[4] });
+  floorN = s.floorN; score = s.score; kills = s.kills; runT = s.runT; startFloor();
+  state = 'play'; $('menu').hidden = true; $('over').hidden = true; setHome(false); resetInput(); last = 0; }
+function showCont(){ $('contBtn').hidden = !SAVED; if (SAVED) $('contBtn').textContent = `ПРОДОЛЖИТЬ · ЭТАЖ ${SAVED.floorN + 1}`; }
+$('contBtn').onclick = resume;
+$('startBtn').onclick = () => { SAVED = null; showCont(); start(); }; $('againBtn').onclick = start; $('menuBtn').onclick = toMenu;
 document.addEventListener('visibilitychange', () => { if (document.hidden) resetInput(); });
 
 // витрина в меню: пустая комната первого этажа
 P = { x: 100, y: 150, guns: [{ id: 'pistol', mag: 8, ammo: Infinity }], gi: 0, hp: 6, maxHp: 6, aim: 0, face: 1, roll: 0, inv: 0, step: 0, rollCd: 0, reloadT: 0, items: [] };
 map = genFloor(0); room = map.rooms.get(map.key(2, 2)); room.seen = true;
 refreshMenu(); requestAnimationFrame(frame);
-Hub.init(GAME_ID).then(r => { USER = r.user || USER; best = r.best || 0; refreshMenu(); loadSocial(); });
+Hub.init(GAME_ID).then(r => { USER = r.user || USER; best = r.best || 0; SAVED = (r.data && r.data.run) || null; showCont(); refreshMenu(); loadSocial(); });
 </script>
 </body>
 </html>

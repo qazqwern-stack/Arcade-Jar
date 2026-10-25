@@ -71,6 +71,7 @@ h2{font-size:calc(var(--u)*8)}
       <h1>NOVA<br>STRIKE</h1>
       <div class="sub">Сбивай врагов, береги щит.<br>Боссы прилетают по одному.</div>
       <div class="score" id="mBest">РЕКОРД 0</div>
+      <button class="go alt" id="contBtn" type="button" hidden>ПРОДОЛЖИТЬ</button>
       <button class="go" id="startBtn" type="button">В БОЙ</button>
       <div class="sub">Джойстик — поворот<br>Справа — лазер и ракета</div>
     </div>
@@ -595,19 +596,27 @@ function frame(ms){
 }
 function start(){ closeSheets(); reset(); state = 'play'; $('menu').hidden = true; $('over').hidden = true; setHome(false); last = 0; input.jx = input.jy = 0; ptrs.clear(); syncFire(); }
 function die(){
-  if (state !== 'play') return; state = 'over'; burst({ x:0, y:0, z:3 }, '#ff6a3a', 30); ptrs.clear(); input.jx = input.jy = 0; syncFire();
+  if (state !== 'play') return; state = 'over'; SAVED = null; Hub.clearRun(); burst({ x:0, y:0, z:3 }, '#ff6a3a', 30); ptrs.clear(); input.jx = input.jy = 0; syncFire();
   const rec = score > best; if (rec) best = score;
   Hub.submitRun({ score, duration: Math.round(sessionT) }).then(() => loadSocial());
   $('overTitle').textContent = rec && score > 0 ? 'НОВЫЙ РЕКОРД!' : 'КОРАБЛЬ ПОДБИТ';
   $('res').innerHTML = `СЧЁТ ${score}<br>СБИТО ${kills}<br>БОССОВ ${bossKills}<br>ЛУЧШЕЕ ${best}`;
   $('over').hidden = false; setHome(true); refreshMenu();
 }
-function toMenu(){ state = 'menu'; reset(); $('over').hidden = true; $('menu').hidden = false; setHome(true); }
-$('startBtn').onclick = start; $('againBtn').onclick = start; $('menuBtn').onclick = toMenu;
+function toMenu(){ state = 'menu'; reset(); showCont(); $('over').hidden = true; $('menu').hidden = false; setHome(true); }
+// ---- продолжение забега после выхода из приложения
+let SAVED = null;
+Hub.autosave(() => state === 'play' ? { score, kills, bossKills, bossIdx, nextBossAt: boss ? kills : nextBossAt, t: Math.round(sessionT), sh: Math.round(ship.shield), hu: Math.round(ship.hull) } : null);
+function resume(){ const s = SAVED; if (!s) return start(); start(); SAVED = null;
+  score = s.score; kills = s.kills; bossKills = s.bossKills; bossIdx = s.bossIdx; nextBossAt = s.nextBossAt; sessionT = s.t || 0; ship.shield = s.sh; ship.hull = Math.max(1, s.hu);
+  banner = { text:'ПРОДОЛЖАЕМ', sub:`СЧЁТ ${score}`, t:2 }; }
+function showCont(){ $('contBtn').hidden = !SAVED; if (SAVED) $('contBtn').textContent = `ПРОДОЛЖИТЬ · ${SAVED.score}`; }
+$('contBtn').onclick = resume;
+$('startBtn').onclick = () => { SAVED = null; showCont(); start(); }; $('againBtn').onclick = start; $('menuBtn').onclick = toMenu;
 document.addEventListener('visibilitychange', () => { if (document.hidden){ input.jx = input.jy = 0; ptrs.clear(); syncFire(); for (const k in input.keys) input.keys[k] = false; } });
 
 reset(); refreshMenu(); requestAnimationFrame(frame);
-Hub.init(GAME_ID).then(r => { USER = r.user || USER; best = r.best || 0; refreshMenu(); loadSocial(); });
+Hub.init(GAME_ID).then(r => { USER = r.user || USER; best = r.best || 0; SAVED = (r.data && r.data.run) || null; showCont(); refreshMenu(); loadSocial(); });
 </script>
 </body>
 </html>

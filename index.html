@@ -281,7 +281,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[<>&"]/g, '');
 const ARROW = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
 
-const GENRES = { all:'Все', platform:'Платформеры', novel:'Новеллы', puzzle:'Головоломки', arcade:'Аркады' };
+const GENRES = { all:'Все', platform:'Платформеры', puzzle:'Головоломки', arcade:'Аркады' };
 const GAMES = [
   { id:'skyhoop', title:'SKYHOOP', genre:'platform', status:'live', src:'games/skyhoop/index.html',
     blurb:'Прыгай всё выше, собирай монеты и открывай 23 фона и 42 героя.' },
@@ -295,7 +295,8 @@ const GAMES = [
     blurb:'Дуэль с механическим крупье: боевые и холостые патроны, расчёт и предметы.' },
   { id:'crypt', title:'GUN CRYPT', genre:'arcade', status:'live', src:'games/crypt/index.html',
     blurb:'Подземелье из 3 этажей: 16 пушек из сундуков, перекаты сквозь пули и босс на каждом этаже.' },
-  { id:'novel', title:'Последний звонок', genre:'novel', status:'soon', blurb:'История про выпускной. Твои выборы решают финал.' },
+  { id:'grill', title:'GRILL RUSH', genre:'arcade', status:'live', src:'games/grill/index.html',
+    blurb:'Закусочная в час пик: жарь котлеты и картошку, наливай колу и успей накормить всех гостей.' },
   { id:'words', title:'Слова из слова', genre:'puzzle', status:'live', src:'games/words/index.html',
     blurb:'Собирай слова из букв длинного слова. 166 уровней и подсказки.' },
   { id:'gems', title:'Пиксельные самоцветы', genre:'puzzle', status:'soon', blurb:'Три в ряд с ежедневными испытаниями.' },
@@ -304,7 +305,7 @@ const GAMES = [
 // Витринные разделы: какие жанры показать крупными карточками и какие обложки положить в них
 const PROMOS = [
   { title:'Аркады и платформеры', text:'Быстрые забеги, рекорды и соревнования с друзьями', genres:['platform','arcade'], art:['skyhoop','pixelrun'], glow:'rgba(77,107,255,.42)' },
-  { title:'Сюжеты и головоломки', text:'Истории с выбором и задачки на каждый день', genres:['novel','puzzle'], art:['words','novel'], glow:'rgba(150,90,255,.38)' },
+  { title:'Головоломки и дуэли', text:'Слова, расчёт и нервы — задачки на каждый день', genres:['puzzle'], art:['words','shell'], glow:'rgba(150,90,255,.38)' },
 ];
 const backends = {};
 const backend = id => backends[id] || (backends[id] = new HubBackend(id, { tg:TG, user:USER }));
@@ -312,6 +313,110 @@ const backend = id => backends[id] || (backends[id] = new HubBackend(id, { tg:TG
 // ---------- обложки игр: у каждой свой стиль (пиксель-арт на canvas) ----------
 const FROG = ["..kk....kk..",".kwwk..kwwk.",".kwbkkkkwbk.","kggggggggggk","kglggggggggk","kgggkkkkgggk","kggggggggggk",".kgllllllgk.",".kgllllllgk.","..kggkkggk..",".kggk..kggk.",".kkk....kkk."];
 function sprite(g, rows, pal, x, y){ rows.forEach((r,j) => [...r].forEach((ch,i) => { if (pal[ch]){ g.fillStyle = pal[ch]; g.fillRect(x+i, y+j, 1, 1); } })); }
+// ---- яркие обложки (масштабируются под любой размер карточки)
+const cR = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), Math.max(1, Math.round(w)), Math.max(1, Math.round(h))); };
+const cDisc = (g, cx, cy, r, c) => { g.fillStyle = c; r = Math.max(1, Math.round(r)); cx = Math.round(cx); cy = Math.round(cy); for (let dy = -r; dy <= r; dy++){ const hw = Math.floor(Math.sqrt(r * r - dy * dy + r * 0.5)); g.fillRect(cx - hw, cy + dy, hw * 2 + 1, 1); } };
+const cOval = (g, cx, cy, rx, ry, c) => { g.fillStyle = c; ry = Math.max(1, Math.round(ry)); for (let dy = -ry; dy <= ry; dy++){ const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy / (ry + .5)) ** 2))); g.fillRect(Math.round(cx - hw), Math.round(cy + dy), hw * 2 + 1, 1); } };
+function cSparkle(g, x, y, s, c){ cR(g, x - s, y, s * 2 + 1, 1, c); cR(g, x, y - s, 1, s * 2 + 1, c); }
+function coverGrill(g, w, h){
+  cR(g, 0, 0, w, h, '#8e96e6'); const t = Math.max(6, Math.round(Math.min(w, h) / 8));
+  for (let x = 0; x < w; x += t) cR(g, x, 0, 1, h, '#a9b0f4'); for (let y = 0; y < h; y += t) cR(g, 0, y, w, 1, '#a9b0f4');
+  const gr = g.createRadialGradient(w * .2, h * .15, 2, w * .2, h * .15, Math.max(w, h)); gr.addColorStop(0, 'rgba(255,190,225,.7)'); gr.addColorStop(1, 'rgba(255,190,225,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  const bw = Math.min(w * 0.84, h * 1.05), q = bw / 34, cx = w / 2, base = h * 0.5 + 11 * q, K = '#1a1838';
+  // доска
+  cR(g, cx - 19 * q, base, 38 * q, 3 * q, K); cR(g, cx - 18 * q, base, 36 * q, 2 * q, '#f07a2a'); cR(g, cx - 18 * q, base, 36 * q, q * .6, '#ffa860');
+  const layer = (y, hh, ww, col, hi) => { cR(g, cx - ww / 2 - 1, y - 1, ww + 2, hh + 2, K); cR(g, cx - ww / 2, y, ww, hh, col); if (hi) cR(g, cx - ww / 2, y, ww, Math.max(1, q * .7), hi); };
+  layer(base - 4 * q, 4 * q, 30 * q, '#d8903e', '#f0b860'); cR(g, cx - 14 * q, base - q, 28 * q, q, '#a86424');
+  layer(base - 9 * q, 5 * q, 33 * q, '#6a3418', '#8a4a24'); for (let i = -14; i < 14; i += 4) cR(g, cx + i * q, base - 7 * q, q, q, '#4a2410');
+  layer(base - 11 * q, 2 * q, 35 * q, '#ffd84a', '#fff08a'); for (const dx of [-10, -3, 6, 12]) cR(g, cx + dx * q, base - 9 * q, 2 * q, 2 * q, '#ffd84a');
+  layer(base - 13.5 * q, 2.5 * q, 31 * q, '#e83a3a', '#ff7a6a');
+  for (let i = -17; i < 17; i++){ const bump = (i % 2 ? 0 : 1) * q; cR(g, cx + i * q, base - 16 * q - bump, q, 3 * q + bump, i % 3 ? '#5ac83a' : '#8ae85a'); } cR(g, cx - 17 * q, base - 13.5 * q, 34 * q, q * .6, '#3a9a2a');
+  // верхняя булка-купол
+  const top = base - 16 * q, domeH = 11 * q;
+  for (let y = 0; y < domeH; y++){ const k = y / domeH, ww = 32 * q * Math.sqrt(1 - (1 - k) ** 2 * 0.85); cR(g, cx - ww / 2 - 1, top - domeH + y - 1, ww + 2, 2, K); }
+  for (let y = 0; y < domeH; y++){ const k = y / domeH, ww = 32 * q * Math.sqrt(1 - (1 - k) ** 2 * 0.85); cR(g, cx - ww / 2, top - domeH + y, ww, 1, k < .35 ? '#e8a04a' : '#d8903e'); }
+  cOval(g, cx - 7 * q, top - domeH * 0.7, 6 * q, 2 * q, '#f8c870');
+  for (const [dx, dy] of [[-9, -7], [-3, -9], [4, -8], [10, -6], [-6, -4], [1, -5], [7, -3], [-11, -3]]) cR(g, cx + dx * q, top + dy * q, 1.5 * q, q, '#fff4d0');
+  cSparkle(g, w * .14, h * .2, Math.max(2, q * 2), '#ffffff'); cSparkle(g, w * .86, h * .3, Math.max(2, q * 1.5), '#fff4b0'); cSparkle(g, w * .8, h * .82, Math.max(1, q), '#ffffff');
+}
+function shotgunImg(L){
+  const H = Math.max(6, Math.round(L * 0.12)), [c, g] = (() => { const c = document.createElement('canvas'); c.width = L; c.height = H + 2; return [c, c.getContext('2d')]; })(), K = '#1a1014';
+  const u = L / 60;
+  // приклад
+  g.fillStyle = K; g.beginPath(); g.moveTo(0, H * .35); g.lineTo(18 * u, H * .2); g.lineTo(18 * u, H * .85); g.lineTo(2 * u, H + 1); g.closePath(); g.fill();
+  g.fillStyle = '#b8642a'; g.beginPath(); g.moveTo(1, H * .4); g.lineTo(17 * u, H * .28); g.lineTo(17 * u, H * .78); g.lineTo(2.5 * u, H * .95); g.closePath(); g.fill();
+  cR(g, 2 * u, H * .42, 14 * u, H * .12, '#e8944a');
+  // коробка
+  cR(g, 17 * u, H * .12, 11 * u, H * .62, K); cR(g, 18 * u, H * .18, 9 * u, H * .5, '#5a5e78'); cR(g, 18 * u, H * .18, 9 * u, H * .12, '#a8acc8'); cR(g, 21 * u, H * .34, 4 * u, H * .12, '#ffd84a');
+  // ствол и магазин
+  cR(g, 28 * u, H * .12, 32 * u, H * .3, K); cR(g, 28 * u, H * .16, 31 * u, H * .2, '#7a7e98'); cR(g, 28 * u, H * .16, 31 * u, H * .07, '#d8dcf0');
+  cR(g, 28 * u, H * .42, 27 * u, H * .22, K); cR(g, 28 * u, H * .45, 26 * u, H * .14, '#5a5e78');
+  // цевьё
+  cR(g, 33 * u, H * .36, 14 * u, H * .42, K); cR(g, 34 * u, H * .4, 12 * u, H * .32, '#b8642a'); for (let x = 35; x < 46; x += 3) cR(g, x * u, H * .44, u, H * .24, '#7a3a14');
+  cR(g, 58 * u, H * .02, 2 * u, H * .14, '#ffffff');
+  return c;
+}
+function coverShell(g, w, h){
+  const cx = w / 2, cy = h * 0.46;
+  cR(g, 0, 0, w, h, '#ffc23a');
+  for (let i = 0; i < 16; i++){ if (i % 2) continue; const a1 = i / 16 * Math.PI * 2, a2 = (i + 1) / 16 * Math.PI * 2, R = Math.max(w, h);
+    g.fillStyle = '#ff7a2a'; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a1) * R, cy + Math.sin(a1) * R); g.lineTo(cx + Math.cos(a2) * R, cy + Math.sin(a2) * R); g.fill(); }
+  const gr = g.createRadialGradient(cx, cy, 2, cx, cy, Math.max(w, h) * .7); gr.addColorStop(0, 'rgba(255,255,220,.6)'); gr.addColorStop(.5, 'rgba(255,255,220,0)'); gr.addColorStop(1, 'rgba(160,20,40,.45)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  const L = Math.round(Math.min(w * 1.05, h * 1.25)), img = shotgunImg(L);
+  g.imageSmoothingEnabled = false;
+  for (const s of [1, -1]){ g.save(); g.translate(cx, cy); g.rotate(s * 0.62); if (s < 0) g.scale(-1, 1); g.drawImage(img, -L / 2, -img.height / 2); g.restore(); }
+  // патроны внизу
+  const sw = Math.max(3, Math.round(Math.min(w, h) / 14)), sh = sw * 2.2;
+  [[.2, '#e8302a'], [.34, '#3a6ad8'], [.66, '#e8302a'], [.8, '#3a6ad8']].forEach(([fx, col], i) => { const x = w * fx - sw / 2, y = h - sh - 3 - (i % 2) * 2;
+    cR(g, x - 1, y - 1, sw + 2, sh + 2, '#1a1014'); cR(g, x, y, sw, sh * .68, col); cR(g, x, y, sw * .3, sh * .68, 'rgba(255,255,255,.45)'); cR(g, x, y + sh * .68, sw, sh * .32, '#ffd84a'); });
+  cSparkle(g, w * .5, h * .14, Math.max(2, Math.round(h / 22)), '#ffffff');
+}
+function coverCrypt(g, w, h){
+  // яркое подземелье: розово-фиолетовый свет, бирюзовые плиты
+  for (let y = 0; y < h; y++){ const k = y / h; cR(g, 0, y, w, 1, k < .45 ? (y % 2 ? '#7a3ac8' : '#8040d0') : ((Math.floor(y / 6)) % 2 ? '#2ab8b0' : '#28aaa4')); }
+  const t = Math.max(6, Math.round(h / 8)); for (let x = 0; x < w; x += t) cR(g, x, h * .45, 1, h, '#1e8a86'); for (let y = Math.round(h * .45); y < h; y += t) cR(g, 0, y, w, 1, '#1e8a86');
+  for (let x = 0; x < w; x += t * 2){ cR(g, x, h * .3, t * 2 - 2, h * .15, '#5a2aa0'); cR(g, x, h * .3, t * 2 - 2, 2, '#a070f0'); }
+  cR(g, 0, h * .45 - 2, w, 3, '#2a1050');
+  const gr = g.createRadialGradient(w * .3, h * .55, 2, w * .3, h * .55, w * .8); gr.addColorStop(0, 'rgba(255,220,120,.45)'); gr.addColorStop(1, 'rgba(255,220,120,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  // герой в шляпе с пистолетом (пиксели 1×s)
+  const s = Math.max(1, Math.round(Math.min(w, h) / 30)), hx = Math.round(w * .3 - 8 * s), hy = Math.round(h * .62 - 11 * s);
+  const P = (x, y, ww, hh, c) => cR(g, hx + x * s, hy + y * s, ww * s, hh * s, c), K = '#140a1a';
+  P(4, 0, 8, 5, K); P(1, 3, 14, 4, K); P(3, 6, 10, 7, K); P(2, 11, 12, 8, K); P(4, 18, 3, 4, K); P(9, 18, 3, 4, K);
+  P(5, 1, 6, 3, '#7a4a2a'); P(5, 3, 6, 1, '#e83a3a'); P(2, 4, 12, 2, '#7a4a2a'); P(2, 4, 12, 1, '#a8703c'); P(4, 6, 8, 5, '#f2c29a'); P(6, 8, 1, 2, K); P(9, 8, 1, 2, K);
+  P(3, 11, 10, 2, '#ff8a2a'); P(3, 13, 10, 5, '#2f6aa0'); P(3, 13, 2, 5, '#4c8cc8'); P(3, 16, 10, 1, '#3a2414'); P(5, 18, 2, 3, '#2a2638'); P(9, 18, 2, 3, '#2a2638');
+  P(12, 13, 9, 3, K); P(13, 14, 7, 1, '#d0d4e0'); P(12, 15, 3, 3, '#8a5a2a');
+  cDisc(g, hx + 22 * s, hy + 14 * s, 2 * s, '#ffe08a');
+  // летящие в героя пули со шлейфами
+  const shots = [[.86, .34, '#ff3ad6'], [.95, .55, '#ffb03a'], [.78, .72, '#ff3ad6'], [.66, .5, '#ffe03a'], [.92, .86, '#7affb0'], [.58, .26, '#ffb03a']];
+  for (const [fx, fy, col] of shots){ const x = w * fx, y = h * fy, r = Math.max(2, Math.round(Math.min(w, h) / 20)), dx = w * .3 - x, dy = h * .6 - y, l = Math.hypot(dx, dy);
+    for (let k = 1; k <= 5; k++){ g.globalAlpha = .12 * (6 - k); cDisc(g, x - dx / l * k * r * 1.6, y - dy / l * k * r * 1.6, r, col); } g.globalAlpha = 1;
+    cDisc(g, x, y, r + 1, '#1a0a20'); cDisc(g, x, y, r, col); cDisc(g, x - r * .3, y - r * .3, Math.max(1, r * .4), '#ffffff'); }
+  // взрывающаяся бочка
+  const bx = w * .1, by = h * .86, br = Math.max(3, Math.round(h / 14)); cR(g, bx - br, by - br * 1.4, br * 2, br * 2.4, '#1a0a20'); cR(g, bx - br + 1, by - br * 1.4 + 1, br * 2 - 2, br * 2.4 - 2, '#e83a2a'); cR(g, bx - br / 2, by - br * .3, br, br * .6, '#ffd84a');
+  cSparkle(g, w * .48, h * .12, Math.max(2, Math.round(h / 20)), '#ffffff');
+}
+function coverNova(g, w, h){
+  for (let y = 0; y < h; y++) cR(g, 0, y, w, 1, `rgb(${Math.round(12 + y / h * 40)},${Math.round(10 + y / h * 14)},${Math.round(40 + y / h * 60)})`);
+  const neb = g.createRadialGradient(w * .75, h * .25, 2, w * .75, h * .25, w * .6); neb.addColorStop(0, 'rgba(255,90,200,.45)'); neb.addColorStop(1, 'rgba(255,90,200,0)'); g.fillStyle = neb; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 60; i++){ const x = (i * 53) % w, y = (i * 97 + 13) % h; cR(g, x, y, 1, 1, i % 6 ? '#8a90c0' : '#ffffff'); }
+  // планета с кольцом
+  const pr = Math.round(Math.min(w * .3, h * .4)), px = w * .3, py = h * .66;
+  const ringBack = () => { g.save(); g.translate(px, py); g.rotate(-0.3); g.strokeStyle = '#ffd8a0'; g.lineWidth = Math.max(2, pr * .08); g.beginPath(); g.ellipse(0, 0, pr * 1.6, pr * .38, 0, Math.PI, Math.PI * 2); g.stroke(); g.restore(); };
+  ringBack();
+  for (let dy = -pr; dy <= pr; dy++){ const hw = Math.floor(Math.sqrt(pr * pr - dy * dy)); for (let dx = -hw; dx <= hw; dx++){ const lit = (dx * -0.6 + dy * -0.7) / pr, band = Math.sin((dy / pr) * 7) > 0;
+    g.fillStyle = lit > .35 ? (band ? '#ffd0a0' : '#ffb880') : lit > -.25 ? (band ? '#f08a5a' : '#e0744a') : (band ? '#8a3a4a' : '#6a2a40'); g.fillRect(Math.round(px + dx), Math.round(py + dy), 1, 1); } }
+  g.save(); g.translate(px, py); g.rotate(-0.3); g.strokeStyle = '#fff0c8'; g.lineWidth = Math.max(2, pr * .08); g.beginPath(); g.ellipse(0, 0, pr * 1.6, pr * .38, 0, 0, Math.PI); g.stroke(); g.restore();
+  // корабль-истребитель (свой дизайн) с выхлопом
+  const s = Math.max(1, Math.round(Math.min(w, h) / 46)), sx = Math.round(w * .74), sy = Math.round(h * .4);
+  const S = (x, y, ww, hh, c) => cR(g, sx + x * s, sy + y * s, ww * s, hh * s, c);
+  for (let k = 1; k <= 6; k++){ g.globalAlpha = .14 * (7 - k); cDisc(g, sx - k * 3 * s, sy + 9 * s + k * 2 * s, (4 - k * .4) * s, '#ff9a3a'); } g.globalAlpha = 1;
+  S(-11, 3, 22, 5, '#140a1a'); S(-10, 4, 20, 3, '#c8ccd8'); S(-10, 4, 20, 1, '#ffffff'); S(-12, 2, 3, 7, '#e83a3a'); S(9, 2, 3, 7, '#e83a3a');
+  S(-3, -8, 6, 18, '#140a1a'); S(-2, -7, 4, 16, '#e8ecf4'); S(-2, -7, 1, 16, '#ffffff'); S(-1, -3, 2, 4, '#3a8ad8'); S(-1, -3, 1, 1, '#a8e0ff');
+  S(-2, 9, 4, 2, '#ffd84a'); S(-1, 11, 2, 2, '#ff8a2a');
+  // лазеры
+  g.fillStyle = '#5affe0'; for (const [ox, oy] of [[-11, 0], [11, 0]]){ for (let k = 0; k < 6; k++) g.fillRect(sx + ox * s, sy + oy * s - 6 * s - k * 4 * s, s, 2 * s); }
+  cSparkle(g, w * .9, h * .12, Math.max(2, Math.round(h / 22)), '#ffffff');
+}
 const COVERS = {
   skyhoop(g, w, h){ g.fillStyle = '#bfe3ff'; g.fillRect(0,0,w,h);
     const cl = (x,y) => { g.fillStyle='#9fd0f5'; g.fillRect(x,y+1,20,5); g.fillStyle='#fff'; g.fillRect(x+1,y+2,18,3); g.fillRect(x+4,y,10,2); };
@@ -343,33 +448,6 @@ const COVERS = {
     sprite(g, ["............","....kkkkk...","...kbbbbbk..","..kbbbbbwek.",".kbbbbbbbkoo",".kbbbbbbbkok",".kllllbbbkk.",".kllllllbk..","..kllllbk...","...kkkkk...."],
       {k:'#16121c', b:'#9a6a3a', l:'#f0dcc0', w:'#fff', e:'#16121c', o:'#ffb02e'}, 14, h*.42|0);
     g.fillStyle='#6a4422'; g.fillRect(16, (h*.42|0)+3, 4, 2); g.fillStyle='#6b4a10'; g.fillRect(w*.45+4|0,(h*.18+12)|0,5,6); g.fillStyle='#ffd84a'; g.fillRect(w*.45+5|0,(h*.18+13)|0,3,4); },
-  nova(g, w, h){ g.fillStyle = '#03040e'; g.fillRect(0,0,w,h);
-    for (let i=0;i<70;i++){ g.fillStyle = i%5 ? '#5a6080' : '#ffffff'; g.fillRect((i*37)%w, (i*53)%h, 1, 1); }
-    for (let dy=-22; dy<=22; dy++){ const hw = Math.floor(Math.sqrt(484-dy*dy)); for (let dx=-hw; dx<=hw; dx++){ const lit=(dx*-0.6+dy*-0.8)/22; g.fillStyle = lit>0.3?'#f0b878':lit>-0.3?'#b86a3a':'#4a2018'; g.fillRect(w-26+dx, 20+dy, 1, 1); } }
-    g.fillStyle='#e8d0b0'; for (let a=0;a<6.283;a+=0.02){ const x=Math.round(w-26+Math.cos(a)*36), y=Math.round(20+Math.sin(a)*6); if (Math.sin(a)>0) g.fillRect(x,y,1,1); }
-    const sx=w*0.42|0, sy=h*0.42|0; g.fillStyle='#5a2a0a'; g.beginPath(); g.moveTo(sx-16,sy-3); g.lineTo(sx,sy+3); g.lineTo(sx+16,sy-3); g.lineTo(sx+16,sy); g.lineTo(sx,sy+7); g.lineTo(sx-16,sy); g.fill();
-    g.fillStyle='#f0a030'; g.fillRect(sx-14,sy-2,28,2); g.fillStyle='#3a6aa8'; g.fillRect(sx-2,sy,4,3); g.fillStyle='#2affff'; g.fillRect(sx-16,sy-3,2,2); g.fillRect(sx+14,sy-3,2,2);
-    g.fillStyle='#5affe0'; g.fillRect(sx-1,sy-12,1,4); g.fillRect(sx-1,sy+12,1,4); g.fillRect(sx-12,sy+1,4,1); g.fillRect(sx+9,sy+1,4,1);
-    g.fillStyle='#1a2038'; g.beginPath(); g.moveTo(0,0); g.lineTo(10,0); g.lineTo(3,h-14); g.lineTo(0,h-10); g.fill(); g.beginPath(); g.moveTo(w,0); g.lineTo(w-10,0); g.lineTo(w-3,h-14); g.lineTo(w,h-10); g.fill();
-    g.fillStyle='#222a48'; g.fillRect(0,h-12,w,12); g.fillStyle='#e84a3a'; g.fillRect(w-16,h-10,8,8); g.fillStyle='#3a4878'; g.fillRect(6,h-10,8,8); g.fillStyle='#12304a'; g.fillRect(w/2-8|0,h-11,16,10); g.fillStyle='#ff4a4a'; g.fillRect(w/2-2|0,h-7,2,2); },
-  shell(g, w, h){ g.fillStyle = '#120c0a'; g.fillRect(0,0,w,h);
-    for (let y=0;y<h*0.45;y+=6) for (let x=-(y/6%2)*6;x<w;x+=12){ g.fillStyle='#24140e'; g.fillRect(x+1,y+1,10,4); }
-    g.fillStyle='#145032'; g.fillRect(0,h*0.55|0,w,h); g.fillStyle='#2a160c'; g.fillRect(0,h*0.52|0,w,4);
-    const x0=w/2|0, y0=h*0.22|0; g.fillStyle='#2a2234'; g.fillRect(x0-18,y0+10,36,h*0.3|0); g.fillStyle='#d8d0c0'; g.fillRect(x0-2,y0+12,4,8);
-    g.fillStyle='#a8822a'; g.beginPath(); g.arc(x0,y0+4,8,0,6.283); g.fill(); g.fillStyle='#ff3020'; g.fillRect(x0+2,y0+2,3,3); g.fillStyle='#0c0a10'; g.fillRect(x0-9,y0-5,18,2); g.fillRect(x0-6,y0-16,12,11);
-    const sx=(w/2-15)|0, sy=h*0.72|0; [1,1,0,1,0].forEach((l,i)=>{ g.fillStyle='#0c0806'; g.fillRect(sx+i*7,sy,6,11); g.fillStyle=l?'#d8302a':'#3a6ad8'; g.fillRect(sx+i*7+1,sy+1,4,7); g.fillStyle='#d8a83a'; g.fillRect(sx+i*7+1,sy+8,4,2); }); },
-  crypt(g, w, h){ g.fillStyle = '#24202e'; g.fillRect(0,0,w,h);
-    for (let y=0;y<h;y+=8) for (let x=0;x<w;x+=8){ g.fillStyle = (x+y)/8%2 ? '#2a2c3a' : '#262836'; g.fillRect(x,y,8,8); }
-    g.fillStyle='#4a4e6a'; g.fillRect(0,0,w,10); g.fillStyle='#6a6e90'; g.fillRect(0,0,w,2); g.fillStyle='#1a1c2a'; g.fillRect(0,10,w,2);
-    g.fillStyle='#ffd84a'; g.fillRect(14,3,2,4); g.fillRect(w-16,3,2,4);
-    const bx=w*0.68|0, by=h*0.36|0; g.fillStyle='#0c0a10'; g.beginPath(); g.arc(bx,by,15,0,6.283); g.fill(); g.fillStyle='#3ab84a'; g.beginPath(); g.arc(bx,by,14,0,6.283); g.fill();
-    g.fillStyle='#7ae88a'; g.beginPath(); g.arc(bx-4,by-4,7,0,6.283); g.fill(); g.fillStyle='#0c0a10'; g.fillRect(bx-6,by-1,3,4); g.fillRect(bx+4,by-1,3,4);
-    g.fillStyle='#ffd84a'; g.fillRect(bx-10,by-17,21,3); for (let i=-2;i<=2;i++) g.fillRect(bx+i*4-1,by-22+(i%2?2:0),3,6);
-    g.fillStyle='#ff5a5a'; [[0.3,0.3],[0.45,0.55],[0.55,0.25],[0.8,0.62],[0.62,0.7]].forEach(([a,b])=>{ g.fillRect(w*a|0,h*b|0,3,3); });
-    const hx=w*0.22|0, hy=h*0.62|0; g.fillStyle='#0c0a10'; g.fillRect(hx-1,hy-1,14,16); g.fillStyle='#5a3a22'; g.fillRect(hx-1,hy,14,3); g.fillStyle='#f2c29a'; g.fillRect(hx+2,hy+3,8,4);
-    g.fillStyle='#ff8a2a'; g.fillRect(hx+2,hy+7,8,2); g.fillStyle='#2a5a8a'; g.fillRect(hx+2,hy+9,8,4); g.fillStyle='#e83a8a'; g.fillRect(hx+11,hy+6,8,3); g.fillStyle='#3ae8ff'; g.fillRect(hx+19,hy+6,2,3);
-    g.fillStyle='#ff3ad6'; g.fillRect(hx+26,hy+2,1,5); g.fillRect(hx+24,hy+6,3,2); g.fillStyle='#ffe03a'; g.fillRect(hx+34,hy-3,1,5); g.fillRect(hx+32,hy+1,3,2);
-    g.fillStyle='#0c0a10'; g.fillRect(w*0.12|0,h*0.2|0,11,12); g.fillStyle='#c83a2a'; g.fillRect((w*0.12|0)+1,(h*0.2|0)+1,9,10); g.fillStyle='#ffd84a'; g.fillRect((w*0.12|0)+4,(h*0.2|0)+5,3,2); },
   novel(g, w, h){ for (let y=0;y<h;y++){ g.fillStyle = y < h*0.3 ? '#3a2a7a' : y < h*0.55 ? '#a85aa8' : '#ff9a8a'; g.fillRect(0,y,w,1); }
     g.fillStyle = '#2a1a3a'; g.fillRect(10, h*0.4|0, w-20, h); for (let x=16; x<w-16; x+=10){ g.fillStyle = '#ffd88a'; g.fillRect(x, (h*0.5|0), 4, 4); g.fillRect(x, (h*0.5|0)+9, 4, 4); }
     g.fillStyle = '#2a1a3a'; g.fillRect(w/2-6|0, (h*0.25|0), 12, 14); g.fillStyle='#ffd88a'; g.fillRect(w/2-2|0, (h*0.25|0)+4, 4, 4);
@@ -392,6 +470,7 @@ const COVERS = {
     for (const [x,y] of pts.slice(1)){ let guard = 200; while ((Math.abs(x-px) >= 3 || Math.abs(y-py) >= 3) && guard--){ g.fillRect(px, py, 3, 3); if (Math.abs(x-px) >= 3) px += Math.sign(x-px)*3; else if (Math.abs(y-py) >= 3) py += Math.sign(y-py)*3; } px = x; py = y; }
     g.fillRect(w-20, 44, 3, 3); },
 };
+Object.assign(COVERS, { grill: coverGrill, shell: coverShell, crypt: coverCrypt, nova: coverNova });
 function cover(id, w, h, cls){ const c = document.createElement('canvas'); c.width = w; c.height = h; c.className = 'cover' + (cls ? ' ' + cls : '');
   (COVERS[id] || COVERS.gems)(c.getContext('2d'), w, h); return c; }
 
