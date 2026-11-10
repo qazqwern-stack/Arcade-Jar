@@ -283,6 +283,8 @@ const ARROW = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke
 
 const GENRES = { all:'Все', platform:'Платформеры', puzzle:'Головоломки', arcade:'Аркады' };
 const GAMES = [
+  { id:'nightdrift', title:'NIGHT DRIFT', genre:'arcade', status:'live', src:'games/nightdrift/index.html',
+    blurb:'Сэндбординг в ночной пустыне: бэкфлипы, 4 биома, 180 целей и 6 путников. Zen — без счёта и падений.' },
   { id:'riftboots', title:'RIFT BOOTS', genre:'platform', status:'live', src:'games/riftboots/index.html',
     blurb:'Падай в кристальную шахту: стреляй ботинками, топчи врагов и собирай комбо. 4 зоны, 12 этажей и перки.' },
   { id:'skyhoop', title:'SKYHOOP', genre:'platform', status:'live', src:'games/skyhoop/index.html',
@@ -322,6 +324,26 @@ const cR = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Ma
 const cDisc = (g, cx, cy, r, c) => { g.fillStyle = c; r = Math.max(1, Math.round(r)); cx = Math.round(cx); cy = Math.round(cy); for (let dy = -r; dy <= r; dy++){ const hw = Math.floor(Math.sqrt(r * r - dy * dy + r * 0.5)); g.fillRect(cx - hw, cy + dy, hw * 2 + 1, 1); } };
 const cOval = (g, cx, cy, rx, ry, c) => { g.fillStyle = c; ry = Math.max(1, Math.round(ry)); for (let dy = -ry; dy <= ry; dy++){ const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy / (ry + .5)) ** 2))); g.fillRect(Math.round(cx - hw), Math.round(cy + dy), hw * 2 + 1, 1); } };
 function cSparkle(g, x, y, s, c){ cR(g, x - s, y, s * 2 + 1, 1, c); cR(g, x, y - s, 1, s * 2 + 1, c); }
+function coverNightDrift(g, w, h){
+  cR(g, 0, 0, w, h, '#141836'); cR(g, 0, h * .4, w, h * .6, '#4c285b');
+  const u = Math.min(w / 96, h / 64);
+  cDisc(g, w * .75, h * .25, 10 * u, '#ffc181');
+  cDisc(g, w * .72, h * .21, 9 * u, '#141836');
+  for (let i = 0; i < 15; i++) cR(g, (i * 37 % 94) * w / 96, (i * 17 % 30) * h / 64, u, u, '#c39dc6');
+  for (let layer = 0; layer < 3; layer++) for (let x = 0; x < w; x++){
+    const y = h * (.56 + layer * .16) + Math.sin(x / w * 5 + layer) * h * .12;
+    cR(g, x, y, 1, h - y, ['#65316c', '#984377', '#362246'][layer]);
+    if (layer === 2) cR(g, x, y, 1, u, '#d97eab');
+  }
+  const x = w * .43, y = h * .59;
+  cR(g, x - 8 * u, y, 19 * u, 2 * u, '#ffdda0');
+  cR(g, x - 3 * u, y - 7 * u, 3 * u, 7 * u, '#181b35');
+  cR(g, x + 3 * u, y - 7 * u, 3 * u, 7 * u, '#181b35');
+  cR(g, x - 4 * u, y - 17 * u, 10 * u, 11 * u, '#f2bd87');
+  cR(g, x - u, y - 23 * u, 6 * u, 7 * u, '#f3c6a1');
+  cR(g, x - 3 * u, y - 25 * u, 10 * u, 4 * u, '#25213e');
+  cR(g, x - 16 * u, y - 16 * u, 18 * u, 3 * u, '#e991c1');
+}
 function coverRiftBoots(g, w, h){
   cR(g, 0, 0, w, h, '#101c29');
   const u = Math.min(w / 96, h / 64);
@@ -526,7 +548,7 @@ const COVERS = {
     for (const [x,y] of pts.slice(1)){ let guard = 200; while ((Math.abs(x-px) >= 3 || Math.abs(y-py) >= 3) && guard--){ g.fillRect(px, py, 3, 3); if (Math.abs(x-px) >= 3) px += Math.sign(x-px)*3; else if (Math.abs(y-py) >= 3) py += Math.sign(y-py)*3; } px = x; py = y; }
     g.fillRect(w-20, 44, 3, 3); },
 };
-Object.assign(COVERS, { riftboots: coverRiftBoots, fish: coverFish, grill: coverGrill, shell: coverShell, crypt: coverCrypt, nova: coverNova });
+Object.assign(COVERS, { nightdrift: coverNightDrift, riftboots: coverRiftBoots, fish: coverFish, grill: coverGrill, shell: coverShell, crypt: coverCrypt, nova: coverNova });
 function cover(id, w, h, cls){ const c = document.createElement('canvas'); c.width = w; c.height = h; c.className = 'cover' + (cls ? ' ' + cls : '');
   (COVERS[id] || COVERS.gems)(c.getContext('2d'), w, h); return c; }
 
