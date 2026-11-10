@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>RIFT BOOTS — Arcade Jar</title><meta name="theme-color" content="#0b1222"><script src="../../hub-sdk.js"></script><style>body{margin:0;background:#080e1a}button{-webkit-tap-highlight-color:transparent}</style></head><body>
+<div id="rift-boots" aria-label="Rift Boots — игровой прототип">
+  <div class="rb-machine">
+    <header><div><span class="rb-kicker">ARCADE JAR / RIFT BOOTS</span><h2>RIFT<span> BOOTS</span></h2></div><button class="rb-pause" aria-label="Пауза">Ⅱ</button></header>
+    <div class="rb-hud"><span class="rb-hp">♥ ♥ ♥ ♥</span><span class="rb-zone">МИЦЕЛИЙ · 1—1</span><span class="rb-gems">◆ 000</span></div>
+    <div class="rb-screen"><canvas width="288" height="384" aria-label="Колодец: двигайтесь стрелками, прыгайте и стреляйте пробелом">Игра со спуском в шахту</canvas><div class="rb-overlay"></div></div>
+    <div class="rb-status"><span class="rb-ammo">▰▰▰▰▰▰▰▰</span><span class="rb-depth">0000 м</span><span class="rb-combo">COMBO ×0</span></div>
+    <div class="rb-controls"><button data-key="left" aria-label="Влево">◀</button><button data-key="right" aria-label="Вправо">▶</button><button data-key="fire" class="rb-fire" aria-label="Прыжок на земле, выстрел в воздухе"><b>↑ / ↓</b><span>ПРЫЖОК / ОГОНЬ</span></button></div>
+    <footer><span>← → / A D · ПРОБЕЛ — ПРЫЖОК И ОГОНЬ</span><span class="rb-sound">8-BIT / 12 FLOORS</span></footer>
+  </div>
+</div>
+<style>
+#rift-boots{--ink:#0b1222;--panel:#131e32;--line:#2e4356;--mint:#87f4c5;--cream:#f8e8c8;--muted:#8eabb5;--coral:#ff7d81;font:14px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--cream);display:flex;justify-content:center;padding:12px 0 20px;user-select:none}
+#rift-boots *{box-sizing:border-box}#rift-boots .rb-machine{width:min(100%,432px);background:var(--ink);border:2px solid var(--line);box-shadow:6px 6px 0 #09101d;padding:16px}#rift-boots header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px}#rift-boots h2{font:900 27px/1.15 ui-monospace,monospace;letter-spacing:-1px;margin:4px 0 0;color:var(--cream)}#rift-boots h2 span{color:var(--mint)}#rift-boots .rb-kicker{font-size:10px;letter-spacing:1.3px;color:var(--muted)}#rift-boots button{font:inherit;color:var(--cream);border:2px solid var(--line);border-radius:0;background:var(--panel);cursor:pointer;touch-action:none;min-height:44px}#rift-boots button:hover{border-color:var(--mint)}#rift-boots button:active,#rift-boots button.rb-held{transform:translateY(2px);background:#284c4c}#rift-boots button:focus-visible{outline:2px solid var(--mint);outline-offset:3px}#rift-boots button:disabled{opacity:.4;cursor:default}#rift-boots .rb-pause{width:44px;flex-shrink:0}#rift-boots .rb-hud{display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-bottom:9px;gap:4px}#rift-boots .rb-hp{color:var(--coral);letter-spacing:1px}#rift-boots .rb-gems{color:var(--mint)}#rift-boots .rb-zone{color:var(--muted);font-size:10px}#rift-boots .rb-screen{position:relative;background:#101626;overflow:hidden}#rift-boots canvas{display:block;width:100%;height:auto;image-rendering:pixelated;touch-action:none}#rift-boots .rb-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:#0a1021bf}#rift-boots .rb-overlay[hidden]{display:none}#rift-boots .rb-dialog{width:100%;max-height:100%;overflow:auto;text-align:center;background:#101b2e;border:2px solid #456275;padding:20px 14px;box-shadow:4px 4px 0 #060d18}#rift-boots .rb-dialog h3{font-size:25px;letter-spacing:-1px;margin:3px 0 12px;color:var(--mint)}#rift-boots .rb-dialog p{font-size:12px;color:var(--muted);margin:10px 0}#rift-boots .rb-dialog .rb-eyebrow{font-size:10px;letter-spacing:2px;color:var(--coral);margin:0 0 8px}#rift-boots .rb-dialog button{width:100%;display:block;text-align:left;padding:10px 12px;margin-top:9px;min-height:44px}#rift-boots .rb-dialog button span{display:block;font-size:11px;color:var(--muted);margin-top:3px}#rift-boots .rb-dialog .rb-primary{background:var(--mint);border-color:var(--mint);color:var(--ink);font-weight:700;text-align:center}#rift-boots .rb-dialog .rb-quiet{border-color:transparent;text-align:center;color:var(--muted)}#rift-boots .rb-dialog .rb-row{display:flex;gap:7px}#rift-boots .rb-dialog .rb-row button{font-size:11px;text-align:center;padding:8px 3px}#rift-boots .rb-dialog .rb-row button[aria-pressed=true]{border-color:var(--mint);color:var(--mint)}#rift-boots .rb-status{display:flex;justify-content:space-between;align-items:center;padding:10px 0;font-size:11px;gap:4px}#rift-boots .rb-ammo{color:var(--mint);max-width:52%;overflow-wrap:anywhere;letter-spacing:1px}#rift-boots .rb-depth{color:var(--muted)}#rift-boots .rb-combo{color:#c6a4ff;white-space:nowrap}#rift-boots .rb-controls{display:grid;grid-template-columns:1fr 1fr 1.7fr;gap:10px}#rift-boots .rb-controls button{height:60px;font-size:24px;box-shadow:0 4px 0 #050a13}#rift-boots .rb-controls .rb-fire{background:#2d4f49;border-color:#5c9b88;font-size:18px}#rift-boots .rb-fire span{display:block;font-size:9px;letter-spacing:.2px}#rift-boots footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px;margin-top:15px;font-size:9px;letter-spacing:.2px;color:var(--muted)}#rift-boots .rb-sound{color:#5e7b88}@media(max-width:370px){#rift-boots .rb-machine{padding:10px}#rift-boots .rb-zone{font-size:9px}#rift-boots .rb-hp{letter-spacing:0}#rift-boots .rb-dialog{padding:12px 9px}#rift-boots .rb-dialog h3{font-size:22px}#rift-boots .rb-controls{gap:7px}}
+#rift-boots{padding:0;height:100dvh;min-height:460px;-webkit-user-select:none}
+#rift-boots .rb-machine{height:100%;display:flex;flex-direction:column;box-shadow:none;padding:12px;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(12px,env(safe-area-inset-bottom))}
+#rift-boots header{flex-shrink:0;margin-bottom:8px}#rift-boots .rb-kicker{font-size:9px}#rift-boots h2{font-size:24px}
+#rift-boots .rb-screen{flex:1;min-height:0;display:flex;justify-content:center}
+#rift-boots canvas{width:100%;height:100%;object-fit:contain}
+#rift-boots .rb-hud,#rift-boots .rb-status,#rift-boots .rb-controls,#rift-boots footer{flex-shrink:0}
+#rift-boots .rb-dialog{max-width:330px}#rift-boots .rb-dialog h3{font-size:21px}#rift-boots .rb-dialog p{font-size:11px;margin:8px 0}
+#rift-boots .rb-dialog button{padding:8px 10px;margin-top:6px}#rift-boots footer{margin-top:10px}
+</style>
+<script>
+(()=>{
+'use strict';
+const root=document.getElementById('rift-boots'),canvas=root.querySelector('canvas'),ctx=canvas.getContext('2d'),overlay=root.querySelector('.rb-overlay');
+const $=s=>root.querySelector(s),W=288,H=384,BOTTOM=2250,keys={left:false,right:false,fire:false};
+const zones=[{name:'МИЦЕЛИЙ',bg:'#101c29',wall:'#213746',edge:'#42606a',accent:'#87f4c5',detail:'#294855'},{name:'МЕДНЫЕ ЖИЛЫ',bg:'#201a29',wall:'#3d2a3f',edge:'#82536a',accent:'#ffca83',detail:'#593849'},{name:'ЛЕДЯНОЙ УЗЕЛ',bg:'#101c34',wall:'#233953',edge:'#496382',accent:'#9fe6ff',detail:'#2a4861'},{name:'СЕРДЦЕ РАЗЛОМА',bg:'#1d132e',wall:'#372344',edge:'#765581',accent:'#c9a4ff',detail:'#4b2e61'}];
+const palettes=[{name:'Мята',at:0},{name:'Янтарь',at:300},{name:'Лёд',at:1000},{name:'Ирис',at:2500}];
+const perks=[{id:'drone',name:'СПУТНИК',desc:'Дрон повторяет каждый выстрел.'},{id:'blast',name:'ЦЕПНАЯ РЕАКЦИЯ',desc:'Враги взрываются и задевают соседей.'},{id:'magnet',name:'МАГНИТ',desc:'Кристаллы тянутся с большого расстояния.'},{id:'heart',name:'ЗАПАСНОЕ СЕРДЦЕ',desc:'+1 максимум HP и полное лечение.'},{id:'clip',name:'ЁМКИЙ БАЛЛОН',desc:'+2 к максимальному боезапасу.'},{id:'float',name:'МЯГКИЙ СПУСК',desc:'Больше отдачи и медленнее падение.'},{id:'wide',name:'ШИРОКИЙ ЛУЧ',desc:'Пули шире и наносят больше урона.'},{id:'gem',name:'КРИСТАЛЛИЗАТОР',desc:'Враги оставляют на 50% больше гемов.'}];
+let mode='menu',player,platforms=[],enemies=[],gems=[],shots=[],particles=[],voids=[],crates=[],camera=0,level=0,totalGems=0,best=0,style='scout',palette=0,combo=0,rewarded=0,runGems=0,spent=0,perkSet=new Set(),high=0,gemChain=[],clock=0,fireCd=0,toast='',toastT=0,shake=0,previous=0,acc=0,seed=1,deepest=0,shop=null,seenVoids=new Set(),pauseFrom='play';
+let ready=false,savedRun=null,levelSeed=0,offered=[];
+const saved=null;
+if(saved&&saved.version===1){totalGems=+saved.totalGems||0;best=+saved.best||0;style=saved.style==='boulder'?'boulder':'scout';palette=Math.max(0,Math.min(3,Math.floor(+saved.palette||0)));}
+function profile(){return {version:1,totalGems,best,style,palette};}
+function remember(){
+  try{localStorage.setItem('riftboots_profile',JSON.stringify(profile()));}catch(e){}
+  if(ready)Hub.save({profile:profile(),run:snapshot()||savedRun||null}).catch(e=>console.warn('riftboots profile',e));
+}
+function discardRun(){savedRun=null;try{localStorage.removeItem('riftboots_run');}catch(e){}if(ready)Hub.clearRun().catch(e=>console.warn('riftboots clear',e));}
+function snapshot(){
+  const state=mode==='pause'?pauseFrom:mode;
+  if(!['play','shop','perk'].includes(state))return null;
+  const q=n=>Math.round(n*10)/10;
+  return {v:1,state,l:level,seed:levelSeed,rng:seed,meta:profile(),p:{...player},c:combo,r:rewarded,g:runGems,s:spent,t:q(clock),d:q(deepest),hi:q(high),
+    chain:gemChain.map(g=>[q(g.t),g.n]),perks:[...perkSet],offered,seen:[...seenVoids],
+    e:enemies.map(e=>[q(e.x),q(e.y),q(e.t),e.hp,e.dead?1:0]),cHP:crates.map(c=>c.hp),
+    gems:gems.map(g=>[q(g.x),q(g.y),g.value,q(g.vx),q(g.vy),g.born===undefined?null:q(g.born)])};
+}
+function checkpoint(){
+  const run=snapshot();if(!run)return;
+  try{localStorage.setItem('riftboots_run',JSON.stringify(run));}catch(e){}
+  remember();if(ready)Hub.checkpoint();
+}
+function validRun(s){
+  return !!(s&&s.v===1&&['play','shop','perk'].includes(s.state)&&Number.isInteger(s.l)&&s.l>=0&&s.l<12&&Number.isInteger(s.seed)&&s.p&&
+    ['x','y','w','h','vx','vy','hp','maxHp','ammo','maxAmmo','weapon'].every(k=>Number.isFinite(s.p[k]))&&s.p.hp>0&&s.p.maxHp<=32&&s.p.maxAmmo<=128&&
+    Array.isArray(s.e)&&s.e.length<=100&&s.e.every(e=>e.length===5&&e.every(Number.isFinite))&&Array.isArray(s.cHP)&&
+    Array.isArray(s.gems)&&s.gems.length<=600&&s.gems.every(g=>g.length===6&&g.slice(0,5).every(Number.isFinite))&&
+    Array.isArray(s.perks)&&s.perks.every(id=>perks.some(p=>p.id===id))&&Array.isArray(s.seen)&&Array.isArray(s.offered)&&(s.state!=='perk'||s.offered.length>0)&&
+    s.offered.every(id=>perks.some(p=>p.id===id))&&Array.isArray(s.chain)&&s.chain.every(g=>g.length===2&&g.every(Number.isFinite))&&
+    ['c','r','g','s','t','d','hi'].every(k=>Number.isFinite(s[k])));
+}
+function resumeRun(){
+  const s=savedRun;if(!validRun(s)){discardRun();start();return;}
+  level=s.l;seed=s.seed;generate();
+  if(s.e.length!==enemies.length||s.cHP.length!==crates.length){discardRun();start();return;}
+  seed=s.rng>>>0;style=s.meta?.style==='boulder'?'boulder':'scout';player={...s.p};combo=s.c;rewarded=s.r;runGems=s.g;spent=s.s;clock=s.t;deepest=s.d;high=s.hi;
+  gemChain=s.chain.map(([t,n])=>({t,n}));perkSet=new Set(s.perks);offered=s.offered;seenVoids=new Set(s.seen);
+  enemies.forEach((e,i)=>{const a=s.e[i];Object.assign(e,{x:a[0],y:a[1],t:a[2],hp:a[3],dead:!!a[4]});});
+  crates.forEach((c,i)=>c.hp=s.cHP[i]);gems=s.gems.map(([x,y,value,vx,vy,born])=>({x,y,w:5,h:7,value,vx,vy,...(born===null?{}:{born})}));
+  camera=Math.max(0,Math.min(BOTTOM-H+52,player.y-H*.34));fireCd=0;clearKeys();savedRun=null;mode=s.state;
+  if(mode==='shop'){shop=voids.find(v=>hit(player,v))||voids[0];shopDialog();}else if(mode==='perk')perkDialog();else{hide();say('СПУСК ПРОДОЛЖЕН');}
+}
+function perkDialog(){dialog('<p class="rb-eyebrow">ЭТАЖ ПРОЙДЕН</p><h3>ОДИН ПЕРК</h3>'+offered.map(id=>{const p=perks.find(p=>p.id===id);return '<button data-perk="'+p.id+'">'+p.name+'<span>'+p.desc+'</span></button>';}).join(''));}
+async function showBoard(){
+  mode='board';dialog('<h3>РЕЙТИНГ</h3><p>Загрузка…</p><button data-do="menu">НАЗАД</button>');
+  try{const rows=await Hub.leaderboard();if(mode!=='board')return;dialog('<h3>РЕЙТИНГ</h3><p>Самый глубокий спуск, метры</p><div class="rb-board"></div><button data-do="invite">ПОЗВАТЬ ДРУГА</button><button data-do="menu" class="rb-quiet">НАЗАД</button>');
+    const list=$('.rb-board');rows.forEach((r,i)=>{const el=document.createElement('p');el.textContent=(i+1)+'. '+r.n+' — '+r.s+' м';list.appendChild(el);});
+  }catch(e){if(mode==='board')dialog('<h3>НЕТ СВЯЗИ</h3><button data-do="menu">НАЗАД</button>');}
+}
+
+function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}const between=(a,b)=>a+rand()*(b-a),hit=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+function say(t){toast=t;toastT=2.4;}function clearKeys(){Object.keys(keys).forEach(k=>keys[k]=false);root.querySelectorAll('.rb-held').forEach(b=>b.classList.remove('rb-held'));}
+function dialog(html){clearKeys();overlay.hidden=false;overlay.innerHTML='<div class="rb-dialog">'+html+'</div>';}
+function hide(){overlay.hidden=true;overlay.innerHTML='';}
+function menu(){mode='menu';player={x:135,y:120,vx:0,vy:0,w:12,h:18,hp:4,maxHp:4,ammo:8,maxAmmo:8,ground:true,inv:0};level=0;seed=28391;generate();camera=0;dialog('<p class="rb-eyebrow">DEEP BELOW. STILL ALIVE.</p><h3>RIFT BOOTS</h3><p>Падай в живую шахту.<br>Топчи жуков. Лови отдачу.</p><div class="rb-row"><button data-style="scout" aria-pressed="'+(style==='scout')+'">ИСКАТЕЛЬ<span>4 HP · 3 перка</span></button><button data-style="boulder" aria-pressed="'+(style==='boulder')+'" '+(totalGems<500?'disabled':'')+'>ВАЛУН<span>'+(totalGems<500?'от 500 гемов':'6 HP · 2 перка')+'</span></button></div>'+(savedRun?'<button class="rb-primary" data-do="resumeRun">ПРОДОЛЖИТЬ СПУСК ↓</button>':'')+'<button class="rb-primary" data-do="start">НОВЫЙ СПУСК ↓</button><div class="rb-row"><button data-do="help">ПРАВИЛА</button><button data-do="board">РЕЙТИНГ</button></div><button data-do="exit" class="rb-quiet">В ХАБ</button><button data-do="palette" class="rb-quiet">ПАЛИТРА: '+palettes[palette].name.toUpperCase()+' ◇</button><p>Рекорд '+best+' м · Всего ◆ '+totalGems+'</p>');updateHud();}
+function generate(){
+levelSeed=seed;
+platforms=[{x:92,y:155,w:104,h:10,start:true},{x:20,y:BOTTOM,w:248,h:18,bottom:true}];enemies=[];gems=[];shots=[];particles=[];crates=[];seenVoids=new Set();
+voids=[{x:20,y:670,w:98,h:114,id:0},{x:170,y:1480,w:98,h:114,id:1}];
+for(const v of voids){platforms.push({x:v.x,y:v.y+92,w:v.w,h:10,voidId:v.id});for(let i=0;i<5;i++)gems.push({x:v.x+15+i*16,y:v.y+58,w:5,h:7,value:5,vx:0,vy:0});}
+for(let y=280;y<BOTTOM-90;y+=105){let side=rand()<.5,x=side?between(25,95):between(168,212),w=between(36,68);if(voids.some(v=>Math.abs(y-(v.y+70))<125))continue;
+platforms.push({x,y,w,h:8});if(rand()<.66)crates.push({x:x+w/2-7,y:y-15,w:14,h:15,hp:2});
+for(let j=0;j<2;j++){let ey=y+between(25,90),ex=between(45,235);if(voids.some(v=>ey>v.y-40&&ey<v.y+v.h+40))continue;let type=rand()<.23?'spike':rand()<.55?'bat':'beetle';enemies.push({x:ex,y:ey,baseX:ex,baseY:ey,w:16,h:14,hp:type==='spike'?2:1,type,t:between(0,6),dead:false});}
+gems.push({x:between(100,178),y:y+42,w:5,h:7,value:3,vx:0,vy:0});}
+camera=0;shop=null;}
+function start(){if(!ready)return;discardRun();offered=[];level=0;runGems=0;spent=0;combo=0;rewarded=0;deepest=0;clock=0;high=0;gemChain=[];perkSet=new Set();player={x:135,y:137,w:12,h:18,vx:0,vy:0,hp:style==='boulder'?6:4,maxHp:style==='boulder'?6:4,maxAmmo:8,ammo:8,inv:0,ground:true,weapon:1};seed=(Date.now()^0x9e3779b9)>>>0;generate();mode='play';hide();say('ПРОБЕЛ / ↑: ПРЫЖОК → ОГОНЬ');}
+function burst(x,y,col,n=10){for(let i=0;i<n;i++)particles.push({x,y,vx:between(-85,85),vy:between(-100,35),life:between(.2,.65),c:col});}
+function addGems(x,y,n){for(let i=0;i<n;i++)gems.push({x:x+between(-9,9),y:y+between(-5,5),w:5,h:7,value:3,vx:between(-30,30),vy:between(-90,-25),born:clock});}
+function kill(e){if(e.dead)return;e.dead=true;combo++;burst(e.x+8,e.y+7,e.type==='spike'?'#ff7d81':'#87f4c5',14);addGems(e.x+8,e.y,perkSet.has('gem')?6:4);
+if(combo>=8&&rewarded<8){rewarded=8;collect(100,false);say('8 КОМБО → +100 ГЕМОВ');}if(combo>=15&&rewarded<15){rewarded=15;player.maxAmmo++;player.ammo=player.maxAmmo;say('15 КОМБО → +1 ЗАРЯД');}if(combo>=25&&rewarded<25){rewarded=25;player.hp=Math.min(player.maxHp,player.hp+1);say('25 КОМБО → +1 HP');}
+if(perkSet.has('blast')){for(const other of enemies)if(!other.dead&&Math.hypot(other.x-e.x,other.y-e.y)<47)kill(other);burst(e.x,e.y,'#ffca83',18);}}
+function collect(n,chain=true){runGems+=n;totalGems+=n;if(chain){gemChain.push({t:clock,n});gemChain=gemChain.filter(g=>clock-g.t<=7);if(gemChain.reduce((a,g)=>a+g.n,0)>=100){high=8;gemChain=[];say('GEM HIGH / 8 СЕКУНД');}}}
+function damage(){if(player.inv>0)return;player.hp--;player.inv=1.4;combo=0;rewarded=0;shake=.22;player.vy=-115;burst(player.x,player.y,'#ff7d81',12);if(player.hp<=0)finish(false);else say('УРОН / КОМБО СБРОШЕНО');}
+function action(){if(mode!=='play'||fireCd>0)return;if(player.ground){player.vy=-260;player.ground=false;fireCd=.2;burst(player.x+6,player.y+18,'#87f4c5',5);return;}if(player.ammo<=0){fireCd=.25;say('НЕТ ЗАРЯДОВ — ПРИЗЕМЛИСЬ');return;}
+player.ammo--;fireCd=.16;player.vy=Math.max(-300,player.vy-(perkSet.has('float')?100:72));const strong=high>0||perkSet.has('wide'),power=player.weapon+(strong?1:0);let bw=strong?7:3;
+shots.push({x:player.x+6-bw/2,y:player.y+18,w:bw,h:9,vy:510,damage:power});if(perkSet.has('drone'))shots.push({x:player.x-12,y:player.y+4,w:bw,h:7,vy:510,damage:power});burst(player.x+6,player.y+20,'#ffca83',3);}
+function finish(win){mode='end';discardRun();if(ready)Hub.submitRun({score:Math.floor(deepest/4),duration:Math.round(clock)}).catch(e=>console.warn('riftboots result',e));best=Math.max(best,Math.floor(deepest/4));remember();dialog('<p class="rb-eyebrow">'+(win?'THE RIFT IS QUIET':'SIGNAL LOST')+'</p><h3>'+(win?'РАЗЛОМ ЗАКРЫТ':'СПУСК ОКОНЧЕН')+'</h3><p>Глубина '+Math.floor(deepest/4)+' м<br>Собрано ◆ '+runGems+' · Рекорд '+best+' м</p><button class="rb-primary" data-do="start">ЕЩЁ ОДИН СПУСК</button><button data-do="menu" class="rb-quiet">ВЫБОР ИСКАТЕЛЯ</button>');}
+function nextLevel(){combo=0;rewarded=0;if(level===11){finish(true);return;}mode='perk';const pool=perks.filter(p=>!perkSet.has(p.id)||['heart','clip'].includes(p.id));offered=[];while(offered.length<(style==='boulder'?2:3)&&pool.length)offered.push(pool.splice(Math.floor(rand()*pool.length),1)[0].id);perkDialog();checkpoint();}
+
+function applyPerk(id){if(mode!=='perk'||!offered.includes(id))return;offered=[];perkSet.add(id);if(id==='heart'){player.maxHp++;player.hp=player.maxHp;}if(id==='clip')player.maxAmmo+=2;level++;generate();player.x=135;player.y=137;player.vx=0;player.vy=0;player.ground=true;player.ammo=player.maxAmmo;high=0;gemChain=[];mode='play';hide();say(zones[Math.floor(level/3)].name+' / '+(level%3+1));}
+function enterShop(v){shop=v;mode='shop';shopDialog();checkpoint();}
+function shopDialog(){dialog('<p class="rb-eyebrow">TIME VOID / ВРЕМЯ ЗАМЕРЛО</p><h3>ТИХАЯ КОМНАТА</h3><p>Комбо ×'+combo+' сохранено · Доступно ◆ '+(runGems-spent)+'</p><button data-buy="heal" '+(runGems-spent<30||player.hp===player.maxHp?'disabled':'')+'>+1 HP · ◆ 30<span>Починить корпус</span></button><button data-buy="ammo" '+(runGems-spent<45?'disabled':'')+'>+1 ЗАРЯД · ◆ 45<span>Увеличить максимальный боезапас</span></button><button data-buy="weapon" '+(runGems-spent<70||player.weapon>=3?'disabled':'')+'>МОЩНОСТЬ +1 · ◆ 70<span>Усилить пули на этот забег</span></button><button class="rb-primary" data-do="leave">ПРОДОЛЖИТЬ ↓</button>');}
+function buy(id){const price={heal:30,ammo:45,weapon:70}[id];if(!price||runGems-spent<price)return;if(id==='heal'){if(player.hp===player.maxHp)return;player.hp++;}if(id==='ammo'){player.maxAmmo++;player.ammo=player.maxAmmo;}if(id==='weapon'){if(player.weapon>=3)return;player.weapon++;}spent+=price;shopDialog();checkpoint();updateHud();}
+function update(dt){if(mode!=='play')return;clock+=dt;fireCd=Math.max(0,fireCd-dt);toastT=Math.max(0,toastT-dt);shake=Math.max(0,shake-dt);high=Math.max(0,high-dt);player.inv=Math.max(0,player.inv-dt);
+const inVoid=voids.find(v=>hit(player,v));if(keys.fire)action();
+let dir=(keys.right?1:0)-(keys.left?1:0);player.vx=dir*125;player.x=Math.max(22,Math.min(254,player.x+player.vx*dt));const oldY=player.y;player.vy=Math.min(perkSet.has('float')?250:310,player.vy+560*dt);player.y+=player.vy*dt;player.ground=false;
+for(const p of platforms){if(player.vy>=0&&oldY+player.h<=p.y+1&&player.y+player.h>=p.y&&player.x+player.w>p.x&&player.x<p.x+p.w){player.y=p.y-player.h;player.vy=0;player.ground=true;player.ammo=player.maxAmmo;if(p.bottom){nextLevel();return;}if(p.voidId!==undefined&&!seenVoids.has(p.voidId)){seenVoids.add(p.voidId);enterShop(voids[p.voidId]);return;}}}
+for(const c of crates)if(c.hp>0&&player.vy>=0&&oldY+player.h<=c.y+3&&hit(player,c)){c.hp=0;player.vy=-190;player.ammo=player.maxAmmo;player.ground=false;addGems(c.x+7,c.y,5);burst(c.x,c.y,'#ffca83',8);}
+for(const e of enemies){if(e.dead)continue;if(!inVoid){e.t+=dt*(1+Math.floor(level/3)*.15);e.x=e.baseX+Math.sin(e.t*1.8)*(e.type==='bat'?31:12);e.y=e.baseY+Math.sin(e.t*2.2)*(e.type==='bat'?14:3);}
+if(hit(player,e)){if(e.type!=='spike'&&player.vy>0&&oldY+player.h<=e.y+7){kill(e);player.y=e.y-player.h;player.vy=-220;player.ammo=player.maxAmmo;player.ground=false;}else damage();if(mode!=='play')return;}}
+for(const s of shots){s.y+=s.vy*dt;if(s.dead)continue;for(const e of enemies)if(!e.dead&&hit(s,e)){e.hp-=s.damage;s.dead=true;if(e.hp<=0)kill(e);break;}if(s.dead)continue;for(const c of crates)if(c.hp>0&&hit(s,c)){c.hp-=s.damage;s.dead=true;if(c.hp<=0){addGems(c.x+7,c.y,5);burst(c.x,c.y,'#ffca83',7);}break;}if(!s.dead)for(const p of platforms)if(hit(s,p)){s.dead=true;break;}}
+shots=shots.filter(s=>!s.dead&&s.y<camera+H+40);
+for(const g of gems){if(g.dead)continue;const d=Math.hypot(g.x-player.x-6,g.y-player.y-9),reach=perkSet.has('magnet')?125:40;if(d<reach){const speed=190;g.x+=(player.x+6-g.x)*Math.min(1,speed*dt/Math.max(1,d));g.y+=(player.y+9-g.y)*Math.min(1,speed*dt/Math.max(1,d));}else if(g.born!==undefined){g.x+=g.vx*dt;g.y+=g.vy*dt;g.vy+=150*dt;}if(hit(player,g)||d<11){g.dead=true;collect(g.value);burst(g.x,g.y,'#87f4c5',3);}}
+gems=gems.filter(g=>!g.dead&&g.y>camera-100);for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=200*dt;p.life-=dt;}particles=particles.filter(p=>p.life>0);camera=Math.max(0,Math.min(BOTTOM-H+52,player.y-H*.34));deepest=Math.max(deepest,level*BOTTOM+player.y);}
+function updateHud(){$('.rb-hp').textContent=(player?.maxHp||4)>6?'♥ '+player.hp+'/'+player.maxHp:'♥'.repeat(Math.max(0,player?.hp||0))+'♡'.repeat(Math.max(0,(player?.maxHp||4)-(player?.hp||0)));$('.rb-zone').textContent=zones[Math.floor(level/3)].name+' · '+(Math.floor(level/3)+1)+'—'+(level%3+1);$('.rb-gems').textContent='◆ '+String(Math.max(0,runGems-spent)).padStart(3,'0');$('.rb-ammo').textContent=(player?.maxAmmo||8)>12?'ЗАРЯДЫ '+player.ammo+'/'+player.maxAmmo:'▰'.repeat(player?.ammo||0)+'▱'.repeat(Math.max(0,(player?.maxAmmo||8)-(player?.ammo||0)));$('.rb-depth').textContent=String(Math.floor(deepest/4)).padStart(4,'0')+' м';$('.rb-combo').textContent=high>0?'HIGH '+Math.ceil(high)+'s':'COMBO ×'+combo;}
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));}function text(t,x,y,c,size=8,align='left'){ctx.font=size+'px monospace';ctx.textAlign=align;ctx.fillStyle=c;ctx.fillText(t,Math.round(x),Math.round(y));}
+function robot(x,y){if(player.inv>0&&Math.floor(player.inv*16)%2)return;rect(x+2,y,8,3,'#ffc88a');rect(x,y+3,12,10,'#c67d61');rect(x+1,y+4,10,5,'#182838');rect(x+3,y+5,2,2,'#87f4c5');rect(x+8,y+5,2,2,'#87f4c5');rect(x+2,y+10,8,4,'#e7ae7c');rect(x-2,y+7,2,6,'#b77460');rect(x+12,y+7,2,6,'#b77460');rect(x,y+14,4,4,'#87f4c5');rect(x+8,y+14,4,4,'#87f4c5');if(keys.fire&&mode==='play'&&!player.ground&&player.ammo>0){rect(x,y+18,4,5,'#ffc88a');rect(x+8,y+18,4,5,'#ffc88a');}if(perkSet.has('drone')){rect(x-15,y-4,8,4,'#c9a4ff');rect(x-12,y,2,3,'#87f4c5');}}
+function draw(){let z=zones[Math.floor(level/3)],accent=palette?zones[palette].accent:z.accent;ctx.imageSmoothingEnabled=false;ctx.save();if(shake>0)ctx.translate(Math.sin(clock*90)*3,Math.cos(clock*70)*2);rect(0,0,W,H,z.bg);
+for(let i=0;i<45;i++){let x=28+(i*79)%232,y=((i*113-camera*.22)%450+450)%450;rect(x,y,1,2,z.detail);}
+for(let side=0;side<2;side++){let x=side?268:0;rect(x,0,20,H,z.wall);for(let row=Math.floor(camera/24)-1;row<(camera+H)/24;row++){let y=row*24-camera;rect(x,y,20,2,z.bg);rect(x+(row%2?6:14),y,2,24,z.bg);if(row%3===0){rect(side?268:17,y+6,3,10,z.edge);rect(side?263:20,y+8,5,4,z.detail);}}}
+// Hanging cables, crystal veins and tiny fungi make the shaft recognisable.
+for(let j=Math.floor(camera/160);j<(camera+H)/160+1;j++){let y=j*160-camera,side=j%2,x=side?261:22;rect(x,y,2,29,z.edge);rect(x-3,y+16,8,3,accent);rect(x-1,y+12,4,11,accent);rect(side?268:16,y+60,4,13,z.detail);rect(side?265:13,y+57,10,4,z.edge);}
+for(const v of voids){let y=v.y-camera;if(y>H||y+v.h<0)continue;rect(v.x,y,v.w,v.h,'#1e3543');for(let k=0;k<v.w;k+=8){rect(v.x+k,y,4,1,accent);rect(v.x+k,y+v.h-1,4,1,accent);}for(let k=0;k<v.h;k+=8){rect(v.x,y+k,1,4,accent);rect(v.x+v.w-1,y+k,1,4,accent);}text('TIME VOID',v.x+v.w/2,y+17,accent,8,'center');rect(v.x+v.w/2-10,y+31,20,14,'#52616c');rect(v.x+v.w/2-7,y+34,14,6,'#152532');rect(v.x+v.w/2-5,y+35,3,3,accent);rect(v.x+v.w/2+2,y+35,3,3,accent);text('SHOP',v.x+v.w/2,y+81,'#b9d4cd',7,'center');}
+for(const p of platforms){let y=p.y-camera;if(y>H||y+p.h<0)continue;rect(p.x,y,p.w,p.h,z.wall);rect(p.x,y,p.w,2,p.bottom?accent:z.edge);for(let i=5;i<p.w;i+=12)rect(p.x+i,y+4,6,2,z.detail);if(p.bottom){text('SECTOR COMPLETE',144,y-15,accent,9,'center');for(let x=100;x<188;x+=8)rect(x,y+5,4,8,accent);}}
+for(const c of crates)if(c.hp>0){let y=c.y-camera;rect(c.x,y,c.w,c.h,'#8a6657');rect(c.x+2,y+2,10,11,'#403343');rect(c.x+5,y+4,4,7,'#ffca83');}
+for(const g of gems){let y=g.y-camera;rect(g.x+1,y,3,2,accent);rect(g.x,y+2,5,3,accent);rect(g.x+1,y+5,3,2,accent);rect(g.x+1,y+1,1,2,'#e5ffeb');}
+for(const e of enemies){if(e.dead)continue;let x=e.x,y=e.y-camera;if(y<-25||y>H+25)continue;if(e.type==='spike'){for(let k=0;k<4;k++)rect(x+k*4,y+(k%2?0:-3),2,5,'#ff7d81');rect(x,y+3,16,9,'#bf496b');rect(x+3,y+5,3,2,'#ffe3cd');rect(x+10,y+5,3,2,'#ffe3cd');rect(x+5,y+11,6,3,'#ff7d81');}else if(e.type==='bat'){let flap=Math.sin(e.t*12)>0;rect(x-5,y+(flap?0:6),6,5,'#8265ab');rect(x+15,y+(flap?0:6),6,5,'#8265ab');rect(x+2,y+2,12,10,'#b39be0');rect(x+4,y+5,2,2,'#1c203a');rect(x+10,y+5,2,2,'#1c203a');}else{rect(x+2,y,12,4,'#73b8a8');rect(x,y+4,16,8,'#589889');rect(x+7,y,2,12,'#2c5358');rect(x+2,y+5,3,2,'#e4ffc8');rect(x+11,y+5,3,2,'#e4ffc8');for(let k=0;k<3;k++){rect(x-2,y+3+k*4,2,2,'#87f4c5');rect(x+16,y+3+k*4,2,2,'#87f4c5');}}}
+for(const s of shots)rect(s.x,s.y-camera,s.w,s.h,high>0?'#c9a4ff':'#ffdc9b');robot(player.x,player.y-camera);for(const p of particles)rect(p.x,p.y-camera,2,2,p.c);
+if(high>0){rect(20,0,2,H,'#c9a4ff');rect(266,0,2,H,'#c9a4ff');text('GEM HIGH',144,22,'#c9a4ff',11,'center');}
+if(combo>0){text('×'+combo,player.x+20,player.y-camera+5,'#c9a4ff',10);}
+if(toastT>0&&mode==='play'){rect(28,H-37,232,23,'#101b2e');text(toast,144,H-22,'#f8e8c8',8,'center');}
+if(mode==='play'&&voids.some(v=>hit(player,v)))text('ВРЕМЯ ЗАМЕРЛО',144,42,accent,8,'center');ctx.restore();}
+function pause(){if(mode==='play'){pauseFrom=mode;mode='pause';checkpoint();dialog('<p class="rb-eyebrow">SIGNAL ON HOLD</p><h3>ПАУЗА</h3><button data-do="resume" class="rb-primary">ПРОДОЛЖИТЬ</button><button data-do="menu" class="rb-quiet">В МЕНЮ (СОХРАНИТЬ)</button>');}}
+root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;if(d.style){style=d.style;remember();menu();}if(d.perk)applyPerk(d.perk);if(d.buy)buy(d.buy);if(b.classList.contains('rb-pause')){if(mode==='pause'){mode=pauseFrom;hide();}else pause();}switch(d.do){case'start':start();break;case'resumeRun':resumeRun();break;case'board':showBoard();break;case'invite':Hub.invite().catch(()=>{});break;case'exit':checkpoint();Hub.exit().then(exited=>{if(!exited)location.href='../../index.html';}).catch(()=>{});break;case'menu':if(['play','pause','shop','perk'].includes(mode)){savedRun=snapshot();checkpoint();}best=Math.max(best,Math.floor(deepest/4));remember();menu();break;case'resume':mode=pauseFrom;hide();break;case'leave':mode='play';hide();player.ground=true;say('КОМБО СОХРАНЕНО / ПРЫЖОК И ВПРАВО');break;case'help':mode='help';dialog('<h3>ТРИ КНОПКИ</h3><p>← → — движение<br>ПРОБЕЛ / ↑ — прыжок на земле,<br>выстрел вниз и отдача в воздухе.</p><p>Топчи жуков и летучих мышей.<br>Шипастых — только расстреливать!<br>Топот и платформы пополняют заряды.</p><p>Комбо живёт до дна или урона.<br>8 убийств: ◆100 · 15: +1 патрон<br>25: +1 HP</p><p>100 гемов за 7 секунд = GEM HIGH.<br>4 зоны × 3 уровня. По 2 тихих комнаты.</p><button data-do="menu" class="rb-primary">ПОНЯТНО</button>');break;case'palette':palette=(palette+1)%palettes.length;if(totalGems<palettes[palette].at){say('Нужно '+palettes[palette].at+' гемов');palette=0;}remember();menu();break;}});
+root.querySelectorAll('[data-key]').forEach(b=>{const k=b.dataset.key;b.addEventListener('pointerdown',e=>{e.preventDefault();if(mode!=='play')return;b.setPointerCapture(e.pointerId);keys[k]=true;b.classList.add('rb-held');if(k==='fire')action();});const up=()=>{keys[k]=false;b.classList.remove('rb-held');};b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('lostpointercapture',up);});
+const mapping={ArrowLeft:'left',a:'left',A:'left',ф:'left',ArrowRight:'right',d:'right',D:'right',в:'right',' ':'fire',ArrowUp:'fire',w:'fire',ц:'fire'};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(mode==='pause'){mode=pauseFrom;hide();}else pause();return;}let k=mapping[e.key];if(!k||mode!=='play'||e.ctrlKey||e.metaKey||e.altKey)return;e.preventDefault();keys[k]=true;if(k==='fire'&&!e.repeat)action();});document.addEventListener('keyup',e=>{if(mapping[e.key])keys[mapping[e.key]]=false;});window.addEventListener('blur',()=>{clearKeys();pause();});document.addEventListener('visibilitychange',()=>{if(document.hidden){clearKeys();pause();}});
+function frame(t){if(!root.isConnected)return;const dt=Math.min(.08,(t-previous)/1000||0);previous=t;acc+=dt;let steps=0;while(acc>=1/120&&steps++<10){update(1/120);acc-=1/120;}draw();updateHud();requestAnimationFrame(frame);}
+async function boot(){
+  dialog('<h3>RIFT BOOTS</h3><p>Подключение к Arcade Jar…</p>');
+  try{const r=await Hub.init('riftboots');
+    let localProfile=null,localRun=null;try{localProfile=JSON.parse(localStorage.getItem('riftboots_profile'));localRun=JSON.parse(localStorage.getItem('riftboots_run'));}catch(e){}
+    // Server state owns Telegram progress; device fallback is for standalone/offline play.
+    const p=r.data?.run?.meta||r.data?.profile||((r.env==='standalone'||r.env==='web')?localProfile:null)||{};
+    totalGems=Math.max(0,Math.floor(+p.totalGems||0));best=Math.max(+r.best||0,+p.best||0);
+    style=p.style==='boulder'&&totalGems>=500?'boulder':'scout';palette=Math.max(0,Math.min(3,Math.floor(+p.palette||0)));
+    if(totalGems<palettes[palette].at)palette=0;
+    const run=r.data?.run||((r.env==='standalone'||r.env==='web')?localRun:null);savedRun=validRun(run)?run:null;
+    ready=true;Hub.autosave(snapshot);menu();
+  }catch(e){dialog('<h3>НЕТ СВЯЗИ</h3><p>Открой игру заново из Arcade Jar.</p>');console.warn('riftboots init',e);}
+}
+window.addEventListener('pagehide',checkpoint);document.addEventListener('visibilitychange',()=>{if(document.hidden)checkpoint();});
+menu();draw();boot();requestAnimationFrame(frame);
+// Optional offline harness; absent in the player and production browser.
+if(globalThis.__RIFT_TEST__)globalThis.__RIFT_TEST__.api={start,update,action,kill,collect,damage,nextLevel,applyPerk,buy,enterShop,snapshot,resumeRun,validRun,get:()=>({mode,player,platforms,enemies,gems,voids,combo,rewarded,level,totalGems,high,runGems,spent,perkSet}),setKeys:k=>Object.assign(keys,k),setSavedRun:s=>{savedRun=s;},setReady:()=>{ready=true;},setOffered:ids=>{offered=ids;}};
+})();
+</script>
+
+</body></html>
