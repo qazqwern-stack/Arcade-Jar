@@ -283,6 +283,8 @@ const ARROW = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke
 
 const GENRES = { all:'Все', platform:'Платформеры', puzzle:'Головоломки', arcade:'Аркады' };
 const GAMES = [
+  { id:'merge2048', title:'2048 / MATERIALS', genre:'puzzle', status:'live', src:'games/2048/index.html',
+    blurb:'Классическая 2048 со свайпами и 8 оформлениями: живые клетки, кристаллы, космос, бумага, металл и другие.' },
   { id:'nightdrift', title:'NIGHT DRIFT', genre:'arcade', status:'live', src:'games/nightdrift/index.html',
     blurb:'Сэндбординг в ночной пустыне: бэкфлипы, 4 биома, 180 целей и 6 путников. Zen — без счёта и падений.' },
   { id:'riftboots', title:'RIFT BOOTS', genre:'platform', status:'live', src:'games/riftboots/index.html',
@@ -324,6 +326,17 @@ const cR = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Ma
 const cDisc = (g, cx, cy, r, c) => { g.fillStyle = c; r = Math.max(1, Math.round(r)); cx = Math.round(cx); cy = Math.round(cy); for (let dy = -r; dy <= r; dy++){ const hw = Math.floor(Math.sqrt(r * r - dy * dy + r * 0.5)); g.fillRect(cx - hw, cy + dy, hw * 2 + 1, 1); } };
 const cOval = (g, cx, cy, rx, ry, c) => { g.fillStyle = c; ry = Math.max(1, Math.round(ry)); for (let dy = -ry; dy <= ry; dy++){ const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy / (ry + .5)) ** 2))); g.fillRect(Math.round(cx - hw), Math.round(cy + dy), hw * 2 + 1, 1); } };
 function cSparkle(g, x, y, s, c){ cR(g, x - s, y, s * 2 + 1, 1, c); cR(g, x, y - s, 1, s * 2 + 1, c); }
+function coverMerge2048(g, w, h){
+  cR(g, 0, 0, w, h, '#253743');
+  const u = Math.min(w / 96, h / 64), s = 22 * u, gap = 5 * u, x = w / 2 - s - gap / 2, y = h / 2 - s - gap / 2;
+  cR(g, x, y, s, s, '#c5dfd3'); cDisc(g, x + s / 2, y + s / 2, 8 * u, '#5da58e');
+  cDisc(g, x + s * .4, y + s * .45, 2 * u, '#d5efb8'); cDisc(g, x + s * .65, y + s * .6, 2 * u, '#d5efb8');
+  cR(g, x + s + gap, y, s, s, '#182a38');
+  g.fillStyle = '#c3c2f1';g.beginPath();g.moveTo(x + s * 1.5 + gap, y + 3 * u);g.lineTo(x + s * 2 + gap - 3 * u, y + s / 2);g.lineTo(x + s * 1.5 + gap, y + s - 3 * u);g.lineTo(x + s + gap + 3 * u, y + s / 2);g.fill();
+  cR(g, x, y + s + gap, s, s, '#eee9dd'); cR(g, x + 4 * u, y + s + gap + 4 * u, s - 8 * u, s - 8 * u, '#bab8ae');
+  cR(g, x + s + gap, y + s + gap, s, s, '#10291b');
+  for(let i=0;i<3;i++)cR(g, x + s + gap + (4 + i * 5) * u, y + s + gap + 5 * u, 3 * u, 12 * u, '#82dd9f');
+}
 function coverNightDrift(g, w, h){
   cR(g, 0, 0, w, h, '#141836'); cR(g, 0, h * .4, w, h * .6, '#4c285b');
   const u = Math.min(w / 96, h / 64);
@@ -548,7 +561,7 @@ const COVERS = {
     for (const [x,y] of pts.slice(1)){ let guard = 200; while ((Math.abs(x-px) >= 3 || Math.abs(y-py) >= 3) && guard--){ g.fillRect(px, py, 3, 3); if (Math.abs(x-px) >= 3) px += Math.sign(x-px)*3; else if (Math.abs(y-py) >= 3) py += Math.sign(y-py)*3; } px = x; py = y; }
     g.fillRect(w-20, 44, 3, 3); },
 };
-Object.assign(COVERS, { nightdrift: coverNightDrift, riftboots: coverRiftBoots, fish: coverFish, grill: coverGrill, shell: coverShell, crypt: coverCrypt, nova: coverNova });
+Object.assign(COVERS, { merge2048: coverMerge2048, nightdrift: coverNightDrift, riftboots: coverRiftBoots, fish: coverFish, grill: coverGrill, shell: coverShell, crypt: coverCrypt, nova: coverNova });
 function cover(id, w, h, cls){ const c = document.createElement('canvas'); c.width = w; c.height = h; c.className = 'cover' + (cls ? ' ' + cls : '');
   (COVERS[id] || COVERS.gems)(c.getContext('2d'), w, h); return c; }
 
