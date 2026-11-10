@@ -283,6 +283,8 @@ const ARROW = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke
 
 const GENRES = { all:'Все', platform:'Платформеры', puzzle:'Головоломки', arcade:'Аркады' };
 const GAMES = [
+  { id:'orbitpinball', title:'ORBIT PINBALL', genre:'arcade', status:'live', src:'games/pinball/index.html',
+    blurb:'Классический пиксельный пинбол: два флиппера, три шара, орбиты и сверхновая. Управление касаниями.' },
   { id:'merge2048', title:'2048 / MATERIALS', genre:'puzzle', status:'live', src:'games/2048/index.html',
     blurb:'Классическая 2048 со свайпами и 8 оформлениями: живые клетки, кристаллы, космос, бумага, металл и другие.' },
   { id:'nightdrift', title:'NIGHT DRIFT', genre:'arcade', status:'live', src:'games/nightdrift/index.html',
@@ -326,6 +328,21 @@ const cR = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Ma
 const cDisc = (g, cx, cy, r, c) => { g.fillStyle = c; r = Math.max(1, Math.round(r)); cx = Math.round(cx); cy = Math.round(cy); for (let dy = -r; dy <= r; dy++){ const hw = Math.floor(Math.sqrt(r * r - dy * dy + r * 0.5)); g.fillRect(cx - hw, cy + dy, hw * 2 + 1, 1); } };
 const cOval = (g, cx, cy, rx, ry, c) => { g.fillStyle = c; ry = Math.max(1, Math.round(ry)); for (let dy = -ry; dy <= ry; dy++){ const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy / (ry + .5)) ** 2))); g.fillRect(Math.round(cx - hw), Math.round(cy + dy), hw * 2 + 1, 1); } };
 function cSparkle(g, x, y, s, c){ cR(g, x - s, y, s * 2 + 1, 1, c); cR(g, x, y - s, 1, s * 2 + 1, c); }
+function coverPinball(g, w, h){
+  cR(g, 0, 0, w, h, '#0a1127');
+  const u = Math.min(w / 96, h / 64), x = w * .25, y = h * .05, bw = w * .5;
+  cR(g, x, y + 8 * u, bw, h * .78, '#112c49');
+  cR(g, x + 6 * u, y, bw - 12 * u, h * .86, '#112c49');
+  for (let i = 0; i < 3; i++){
+    const cx = w * (.39 + i * .11), cy = h * (i === 1 ? .48 : .3);
+    cDisc(g, cx, cy, 6 * u, i === 1 ? '#ffd08a' : '#75e0cb');
+    cDisc(g, cx, cy, 3 * u, '#29435b');
+  }
+  cR(g, x + bw - 3 * u, y + 13 * u, 2 * u, h * .58, '#75e0cb');
+  g.fillStyle='#ffd08a';g.beginPath();g.moveTo(w*.34,h*.75);g.lineTo(w*.48,h*.82);g.lineTo(w*.47,h*.76);g.lineTo(w*.35,h*.7);g.fill();
+  g.beginPath();g.moveTo(w*.66,h*.75);g.lineTo(w*.52,h*.82);g.lineTo(w*.53,h*.76);g.lineTo(w*.65,h*.7);g.fill();
+  cDisc(g, w * .63, h * .57, 2 * u, '#f5f6e0');
+}
 function coverMerge2048(g, w, h){
   cR(g, 0, 0, w, h, '#253743');
   const u = Math.min(w / 96, h / 64), s = 22 * u, gap = 5 * u, x = w / 2 - s - gap / 2, y = h / 2 - s - gap / 2;
@@ -561,7 +578,7 @@ const COVERS = {
     for (const [x,y] of pts.slice(1)){ let guard = 200; while ((Math.abs(x-px) >= 3 || Math.abs(y-py) >= 3) && guard--){ g.fillRect(px, py, 3, 3); if (Math.abs(x-px) >= 3) px += Math.sign(x-px)*3; else if (Math.abs(y-py) >= 3) py += Math.sign(y-py)*3; } px = x; py = y; }
     g.fillRect(w-20, 44, 3, 3); },
 };
-Object.assign(COVERS, { merge2048: coverMerge2048, nightdrift: coverNightDrift, riftboots: coverRiftBoots, fish: coverFish, grill: coverGrill, shell: coverShell, crypt: coverCrypt, nova: coverNova });
+Object.assign(COVERS, { orbitpinball: coverPinball, merge2048: coverMerge2048, nightdrift: coverNightDrift, riftboots: coverRiftBoots, fish: coverFish, grill: coverGrill, shell: coverShell, crypt: coverCrypt, nova: coverNova });
 function cover(id, w, h, cls){ const c = document.createElement('canvas'); c.width = w; c.height = h; c.className = 'cover' + (cls ? ' ' + cls : '');
   (COVERS[id] || COVERS.gems)(c.getContext('2d'), w, h); return c; }
 
