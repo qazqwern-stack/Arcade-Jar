@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>NIGHT DRIFT — Arcade Jar</title><meta name="theme-color" content="#0b1026"><script src="../../hub-sdk.js"></script><style>body{margin:0;background:#0b1026}</style></head><body>
+<div id="night-drift" aria-label="Night Drift — пиксельный сэндбординг">
+ <div class="nd-shell">
+  <header><div><span>ARCADE JAR / AFTER DARK</span><h2>NIGHT <b>DRIFT</b></h2></div><button data-do="pause" aria-label="Пауза">Ⅱ</button></header>
+  <div class="nd-field"><canvas width="320" height="430" aria-label="Ночная пустыня. Тап или пробел — прыжок; удержание в воздухе — бэкфлип.">Ночная пустыня и сэндбордист</canvas><div class="nd-hud"><span class="nd-distance">0 м</span><span class="nd-score">0</span><span class="nd-coins">◆ 0</span></div><div class="nd-banner" aria-live="polite"></div><div class="nd-overlay"></div><div class="nd-biome">01 / БАРХАНЫ ИНДИГО</div></div>
+  <div class="nd-readout"><span class="nd-state">СЛУШАЙ ПУСТЫНЮ</span><span class="nd-bonus"></span></div>
+  <button class="nd-action" aria-label="Прыжок; удерживайте для бэкфлипа">ТАП — ПРЫЖОК <span>УДЕРЖАНИЕ — БЭКФЛИП ↶</span></button>
+  <footer><span>ОДИН ПАЛЕЦ / ПРОБЕЛ</span><button data-do="goals">ЦЕЛИ <b class="nd-done">0 / 180</b></button></footer>
+ </div>
+</div>
+<style>
+#night-drift{--nd-ink:#0b1026;--nd-panel:#141a36;--nd-edge:#33345b;--nd-text:#f9e5c6;--nd-muted:#b4a8ce;--nd-pink:#e991c1;--nd-gold:#ffd08a;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--nd-text);display:flex;justify-content:center;padding:12px 0 20px;-webkit-user-select:none;user-select:none}
+#night-drift *{box-sizing:border-box}#night-drift .nd-shell{width:min(100%,420px);background:var(--nd-ink);padding:15px;border:1px solid var(--nd-edge);box-shadow:5px 5px 0 #070b1b}#night-drift header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:13px}#night-drift header span{font-size:9px;letter-spacing:1.7px;color:var(--nd-muted)}#night-drift h2{font:900 28px/1.1 ui-monospace,monospace;letter-spacing:-1px;margin:5px 0 0}#night-drift h2 b{color:var(--nd-pink)}#night-drift button{font:inherit;border:1px solid var(--nd-edge);color:var(--nd-text);background:var(--nd-panel);min-height:44px;border-radius:0;cursor:pointer;touch-action:none}#night-drift button:hover{border-color:var(--nd-pink)}#night-drift button:focus-visible{outline:2px solid var(--nd-gold);outline-offset:3px}#night-drift button:disabled{opacity:.4;cursor:default}#night-drift header button{width:44px;font-size:20px}#night-drift .nd-field{position:relative;overflow:hidden;background:#1c1b48}#night-drift canvas{display:block;width:100%;height:auto;image-rendering:pixelated;touch-action:none}#night-drift .nd-hud{position:absolute;top:13px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;gap:6px;text-shadow:1px 1px #11132d;pointer-events:none;font-size:12px}#night-drift .nd-score{font-size:20px;letter-spacing:1px}#night-drift .nd-coins{color:var(--nd-gold)}#night-drift .nd-biome{position:absolute;bottom:10px;left:11px;font-size:9px;letter-spacing:1.4px;color:#e5c4db;text-shadow:1px 1px #11132d;pointer-events:none}#night-drift .nd-banner{position:absolute;left:10px;right:10px;top:63px;text-align:center;color:var(--nd-gold);font-size:12px;text-shadow:1px 1px #11132d;pointer-events:none}#night-drift .nd-readout{min-height:37px;display:flex;justify-content:space-between;align-items:center;gap:5px;font-size:10px;color:var(--nd-muted)}#night-drift .nd-bonus{color:var(--nd-gold);text-align:right}#night-drift .nd-action{width:100%;min-height:58px;background:#242345;border-color:#6e4c76;letter-spacing:.9px;font-size:12px}#night-drift .nd-action span{display:block;font-size:9px;color:var(--nd-muted);letter-spacing:.4px;margin-top:4px}#night-drift .nd-action.nd-held{background:#493052;border-color:var(--nd-gold)}#night-drift footer{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-top:9px;font-size:8px;letter-spacing:.5px;color:var(--nd-muted)}#night-drift footer button{font-size:9px;min-height:32px;border-color:transparent;background:transparent;padding:4px 0 4px 6px}#night-drift footer b{font-weight:400;color:var(--nd-gold)}#night-drift .nd-overlay{position:absolute;inset:0;background:#0b102667;display:flex;justify-content:center;align-items:center;padding:15px}#night-drift .nd-overlay[hidden]{display:none}#night-drift .nd-dialog{width:100%;max-height:100%;overflow:auto;background:#11162deb;border:1px solid #595077;padding:22px 17px;box-shadow:5px 5px 0 #090e2180;text-align:center}#night-drift .nd-dialog h3{font-size:29px;line-height:1.05;letter-spacing:-1px;margin:3px 0 13px;color:var(--nd-text)}#night-drift .nd-dialog h3 em{font-style:normal;color:var(--nd-pink)}#night-drift .nd-dialog p{font-size:11px;color:var(--nd-muted);line-height:1.8;margin:9px 0 14px}#night-drift .nd-dialog .nd-eyebrow{font-size:8px;letter-spacing:2.2px;color:var(--nd-gold);margin:0 0 10px}#night-drift .nd-dialog button{display:block;width:100%;padding:10px 8px;font-size:11px;margin-top:7px}#night-drift .nd-dialog .nd-primary{background:var(--nd-gold);border-color:var(--nd-gold);color:#17162c;font-weight:700}#night-drift .nd-dialog .nd-quiet{border-color:transparent;background:transparent;color:var(--nd-muted)}#night-drift .nd-pair{display:flex;gap:7px}#night-drift .nd-dialog .nd-goal{text-align:left;padding:10px 0;border-bottom:1px solid var(--nd-edge);font-size:11px}#night-drift .nd-goal span{display:block;font-size:10px;color:var(--nd-pink);margin-top:5px}#night-drift .nd-roster{display:grid;grid-template-columns:1fr 1fr;gap:7px}#night-drift .nd-roster button{text-align:left;min-height:76px;margin:0;padding:8px}#night-drift .nd-roster button[aria-pressed=true]{border-color:var(--nd-gold);background:#30273d}#night-drift .nd-roster strong{font-size:12px;font-weight:500}#night-drift .nd-roster i{display:inline-block;width:9px;height:13px;background:var(--rider);margin-right:7px;vertical-align:middle}#night-drift .nd-roster small{display:block;font-size:9px;line-height:1.5;color:var(--nd-muted);margin-top:5px}@media(max-width:360px){#night-drift .nd-shell{padding:10px}#night-drift h2{font-size:25px}#night-drift .nd-dialog{padding:15px 11px}#night-drift .nd-dialog h3{font-size:26px}}
+#night-drift{padding:0;height:100dvh;min-height:460px}
+#night-drift .nd-shell{height:100%;display:flex;flex-direction:column;box-shadow:none;padding:12px;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(10px,env(safe-area-inset-bottom))}
+#night-drift header{flex-shrink:0;margin-bottom:9px}#night-drift .nd-field{flex:1;min-height:0}
+#night-drift canvas{width:100%;height:100%;object-fit:contain}
+#night-drift .nd-readout,#night-drift .nd-action,#night-drift footer{flex-shrink:0}
+#night-drift .nd-dialog{max-width:330px;padding:15px}#night-drift .nd-dialog h3{font-size:25px;margin-bottom:9px}
+#night-drift .nd-dialog p{margin:6px 0 10px}#night-drift .nd-dialog button{padding:8px;margin-top:6px}
+</style>
+<script>
+(()=>{
+'use strict';
+const root=document.getElementById('night-drift'),$=s=>root.querySelector(s),cv=$('canvas'),g=cv.getContext('2d'),W=320,H=430,TAU=Math.PI*2;
+const biomes=[
+ {name:'БАРХАНЫ ИНДИГО',sky:['#101637','#242151','#592c67','#ac4b77'],far:'#353061',mid:'#58346e',near:'#803979',sand:'#47285f',edge:'#d76d9e',glow:'#ffc181',hint:'ВЕТЕР НА ГРЕБНЯХ'},
+ {name:'ПУРПУРНЫЕ РУИНЫ',sky:['#141331','#29204d','#643166','#c15b76'],far:'#423062',mid:'#663866',near:'#923d70',sand:'#452451',edge:'#df8798',glow:'#ffd39a',hint:'ТРАМПЛИНЫ В РУИНАХ'},
+ {name:'ЛУННЫЙ КАНЬОН',sky:['#090f2c','#172046','#30366c','#66548e'],far:'#24305d',mid:'#384779',near:'#525890',sand:'#282e58',edge:'#88a3d5',glow:'#a5e4e8',hint:'ЛОВИ ВОСХОДЯЩИЙ ПОТОК'},
+ {name:'ЛОТОСОВЫЙ ОАЗИС',sky:['#0a1d33','#173447','#295763','#675b79'],far:'#224458',mid:'#2e5f68',near:'#427d7c',sand:'#203d54',edge:'#7dd4c2',glow:'#efb7d5',hint:'ЛОТОС ХРАНИТ ОТ ПАДЕНИЯ'}
+];
+const riders=[{name:'ЛИРА',unlock:0,jump:215,spin:7.3,speed:1,color:'#f2bd87',desc:'Ровный баланс'},
+ {name:'КАЙ',unlock:9,jump:242,spin:7,speed:.95,color:'#9acde0',desc:'Выше прыжок, мягче темп'},
+ {name:'НОКС',unlock:24,jump:218,spin:8.8,speed:1,color:'#c19ae5',desc:'Быстрее вращение'},
+ {name:'СОЛЬ',unlock:54,jump:211,spin:7.4,speed:1.13,color:'#f294a0',desc:'Больше скорости'},
+ {name:'МИРА',unlock:108,jump:222,spin:7.5,speed:1,color:'#99e1c1',desc:'Сильнее магнит'},
+ {name:'ЭХО',unlock:180,jump:226,spin:8,speed:1.05,color:'#f3dca0',desc:'Второй прыжок в воздухе'}];
+const defaults=()=>({v:1,rider:0,best:0,totalCoins:0,done:[],stats:{distance:0,coins:0,flips:0,jumps:0,gaps:0,boosts:0,lotus:0,magnets:0}});
+let profile=defaults(),ready=false,savedRun=null;
+let phase='menu',zen=false,p,items=[],gaps=[],particles=[],trails=[],nextChunk=0,seed=1,worldSeed=1,clock=0,cameraY=0,score=0,coins=0,flips=0,maxCombo=0,boost=0,lotus=0,magnet=0,inv=0,held=false,holdTime=0,jumpBuffer=0,toast='',toastT=0,biome=0,oldBiome=0,paused=false,last=0,acc=0,uiTime=0,runStarted=false;
+function count(){return new Set(profile.done).size;}function character(){return riders[profile.rider];}function random(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}function rnd(a,b){return a+random()*(b-a);}function clamp(x,a,b){return Math.max(a,Math.min(b,x));}function angle(a){return Math.atan2(Math.sin(a),Math.cos(a));}
+function cleanProfile(value){
+ const v=value&&typeof value==='object'?value:{},out=defaults();
+ const num=n=>Number.isFinite(Number(n))?Math.max(0,Math.floor(Number(n))):0;
+ out.done=[...new Set((Array.isArray(v.done)?v.done:[]).filter(n=>Number.isInteger(n)&&n>=0&&n<180))];
+ out.best=num(v.best);out.totalCoins=num(v.totalCoins);
+ for(const k of Object.keys(out.stats))out.stats[k]=num(v.stats?.[k]);
+ const rider=Math.max(0,Math.min(5,num(v.rider)));out.rider=out.done.length>=riders[rider].unlock?rider:0;return out;
+}
+function snapshot(){
+ if(!runStarted||!['play','goalsPlay'].includes(phase))return null;
+ const q=n=>Math.round(n*100)/100;
+ return {v:1,zen,profile:cleanProfile(profile),rider:profile.rider,worldSeed,seed,nextChunk,p:{...p},
+  clock:q(clock),cameraY:q(cameraY),score:q(score),coins,flips,maxCombo,boost:q(boost),lotus:q(lotus),magnet:q(magnet),inv:q(inv),biome,
+  items:items.filter(i=>!i.dead).map(i=>[i.kind,q(i.x),q(i.y),q(i.w||0),q(i.h||0)]),gaps:gaps.map(q=>[q.x,q.w,q.passed?1:0])};
+}
+function validRun(s){
+ return !!(s&&s.v===1&&typeof s.zen==='boolean'&&Number.isInteger(s.worldSeed)&&Number.isInteger(s.seed)&&s.p&&
+ ['x','y','vy','speed','rot','airtime'].every(k=>Number.isFinite(s.p[k]))&&s.p.x>=0&&s.p.speed>0&&s.p.speed<=300&&
+ Number.isInteger(s.rider)&&s.rider>=0&&s.rider<6&&Number.isInteger(s.biome)&&s.biome>=0&&s.biome<4&&
+ ['nextChunk','clock','cameraY','score','coins','flips','maxCombo','boost','lotus','magnet','inv'].every(k=>Number.isFinite(s[k]))&&
+ Array.isArray(s.items)&&s.items.length<=120&&s.items.every(i=>i.length===5&&['coin','rock','magnet','lotus','boost','ramp','draft','wind'].includes(i[0])&&i.slice(1).every(Number.isFinite))&&
+ Array.isArray(s.gaps)&&s.gaps.length<=8&&s.gaps.every(q=>q.length===3&&q.every(Number.isFinite)));
+}
+function remember(){
+ const data={profile:cleanProfile(profile),run:snapshot()||savedRun||null};
+ try{localStorage.setItem('nightdrift_state',JSON.stringify(data));}catch(e){}
+ if(ready)Hub.save(data).catch(e=>console.warn('nightdrift save',e));
+}
+function checkpoint(){remember();}
+function clearRun(){savedRun=null;try{localStorage.removeItem('nightdrift_state');}catch(e){}if(ready)Hub.clearRun().catch(e=>console.warn('nightdrift clear',e));}
+function resumeRun(){
+ const s=savedRun;if(!validRun(s)){clearRun();return start(false);}
+ zen=s.zen;worldSeed=s.worldSeed;seed=s.seed;nextChunk=s.nextChunk;p={...s.p};profile.rider=s.rider;
+ clock=s.clock;cameraY=s.cameraY;score=s.score;coins=s.coins;flips=s.flips;maxCombo=s.maxCombo;boost=s.boost;lotus=s.lotus;magnet=s.magnet;inv=Math.max(.7,s.inv);biome=s.biome;
+ items=s.items.map(([kind,x,y,w,h])=>({kind,x,y,w,h}));gaps=s.gaps.map(([x,w,passed])=>({x,w,passed:!!passed}));
+ particles=[];trails=[];held=false;holdTime=0;runStarted=true;savedRun=null;phase='play';paused=false;hide();say(zen?'ВЕТЕР ВСЁ ЕЩЁ ЗДЕСЬ':'СПУСК ПРОДОЛЖЕН');
+}
+async function board(){
+ phase='board';modal('<h3>РЕЙТИНГ</h3><p>Загрузка…</p><button data-do="menu">НАЗАД</button>');
+ try{const rows=await Hub.leaderboard();if(phase!=='board')return;modal('<h3>РЕЙТИНГ</h3><p>Лучший счёт в обычном режиме</p><div class="nd-board"></div><button data-do="invite">ПОЗВАТЬ ДРУГА</button><button data-do="menu" class="nd-quiet">НАЗАД</button>');
+ for(const [i,r] of rows.entries()){const row=document.createElement('p');row.textContent=(i+1)+'. '+r.n+' — '+r.s;$('.nd-board').appendChild(row);}}
+ catch(e){if(phase==='board')modal('<h3>НЕТ СВЯЗИ</h3><button data-do="menu">НАЗАД</button>');}
+}
+
+function release(){held=false;holdTime=0;$('.nd-action').classList.remove('nd-held');}function say(t,duration=2.2){toast=t;toastT=duration;$('.nd-banner').textContent=t;}
+function modal(s){release();$('.nd-overlay').hidden=false;$('.nd-overlay').innerHTML='<div class="nd-dialog">'+s+'</div>';}function hide(){$('.nd-overlay').hidden=true;$('.nd-overlay').innerHTML='';}
+function terrain(x){return 322+32*Math.sin(x/143)+17*Math.sin(x/67+.8)+7*Math.sin(x/31+worldSeed*.000001);}
+function slope(x){return (terrain(x+2)-terrain(x-2))/4;}function gapAt(x){return gaps.find(q=>x>q.x&&x<q.x+q.w);}function ground(x){return gapAt(x)?Infinity:terrain(x);}
+function goal(n){const set=Math.floor(n/3),slot=n%3;if(slot===0)return {key:'distance',n:150+set*60,label:'Пройти '+(150+set*60)+' м за один спуск'};if(slot===1)return {key:'coins',n:15+set*20,label:'Собрать всего '+(15+set*20)+' монет'};
+ const types=[['flips','Приземлить бэкфлипы',1+Math.floor(set/6)*3],['jumps','Выполнить прыжки',6+Math.floor(set/6)*8],['gaps','Перелететь пропасти',2+Math.floor(set/6)*3],['boosts','Подобрать ускорения',1+Math.floor(set/6)*2],['lotus','Подобрать лотосы',1+Math.floor(set/6)*2],['magnets','Подобрать магниты',1+Math.floor(set/6)*2]],t=types[set%6];return{key:t[0],n:t[2],label:t[1]+': '+t[2]};}
+function currentGoals(){const done=new Set(profile.done);for(let i=0;i<60;i++){const ids=[i*3,i*3+1,i*3+2];if(ids.some(n=>!done.has(n)))return ids;}return [];}
+function checkGoals(){if(zen)return;const before=count();for(const n of currentGoals()){const t=goal(n);if((profile.stats[t.key]||0)>=t.n&&!profile.done.includes(n))profile.done.push(n);}if(count()>before){say('ЦЕЛЬ ВЫПОЛНЕНА / '+count()+' ИЗ 180',3);const unlocked=riders.find(r=>r.unlock>before&&r.unlock<=count());if(unlocked)say('НОВЫЙ ГЕРОЙ / '+unlocked.name,3.5);remember();}}
+function goalsView(){paused=true;phase=phase==='play'?'goalsPlay':'goals';const ids=currentGoals(),done=new Set(profile.done);modal('<p class="nd-eyebrow">ПУТЬ ЧЕРЕЗ ПУСТЫНЮ</p><h3>ЦЕЛИ <em>'+count()+'/180</em></h3>'+ids.map(n=>{const t=goal(n),v=profile.stats[t.key]||0;return '<div class="nd-goal">'+(done.has(n)?'✓ ':'')+t.label+'<span>'+Math.min(t.n,Math.floor(v))+' / '+t.n+'</span></div>';}).join('')+(ids.length?'':'<p>Путь завершён. Все герои открыты.</p>')+'<p>15 целей: магнит дольше<br>36: лотос дольше · 72: ускорение дольше<br>Zen не продвигает цели.</p><button data-do="back" class="nd-primary">НАЗАД</button>');}
+function roster(){phase='roster';paused=true;modal('<p class="nd-eyebrow">ШЕСТЬ ПУТНИКОВ</p><h3>ВЫБЕРИ <em>РИТМ</em></h3><div class="nd-roster">'+riders.map((r,i)=>'<button data-rider="'+i+'" aria-pressed="'+(profile.rider===i)+'" '+(count()<r.unlock?'disabled':'')+' style="--rider:'+r.color+'"><strong><i></i>'+r.name+'</strong><small>'+(count()<r.unlock?r.unlock+' целей для открытия':r.desc)+'</small></button>').join('')+'</div><button data-do="menu" class="nd-quiet">НАЗАД</button>');}
+function generateUntil(x){while(nextChunk<x){const start=nextChunk,b=Math.floor(start/1200)%4,r=random();
+ if(start>400&&r<.82){let gx=start+220,w=b===2?rnd(65,85):rnd(43,64);gaps.push({x:gx,w,passed:false});for(let j=0;j<7;j++){let xx=gx-24+j*(w+48)/6;items.push({kind:'coin',x:xx,y:terrain(xx)-35-Math.sin(j/6*Math.PI)*30});}}
+ const rockx=start+105;if(start>0&&!gapAt(rockx))items.push({kind:'rock',x:rockx,y:terrain(rockx),w:rnd(12,19),h:rnd(13,23)});
+ for(let j=0;j<6;j++){let xx=start+18+j*21;if(!gapAt(xx))items.push({kind:'coin',x:xx,y:terrain(xx)-28-Math.sin(j/5*Math.PI)*15});}
+ if(start%840===0&&start>0){const kind=['magnet','lotus','boost'][Math.floor(start/840)%3];items.push({kind,x:start+175,y:terrain(start+175)-25});}
+ if(b===1)items.push({kind:'ramp',x:start+165,y:terrain(start+165)});
+ if(b===2)items.push({kind:'draft',x:start+165,w:150,y:0});
+ if(b===3&&start%840!==0)items.push({kind:'lotus',x:start+170,y:terrain(start+170)-24});
+ if(b===0&&start%840!==0&&start>0)items.push({kind:'wind',x:start+150,y:terrain(start+150)-14,w:90});
+ nextChunk+=420;}}
+function reset(){seed=(Date.now()^0xad5e17)>>>0;worldSeed=seed;items=[];gaps=[];particles=[];trails=[];nextChunk=0;clock=0;score=0;coins=0;flips=0;maxCombo=0;boost=0;lotus=0;magnet=0;inv=0;biome=0;oldBiome=0;toastT=0;release();p={x:0,y:terrain(0),vy:0,speed:92,rot:0,ground:true,airtime:0,airJump:false};cameraY=p.y-312;generateUntil(1100);}
+function menu(){runStarted=false;phase='menu';paused=false;zen=false;reset();modal('<p class="nd-eyebrow">СЭНДБОРДИНГ ПОСЛЕ ЗАКАТА</p><h3>NIGHT<br><em>DRIFT</em></h3><p>Только ты, доска<br>и дыхание ночной пустыни.</p>'+(savedRun?'<button class="nd-primary" data-do="continue">ПРОДОЛЖИТЬ '+(savedRun.zen?'ZEN':Math.floor(savedRun.p.x/4)+' м')+' →</button>':'')+'<button class="nd-primary" data-do="start">НОВЫЙ СПУСК →</button><button data-do="zen">ZEN / БЕЗ СПЕШКИ</button><div class="nd-pair"><button data-do="roster">ПУТНИКИ</button><button data-do="goals">ЦЕЛИ '+count()+'/180</button></div><div class="nd-pair"><button data-do="help">ПРАВИЛА</button><button data-do="board">РЕЙТИНГ</button></div><button data-do="exit" class="nd-quiet">В ХАБ</button><p>'+character().name+' · Рекорд '+Math.floor(profile.best)+' м</p>');hud();}
+function start(z=false){if(!ready)return;clearRun();zen=z;reset();phase='play';paused=false;runStarted=true;hide();say(z?'НИКУДА НЕ НУЖНО СПЕШИТЬ':'ТАПНИ ДЛЯ ПРЫЖКА',3);remember();}
+function jump(){if(phase!=='play'||paused)return;if(p.ground){p.ground=false;p.vy=-character().jump+slope(p.x)*p.speed*.16;p.airtime=0;p.rot=0;p.airJump=false;if(!zen)profile.stats.jumps++;burst(p.x,p.y,6,biomes[biome].glow);}
+ else if(profile.rider===5&&!p.airJump){p.vy=-185;p.airJump=true;burst(p.x,p.y,12,'#f3dca0');}}
+function press(){if(phase!=='play'||paused||held)return;held=true;holdTime=0;$('.nd-action').classList.add('nd-held');if(p.ground)jump();else if(profile.rider===5&&!p.airJump)jump();}
+function burst(x,y,n,c){for(let i=0;i<n;i++)particles.push({x,y,vx:rnd(-45,20),vy:rnd(-60,0),life:rnd(.25,.7),c});}
+function rescue(reason){if(zen){p.y=terrain(p.x)-35;p.vy=-70;p.rot=0;p.ground=false;p.airtime=0;inv=2;return;}
+ if(lotus>0){lotus=0;inv=2;p.y=terrain(p.x)-36;p.vy=-105;p.rot=0;p.ground=false;p.airtime=0;burst(p.x,p.y,22,'#f4a5d9');say('ЛОТОС СОХРАНИЛ ТВОЙ ПУТЬ');return;}
+ phase='over';release();clearRun();if(ready)Hub.submitRun({score:Math.floor(score),duration:Math.round(clock)}).catch(e=>console.warn('nightdrift result',e));profile.best=Math.max(profile.best,Math.floor(p.x/4));checkGoals();remember();modal('<p class="nd-eyebrow">ПУСТЫНЯ ПОДОЖДЁТ</p><h3>ЕЩЁ <em>ОДИН?</em></h3><p>'+reason+'<br>'+Math.floor(p.x/4)+' м · '+Math.floor(score)+' очков<br>◆ '+coins+' · Бэкфлипы '+flips+'</p><button data-do="start" class="nd-primary">СНОВА В ПУТЬ →</button><button data-do="zen">ПРОДОЛЖИТЬ В ZEN</button><button data-do="menu" class="nd-quiet">МЕНЮ</button>');}
+function land(y){const turns=Math.floor((Math.abs(p.rot)+.48)/TAU),bad=Math.abs(angle(p.rot))>.5;
+ if(bad&&!zen&&inv<=0){rescue('Не удалось выровнять доску');return;}
+ p.y=y;p.ground=true;p.vy=0;p.rot=0;p.airtime=0;p.airJump=false;
+ if(turns>0){p.speed=Math.min(210,p.speed+turns*25);boost=Math.max(boost,1.8+turns*.7);burst(p.x,p.y,15,'#ffc181');if(!zen){flips+=turns;profile.stats.flips+=turns;score+=turns*turns*120;maxCombo=Math.max(maxCombo,turns);say((turns>1?'ДВОЙНОЙ БЭКФЛИП':'БЭКФЛИП')+' / +'+turns*turns*120);checkGoals();}else say('ЛЕГЧЕ ВЕТРА',1.5);}
+}
+function update(dt){if(phase!=='play'||paused)return;clock+=dt;uiTime+=dt;toastT=Math.max(0,toastT-dt);boost=Math.max(0,boost-dt);lotus=Math.max(0,lotus-dt);magnet=Math.max(0,magnet-dt);inv=Math.max(0,inv-dt);if(held)holdTime+=dt;
+ const oldX=p.x,oldY=p.y,c=character(),s=slope(p.x);p.speed=clamp(p.speed+(s*100+8-(p.speed-92*c.speed)*.28+(boost>0?22:0))*dt,74*c.speed,boost>0?210:178*c.speed);p.x+=p.speed*dt;generateUntil(p.x+900);
+ const floor=ground(p.x),draft=biome===2&&items.some(i=>i.kind==='draft'&&p.x>i.x&&p.x<i.x+i.w);
+ if(p.ground){if(!Number.isFinite(floor)){p.ground=false;p.vy=35;p.airtime=0;p.rot=0;}else p.y=floor;}
+ else{p.airtime+=dt;if(held&&holdTime>.14)p.rot-=c.spin*dt;p.vy+=340*(draft ? .36 : 1)*dt;p.y+=p.vy*dt;
+  if(p.vy>0&&Number.isFinite(floor)&&p.y>=floor&&(oldY<=terrain(oldX)+15||p.y-floor<10)){land(floor);if(phase!=='play')return;}
+  if(p.y>terrain(p.x)+165){rescue('Пропасть оказалась глубже');if(phase!=='play')return;}}
+ for(const gap of gaps)if(!gap.passed&&p.x>gap.x+gap.w){gap.passed=true;if(!zen)profile.stats.gaps++;}
+ for(const i of items){if(i.dead)continue;const dx=i.x-p.x,dy=i.y-(p.y-12);
+  if(i.kind==='coin'){const range=magnet>0?(profile.rider===4?135:95):profile.rider===4?32:15;if(Math.hypot(dx,dy)<range){if(Math.hypot(dx,dy)>14){i.x+=(p.x-i.x)*dt*9;i.y+=(p.y-12-i.y)*dt*9;}else{i.dead=true;burst(i.x,i.y,3,'#ffd08a');if(!zen){coins++;score+=10;profile.totalCoins++;profile.stats.coins++;}}}}
+  else if(i.kind==='rock'){if(Math.abs(dx)<i.w*.5+6&&p.y>i.y-i.h+3&&p.y<i.y+12&&inv<=0){if(zen||lotus>0){i.dead=true;if(!zen)rescue('Камень');}else{rescue('Камень на пути');return;}}}
+  else if(['magnet','lotus','boost'].includes(i.kind)&&Math.hypot(dx,dy)<23){i.dead=true;burst(i.x,i.y,14,'#f4badc');if(i.kind==='magnet')magnet=count()>=15?12:8;if(i.kind==='lotus')lotus=count()>=36?14:9;if(i.kind==='boost'){boost=count()>=72?7:4;p.speed=Math.max(p.speed,165);}if(!zen){profile.stats[i.kind==='magnet'?'magnets':i.kind==='boost'?'boosts':'lotus']++;say(i.kind==='lotus'?'ЛОТОС / ЗАЩИТА':i.kind==='magnet'?'МАГНИТ / ЛОВИ МОНЕТЫ':'ПОТОК / УСКОРЕНИЕ');}}
+  else if(i.kind==='ramp'&&Math.abs(dx)<8&&p.ground){i.dead=true;jump();p.vy=-260;say(zen?'':'ТРАМПЛИН / ВРЕМЯ ДЛЯ ТРЮКА',1.5);}
+  else if(i.kind==='wind'&&Math.abs(dx)<i.w/2&&p.ground)p.speed=Math.min(180,p.speed+10*dt);
+ }
+ const newBiome=Math.floor(p.x/1200)%4;if(newBiome!==biome){oldBiome=biome;biome=newBiome;say(biomes[biome].name+' / '+biomes[biome].hint,3);}
+ if(!zen){score+=p.speed*dt*.12;profile.stats.distance=Math.max(profile.stats.distance,Math.floor(p.x/4));profile.best=Math.max(profile.best,Math.floor(p.x/4));if(uiTime>.5){uiTime=0;checkGoals();}}
+ cameraY+=(terrain(p.x)-312-cameraY)*Math.min(1,dt*4);trails.push({x:p.x,y:p.y,life:boost>0?.7:.28});if(trails.length>100)trails.shift();for(const t of trails)t.life-=dt;trails=trails.filter(t=>t.life>0);
+ for(const e of particles){e.x+=e.vx*dt;e.y+=e.vy*dt;e.vy+=90*dt;e.life-=dt;}particles=particles.filter(e=>e.life>0);items=items.filter(i=>!i.dead&&i.x>p.x-350);gaps=gaps.filter(q=>q.x+q.w>p.x-350);
+}
+function hud(){const playing=phase==='play';$('.nd-distance').textContent=zen?'ZEN':Math.floor((p?.x||0)/4)+' м';$('.nd-score').textContent=zen?'':Math.floor(score);$('.nd-coins').textContent=zen?'БЕЗ СПЕШКИ':'◆ '+coins;$('.nd-done').textContent=count()+' / 180';root.querySelector('footer button').hidden=zen&&phase==='play';$('.nd-biome').textContent=String(biome+1).padStart(2,'0')+' / '+biomes[biome].name;$('.nd-banner').textContent=toastT>0?toast:'';$('.nd-state').textContent=paused?'ПАУЗА':!playing?'СЛУШАЙ ПУСТЫНЮ':p.ground?'ТАП — И ТЫ В ВОЗДУХЕ':held?'↶ БЭКФЛИП / ОТПУСТИ ДЛЯ ПОСАДКИ':'ВЫРОВНЯЙ ДОСКУ К ЗЕМЛЕ';$('.nd-bonus').textContent=lotus>0?'ЛОТОС '+Math.ceil(lotus)+'s':magnet>0?'МАГНИТ '+Math.ceil(magnet)+'s':boost>0?'ПОТОК '+Math.ceil(boost)+'s':'';}
+function rect(x,y,w,h,c){g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));}
+function disc(x,y,r,c){g.fillStyle=c;for(let d=-r;d<=r;d++){let w=Math.floor(Math.sqrt(Math.max(0,r*r-d*d)));g.fillRect(Math.round(x-w),Math.round(y+d),w*2+1,1);}}
+function line(x,y,xx,yy,c,w=1){const d=Math.hypot(xx-x,yy-y);for(let j=0;j<d;j+=1.4)rect(x+(xx-x)*j/d,y+(yy-y)*j/d,w,w,c);}
+function palm(x,y,size,col){for(let i=0;i<size;i+=2)rect(x+Math.sin(i*.08)*3,y-i,2,3,col);const tx=x+Math.sin(size*.08)*3,ty=y-size;for(let j=0;j<5;j++)for(let k=0;k<17;k+=2){const a=-2.8+j*.65;rect(tx+Math.cos(a)*k,ty+Math.sin(a)*k+Math.pow(k/10,2),4,2,col);}}
+function ruin(x,y,h,col){rect(x,y-h,8,h,col);rect(x+28,y-h,8,h,col);rect(x-2,y-h-3,12,4,col);rect(x+26,y-h-3,12,4,col);rect(x+7,y-h-6,23,4,col);rect(x+12,y-h-10,13,4,col);for(let k=8;k<h;k+=9){rect(x+2,y-h+k,1,2,'#ac6d88');rect(x+30,y-h+k,1,2,'#ac6d88');}}
+function blendedBiome(){
+ const current=biomes[biome];if(!p||p.x<1200)return current;
+ const mix=Math.min(1,(p.x%1200)/170);if(mix===1)return current;const previous=biomes[(biome+3)%4];
+ const blend=(a,b)=>'#'+[1,3,5].map(i=>Math.round(parseInt(a.slice(i,i+2),16)*(1-mix)+parseInt(b.slice(i,i+2),16)*mix).toString(16).padStart(2,'0')).join('');
+ const result={...current,sky:current.sky.map((c,i)=>blend(previous.sky[i],c))};for(const k of ['far','mid','near','sand','edge','glow'])result[k]=blend(previous[k],current[k]);return result;
+}
+function draw(){const z=blendedBiome(),cam=(p?.x||0)-78,t=clock;g.imageSmoothingEnabled=false;
+ for(let y=0;y<H;y+=2){const band=y<75?0:y<160?1:y<240?2:3;rect(0,y,W,2,z.sky[band]);}
+ // Quiet stars, a huge crescent, distant dust and three parallax dune layers.
+ for(let i=0;i<53;i++){const x=((i*83.3-cam*.025)%W+W)%W,y=20+(i*43)%174;rect(x,y,i%11===0?2:1,1,i%3?'#b293bd':'#f4d3bb');if(i%17===0)rect(x,y-1,1,3,'#dbc3d0');}
+ const moonx=225-cam*.018%55;disc(moonx,96,29,z.glow);disc(moonx-12,87,28,z.sky[1]);for(let j=0;j<4;j++)rect(moonx+18+j*3,96+j*3,2,2,'#d391a1');
+ for(let layer=0;layer<3;layer++){const col=[z.far,z.mid,z.near][layer],base=[222,262,300][layer],amp=[32,27,23][layer],par=[.1,.24,.45][layer];for(let x=0;x<W;x+=2){const xx=x+cam*par;const y=base+Math.sin(xx/(92-layer*19)+layer)*amp+Math.sin(xx/151+2)*14;rect(x,y,2,H-y,col);if(layer===2&&x%12===0)rect(x,y+3,4,1,z.mid);}}
+ for(let j=Math.floor(cam*.22/180)-1;j<(cam*.22+W)/180+1;j++){let x=j*180-cam*.22,y=252+Math.sin(j)*10;if(biome===1)ruin(x,y,43,z.far);else if(biome===2){rect(x,y-62,17,79,z.far);rect(x-5,y-45,28,12,z.far);rect(x+22,y-34,11,60,z.far);}else if(biome===3){palm(x,y,42,z.far);palm(x+28,y+4,28,z.far);}else{line(x,y,x+45,y-22,z.far,2);line(x+45,y-22,x+54,y+9,z.far,2);}}
+ if(biome===3){rect(0,280,W,25,'#32677d');for(let i=0;i<25;i++)rect((i*29-cam*.3)%W,283+i%6*3,12,1,'#629b9d');}
+ for(const i of items)if(i.kind==='draft'&&i.x>cam-170&&i.x<cam+W){for(let k=0;k<12;k++){const xx=i.x-cam+k*12,yy=320-((t*55+k*23)%155)-cameraY*.12;rect(xx,yy,1,12,'#84b4d6');rect(xx+2,yy+3,1,5,'#6889ba');}}
+ for(let x=0;x<W;x+=2){const xx=x+cam,y=terrain(xx)-cameraY,gap=gapAt(xx);if(gap){rect(x,y+100,2,H-y,z.far);if(xx-gap.x<3||gap.x+gap.w-xx<3){rect(x,y,2,100,z.near);rect(x,y,2,3,z.edge);}continue;}rect(x,y,2,H-y,z.sand);rect(x,y,2,2,z.edge);for(let k=1;k<5;k++){const yy=y+12+k*17+Math.sin(xx/28+k)*4;if(yy<H)rect(x,yy,2,1,k%2?z.near:z.mid);}}
+ for(let j=Math.floor(cam/145)-1;j<(cam+W)/145+1;j++){const xx=j*145+45,x=xx-cam,y=terrain(xx)-cameraY;if(gapAt(xx))continue;if(biome===1){ruin(x,y,22+j%3*7,'#352346');}else if(biome===3){palm(x,y,29+j%3*5,'#172f46');}else if(biome===2){rect(x,y-10,4,10,'#656b9f');rect(x+2,y-17,3,9,'#a2aed0');}else{rect(x,y-6,2,6,'#252643');line(x,y-6,x-4,y-10,'#252643',2);line(x,y-4,x+5,y-8,'#252643',2);}}
+ for(const i of items){const x=i.x-cam,y=i.y-cameraY;if(x<-35||x>W+35||i.dead||i.kind==='draft')continue;if(i.kind==='rock'){rect(x-i.w/2,y-i.h+5,i.w,i.h-5,'#25213d');rect(x-i.w/2+3,y-i.h,i.w-6,6,'#4e3d62');rect(x-2,y-i.h+2,4,2,'#8c6288');}
+ else if(i.kind==='coin'){rect(x-2,y-4,4,8,'#e5a86f');rect(x-3,y-2,6,4,'#ffd08a');rect(x-1,y-3,1,3,'#fff0bc');}
+ else if(i.kind==='lotus'){rect(x-1,y-3,2,12,'#72a7a5');for(let j=-1;j<=1;j++){rect(x+j*4-2,y-8+Math.abs(j)*3,4,7,'#ed9bd0');rect(x+j*4-1,y-9+Math.abs(j)*3,2,2,'#f7c8dc');}rect(x-2,y-2,4,2,'#ffd08a');}
+ else if(i.kind==='magnet'){rect(x-5,y-7,3,12,'#bd8bdd');rect(x+3,y-7,3,12,'#bd8bdd');rect(x-3,y+3,7,3,'#f1bdd8');rect(x-5,y-7,3,3,'#ffe0b5');rect(x+3,y-7,3,3,'#ffe0b5');}
+ else if(i.kind==='boost'){for(let j=0;j<3;j++){rect(x+j*4-5,y-5+j*3,3,3,'#9fe8d8');rect(x+j*4-5,y+5-j*3,3,3,'#9fe8d8');}}
+ else if(i.kind==='ramp'){for(let k=0;k<22;k++)rect(x-12+k,y-k*.45,1,k*.45+2,'#bd7391');line(x-12,y,x+10,y-10,'#f3b08c',2);}
+ else if(i.kind==='wind'){for(let j=0;j<3;j++)line(x-25,y-j*5,x+15,y-j*5,'#ba78a8',1);}}
+ for(const tr of trails)if(tr.life>0){g.globalAlpha=Math.min(.65,tr.life*1.7);rect(tr.x-cam-6,tr.y-cameraY+1,7,boost>0?2:1,boost>0?z.glow:z.edge);}g.globalAlpha=1;
+ if(p){const x=p.x-cam,y=p.y-cameraY,rot=p.ground?Math.atan(slope(p.x)):p.rot;g.save();g.translate(Math.round(x),Math.round(y));g.rotate(rot);const col=character().color;if(lotus>0||inv>0){g.strokeStyle=lotus>0?'#e99cd2':'#f6d4a3';g.lineWidth=1;g.beginPath();g.arc(0,-10,18,0,TAU);g.stroke();}rect(-10,0,22,2,boost>0?'#ffda94':'#d9bdbd');rect(-12,-1,3,2,'#d9bdbd');rect(11,-2,3,3,'#f3d49b');rect(-4,-6,3,6,'#27203e');rect(2,-6,3,6,'#27203e');rect(-4,-15,9,10,col);rect(-2,-20,6,6,'#f3c6a1');rect(-4,-22,9,4,'#332640');rect(3,-18,2,1,'#39304b');rect(-5,-17,9,3,'#de789f');for(let j=0;j<4;j++)rect(-7-j*4,-16+Math.sin(t*12-j)*2,5,2,'#de789f');rect(4,-13,4,2,col);rect(6,-13,2,5,col);g.restore();}
+ for(const e of particles)rect(e.x-cam,e.y-cameraY,2,2,e.c);
+ // A few drifting luminous pixels are environmental, not collectibles.
+ for(let i=0;i<12;i++){const x=((i*37-cam*.7+t*3)%W+W)%W,y=150+(i*23)%160+Math.sin(t+i)*4;rect(x,y,1,1,biome===3?'#c9e6bb':'#a678aa');}
+}
+function pause(){if(phase==='play'&&!paused){paused=true;modal('<p class="nd-eyebrow">ВЕТЕР МОЖЕТ ПОДОЖДАТЬ</p><h3>ПАУЗА</h3><button data-do="resume" class="nd-primary">ПРОДОЛЖИТЬ</button><button data-do="menu" class="nd-quiet">МЕНЮ</button>');remember();}}
+root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const d=b.dataset;if(d.rider!==undefined){const i=+d.rider;if(riders[i]&&count()>=riders[i].unlock){profile.rider=i;remember();roster();}return;}switch(d.do){case'start':start(false);break;case'continue':resumeRun();break;case'board':board();break;case'invite':Hub.invite().catch(()=>{});break;case'exit':checkpoint();Hub.exit().then(ok=>{if(!ok)location.href='../../index.html';}).catch(()=>{});break;case'zen':start(true);break;case'menu':if(['play','goalsPlay'].includes(phase)){savedRun=snapshot();remember();}else remember();menu();break;case'pause':pause();break;case'resume':paused=false;hide();break;case'roster':roster();break;case'goals':if(phase==='play'&&zen){say('В ZEN НЕТ ЦЕЛЕЙ — ТОЛЬКО ПУТЬ');return;}goalsView();break;case'back':if(phase==='goalsPlay'){phase='play';paused=false;hide();}else menu();break;case'help':phase='help';modal('<h3>ПОЙМАЙ <em>РИТМ</em></h3><p>Тап по пустыне или пробел — прыжок.<br>Продолжай удерживать в воздухе,<br>чтобы вращаться назад.</p><p>Для одного бэкфлипа удерживай<br>примерно секунду и отпусти.<br>Приземляйся доской вниз.</p><p>Камни и пропасти заканчивают спуск.<br>Лотос защищает, магнит тянет монеты.<br>Удачный трюк даёт ускорение.</p><button data-do="menu" class="nd-primary">ПОПРОБОВАТЬ</button>');break;}});
+for(const target of [cv,$('.nd-action')]){target.addEventListener('pointerdown',e=>{e.preventDefault();if(phase!=='play'||paused)return;target.setPointerCapture(e.pointerId);press();});target.addEventListener('pointerup',release);target.addEventListener('pointercancel',release);target.addEventListener('lostpointercapture',release);}
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&phase==='play'&&!paused){e.preventDefault();if(!e.repeat)press();}if(e.key==='Escape')pause();});document.addEventListener('keyup',e=>{if(e.code==='Space')release();});window.addEventListener('blur',()=>{release();pause();});document.addEventListener('visibilitychange',()=>{if(document.hidden){release();pause();}});
+window.addEventListener('pagehide',checkpoint);document.addEventListener('visibilitychange',()=>{if(document.hidden)checkpoint();});
+async function boot(){
+ modal('<h3>NIGHT <em>DRIFT</em></h3><p>Подключение к Arcade Jar…</p>');
+ try{const r=await Hub.init('nightdrift');let local=null;try{local=JSON.parse(localStorage.getItem('nightdrift_state'));}catch(e){}
+ const data=r.data?.profile||r.data?.run?r.data:((r.env==='standalone'||r.env==='web')?local:null)||{};
+ profile=cleanProfile(data.run?.profile||data.profile);savedRun=validRun(data.run)?data.run:null;
+ ready=true;Hub.autosave(()=>{const run=snapshot();if(run){try{localStorage.setItem('nightdrift_state',JSON.stringify({profile:cleanProfile(profile),run}));}catch(e){}}return run;});menu();
+ }catch(e){modal('<h3>НЕТ СВЯЗИ</h3><p>Открой игру заново из Arcade Jar.</p>');console.warn('nightdrift init',e);}
+}
+
+function frame(ms){if(!root.isConnected)return;acc+=Math.min(.08,(ms-last)/1000||0);last=ms;let steps=0;while(acc>=1/120&&steps++<10){update(1/120);acc-=1/120;}draw();hud();requestAnimationFrame(frame);}menu();draw();boot();requestAnimationFrame(frame);
+if(globalThis.__NIGHT_TEST__)globalThis.__NIGHT_TEST__.api={start,update,press,release,jump,land,rescue,terrain,ground,goal,currentGoals,checkGoals,snapshot,validRun,resumeRun,cleanProfile,get:()=>({p,phase,zen,profile,items,gaps,score,coins,flips,boost,lotus,magnet,biome}),setReady:()=>{ready=true;},setSavedRun:s=>{savedRun=s;},setShield:v=>{lotus=v;},setRider:n=>{profile.rider=n;},setHeld:v=>{held=v;holdTime=1;},setRotation:v=>{p.rot=v;}};
+})();
+</script>
+
+</body></html>
