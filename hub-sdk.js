@@ -69,7 +69,8 @@
         .catch(e => { console.warn('hub init', e); return this._result(); });
     }
     save(data){ this.s.data = Object.assign({}, this.s.data, data || {}); this._persist();
-      if (this.remote) this._call('save', { data }).catch(e => console.warn('hub save', e));
+      if (this.remote) return this._call('save', { data }).then(() => true)
+        .catch(e => { console.warn('hub save', e); return false; });
       return true; }
     // сервер сам ограничивает скорость начисления (см. hub_earn в schema.sql)
     earn(n){ n = Math.max(0, n|0); this.s.coins += n; this._persist();
@@ -157,3 +158,4 @@
     clearRun: () => { lastSnap = ''; return call('save', [{ run: null }]); },
   };
 })();
+
