@@ -283,6 +283,8 @@ const ARROW = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke
 
 const GENRES = { all:'Все', platform:'Платформеры', puzzle:'Головоломки', arcade:'Аркады' };
 const GAMES = [
+  { id:'riftboots', title:'RIFT BOOTS', genre:'platform', status:'live', src:'games/riftboots/index.html',
+    blurb:'Падай в кристальную шахту: стреляй ботинками, топчи врагов и собирай комбо. 4 зоны, 12 этажей и перки.' },
   { id:'skyhoop', title:'SKYHOOP', genre:'platform', status:'live', src:'games/skyhoop/index.html',
     blurb:'Прыгай всё выше, собирай монеты и открывай 23 фона и 42 героя.' },
   { id:'pixelrun', title:'PIXEL RUN', genre:'platform', status:'live', src:'games/pixelrun/index.html',
@@ -320,6 +322,35 @@ const cR = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Ma
 const cDisc = (g, cx, cy, r, c) => { g.fillStyle = c; r = Math.max(1, Math.round(r)); cx = Math.round(cx); cy = Math.round(cy); for (let dy = -r; dy <= r; dy++){ const hw = Math.floor(Math.sqrt(r * r - dy * dy + r * 0.5)); g.fillRect(cx - hw, cy + dy, hw * 2 + 1, 1); } };
 const cOval = (g, cx, cy, rx, ry, c) => { g.fillStyle = c; ry = Math.max(1, Math.round(ry)); for (let dy = -ry; dy <= ry; dy++){ const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy / (ry + .5)) ** 2))); g.fillRect(Math.round(cx - hw), Math.round(cy + dy), hw * 2 + 1, 1); } };
 function cSparkle(g, x, y, s, c){ cR(g, x - s, y, s * 2 + 1, 1, c); cR(g, x, y - s, 1, s * 2 + 1, c); }
+function coverRiftBoots(g, w, h){
+  cR(g, 0, 0, w, h, '#101c29');
+  const u = Math.min(w / 96, h / 64);
+  for (let side = 0; side < 2; side++){
+    const x = side ? w - 12 * u : 0;
+    cR(g, x, 0, 12 * u, h, '#294451');
+    for (let y = 0; y < h; y += 10 * u){
+      cR(g, x, y, 12 * u, u, '#142632');
+      cR(g, x + (side ? 0 : 10 * u), y + 3 * u, 2 * u, 4 * u, '#87f4c5');
+    }
+  }
+  cR(g, 12 * u, h * .68, 18 * u, 3 * u, '#638589');
+  cR(g, w - 32 * u, h * .35, 20 * u, 3 * u, '#638589');
+  const x = w * .49, y = h * .2;
+  cR(g, x, y, 12 * u, 13 * u, '#c67d61');
+  cR(g, x + u, y + 3 * u, 10 * u, 5 * u, '#142632');
+  for (const dx of [3, 8]) cR(g, x + dx * u, y + 4 * u, 2 * u, 2 * u, '#87f4c5');
+  for (const dx of [0, 8]){
+    cR(g, x + dx * u, y + 13 * u, 4 * u, 5 * u, '#87f4c5');
+    cR(g, x + dx * u + u, y + 19 * u, 2 * u, 8 * u, '#ffca83');
+  }
+  for (let i = 0; i < 5; i++){
+    const gx = w * (.26 + i * .105), gy = h * (.8 - (i % 2) * .18);
+    cR(g, gx + u, gy, 2 * u, 6 * u, '#87f4c5');
+    cR(g, gx, gy + 2 * u, 4 * u, 2 * u, '#87f4c5');
+  }
+  cR(g, w * .7, h * .7, 10 * u, 6 * u, '#b39be0');
+  cR(g, w * .7 + 2 * u, h * .7 + 2 * u, u, u, '#142632');
+}
 function coverFish(g, w, h){
   for (let y = 0; y < h; y++){ const k = y / h; cR(g, 0, y, w, 1, `rgb(${Math.round(130 - 80 * k)},${Math.round(215 - 70 * k)},${Math.round(245 - 40 * k)})`); }
   g.fillStyle = 'rgba(255,255,255,.1)'; for (const x of [w * .2, w * .55, w * .85]){ g.beginPath(); g.moveTo(x, 0); g.lineTo(x + w * .08, 0); g.lineTo(x - w * .1, h); g.lineTo(x - w * .2, h); g.fill(); }
@@ -495,7 +526,7 @@ const COVERS = {
     for (const [x,y] of pts.slice(1)){ let guard = 200; while ((Math.abs(x-px) >= 3 || Math.abs(y-py) >= 3) && guard--){ g.fillRect(px, py, 3, 3); if (Math.abs(x-px) >= 3) px += Math.sign(x-px)*3; else if (Math.abs(y-py) >= 3) py += Math.sign(y-py)*3; } px = x; py = y; }
     g.fillRect(w-20, 44, 3, 3); },
 };
-Object.assign(COVERS, { fish: coverFish, grill: coverGrill, shell: coverShell, crypt: coverCrypt, nova: coverNova });
+Object.assign(COVERS, { riftboots: coverRiftBoots, fish: coverFish, grill: coverGrill, shell: coverShell, crypt: coverCrypt, nova: coverNova });
 function cover(id, w, h, cls){ const c = document.createElement('canvas'); c.width = w; c.height = h; c.className = 'cover' + (cls ? ' ' + cls : '');
   (COVERS[id] || COVERS.gems)(c.getContext('2d'), w, h); return c; }
 
@@ -673,3 +704,4 @@ if (sp){ const [gid, ref] = sp.split('__'); openGame(gid, ref && ref.replace('re
 </script>
 </body>
 </html>
+
